@@ -4,23 +4,77 @@
   <meta charset="UTF-8">
   <title>pchednode</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    select, button { margin: 10px 0; padding: 5px; }
-    pre { background: #f4f4f4; padding: 10px; border-radius: 5px; white-space: pre-wrap; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #fefee0, #e0f7ff);
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      position: relative;
+      background-color: #ffffffcc;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #333;
+    }
+
+    #logo {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 80px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    label, select, button {
+      font-size: 1em;
+      margin: 10px 0;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #ffffe0;
+      color: #333;
+    }
+
+    select:hover, button:hover {
+      background-color: #e0f7ff;
+    }
+
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
-  <h1>pchednode RPC viewer for Xandeum Network DevNet</h1>
+  <header>
+    pchednode RPC viewer for Xandeum Network DevNet
+    <img src="pched.jpg" alt="Logo" id="logo">
+  </header>
 
-  <label for="rpcSelector">Choose RPC Server:</label>
-  <select id="rpcSelector">
-    <option value="https://rpc1.pchednode.com/rpc">RPC Server 1</option>
-    <option value="https://rpc2.pchednode.com/rpc">RPC Server 2</option>
-  </select>
+  <main>
+    <label for="rpcSelector">Choose RPC Server:</label>
+    <select id="rpcSelector">
+      <option value="https://rpc1.pchednode.com/rpc">RPC Server 1</option>
+      <option value="https://rpc2.pchednode.com/rpc">RPC Server 2</option>
+    </select>
 
-  <button onclick="sendRpcRequest()">Send RPC Request</button>
+    <button onclick="sendRpcRequest()">Send RPC Request</button>
 
-  <pre id="output">Waiting for response...</pre>
+    <pre id="output">Waiting for response...</pre>
+  </main>
 
   <script>
     function sendRpcRequest() {
