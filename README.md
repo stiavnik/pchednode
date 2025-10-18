@@ -4,9 +4,7 @@ This project is a simple web interface for querying custom RPC servers and viewi
 
 ## Features
 
-- Select between two RPC endpoints:
-  - `38.242.244.211:5999`
-  - `213.199.44.36:5999`
+- Select between two RPC endpoints
 - Sends a JSON-RPC request (`get-pods`) and displays the response
 - Designed to be hosted on [Cloudflare Pages](https://pages.cloudflare.com/)
 - Future plans:
