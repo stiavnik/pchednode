@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>pchednode</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    select, button { margin: 10px 0; padding: 5px; }
+    pre { background: #f4f4f4; padding: 10px; border-radius: 5px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>pchednode</h1>
+
+  <label for="rpcSelector">Choose RPC Server:</label>
+  <select id="rpcSelector">
+    <option value="http://38.242.244.211:5999/rpc">RPC Server 1</option>
+    <option value="http://213.199.44.36:5999/rpc">RPC Server 2</option>
+  </select>
+
+  <button onclick="sendRpcRequest()">Send RPC Request</button>
+
+  <pre id="output">Waiting for response...</pre>
+
+  <script>
+    function sendRpcRequest() {
+      const rpcUrl = document.getElementById("rpcSelector").value;
+
+      fetch(rpcUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "get-pods",
+          id: 1
+        })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Network response was not ok: " + response.statusText);
+        return response.json();
+      })
+      .then(data => {
+        document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+      })
+      .catch(error => {
+        document.getElementById("output").textContent = "Error: " + error;
+      });
+    }
+  </script>
+</body>
+</html>
