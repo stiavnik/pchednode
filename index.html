@@ -157,6 +157,7 @@
           filteredPods = pods.filter(pod => pod.version === filterValue);
         }
 
+		filteredPods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
         podCount.textContent = filteredPods.length;
 
         if (filteredPods.length === 0) {
