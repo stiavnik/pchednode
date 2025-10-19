@@ -117,7 +117,7 @@
       <option value="https://rpc4.pchednode.com/rpc">DevNet 4</option>
     </select>
 
-    <button onclick="sendRpcRequest()">Send RPC Request</button>
+    <button id="loadButton" onclick="sendRpcRequest()">LOAD</button>
 
     <div id="filterBar">
       <div style="font-weight: bold;">Pods: <span id="podCount">0</span></div>
@@ -131,6 +131,8 @@
   <footer>(c) 2025 Substance242</footer>
 
   <script>
+    let hasLoadedOnce = false;
+
     function formatRelativeTime(timestamp) {
       const now = Math.floor(Date.now() / 1000);
       const diff = now - timestamp;
@@ -140,7 +142,26 @@
       return { text: `${Math.floor(diff / 3600)} hours ago`, class: "stale" };
     }
 
+    function markLoadButton() {
+      const btn = document.getElementById("loadButton");
+      btn.style.backgroundColor = "#ffe066";
+      btn.style.boxShadow = "0 0 8px #ffcc00";
+    }
+
+    function clearLoadButtonHighlight() {
+      const btn = document.getElementById("loadButton");
+      btn.style.backgroundColor = "";
+      btn.style.boxShadow = "";
+    }
+
     async function sendRpcRequest() {
+      const btn = document.getElementById("loadButton");
+      if (!hasLoadedOnce) {
+        btn.textContent = "RELOAD";
+        hasLoadedOnce = true;
+      }
+      clearLoadButtonHighlight();
+
       const rpcUrl = document.getElementById("rpcSelector").value;
       const rpcHost = new URL(rpcUrl).hostname;
       const geoBase = `https://${rpcHost}/geo`;
@@ -226,6 +247,11 @@
       tableHTML += "</tbody></table>";
       output.innerHTML = tableHTML;
     }
+
+    window.addEventListener("load", markLoadButton);
+    document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
+    document.getElementById("versionFilterToggle").addEventListener("change", markLoadButton);
+    document.getElementById("version
   </script>
 </body>
 </html>
