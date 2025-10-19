@@ -116,87 +116,119 @@
     <div id="output">Waiting for response...</div>
   </main>
 
-  <script>
-    function formatRelativeTime(timestamp) {
-      const now = Math.floor(Date.now() / 1000);
-      const diff = now - timestamp;
+	<script>
+	  function formatRelativeTime(timestamp) {
+		  const now = Math.floor(Date.now() / 1000);
+		  const diff = now - timestamp;
 
-      if (diff < 60) return { text: `${diff} seconds ago`, class: "fresh" };
-      if (diff < 3600) return { text: `${Math.floor(diff / 60)} minutes ago`, class: "recent" };
-      return { text: `${Math.floor(diff / 3600)} hours ago`, class: "stale" };
-    }
+		  if (diff < 60)
+			  return {
+				  text: `${diff} seconds ago`,
+				  class: "fresh"
+			  };
+		  if (diff < 3600)
+			  return {
+				  text: `${Math.floor(diff / 60)} minutes ago`,
+				  class: "recent"
+			  };
+		  return {
+			  text: `${Math.floor(diff / 3600)} hours ago`,
+			  class: "stale"
+		  };
+	  }
 
-    function sendRpcRequest() {
-      const rpcUrl = document.getElementById("rpcSelector").value;
+	  async function sendRpcRequest() {
+		  const rpcUrl = document.getElementById("rpcSelector").value;
+		  const rpcHost = new URL(rpcUrl).hostname;
+		  const geoBase = `https://${rpcHost}/geo`;
 
-      fetch(rpcUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "get-pods",
-          id: 1
-        })
-      })
-      .then(response => {
-        if (!response.ok) throw new Error("Network response was not ok: " + response.statusText);
-        return response.json();
-      })
-      .then(data => {
-        const pods = data.result?.pods || [];
-        const output = document.getElementById("output");
-        const podCount = document.getElementById("podCount");
-        const filterToggle = document.getElementById("versionFilterToggle");
-        const filterValue = document.getElementById("versionFilterValue").value.trim();
+		  const response = await fetch(rpcUrl, {
+			  method: "POST",
+			  headers: {
+				  "Content-Type": "application/json"
+			  },
+			  body: JSON.stringify({
+				  jsonrpc: "2.0",
+				  method: "get-pods",
+				  id: 1
+			  })
+		  });
 
-        let filteredPods = pods;
+		  if (!response.ok) {
+			  document.getElementById("output").innerHTML = "Error: " + response.statusText;
+			  return;
+		  }
 
-        if (filterToggle.checked && filterValue !== "") {
-          filteredPods = pods.filter(pod => pod.version === filterValue);
-        }
+		  const data = await response.json();
+		  const pods = data.result?.pods || [];
+		  const output = document.getElementById("output");
+		  const podCount = document.getElementById("podCount");
+		  const filterToggle = document.getElementById("versionFilterToggle");
+		  const filterValue = document.getElementById("versionFilterValue").value.trim();
 
-		filteredPods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
-        podCount.textContent = filteredPods.length;
+		  let filteredPods = pods;
+		  if (filterToggle.checked && filterValue !== "") {
+			  filteredPods = pods.filter(pod => pod.version === filterValue);
+		  }
 
-        if (filteredPods.length === 0) {
-          output.innerHTML = "<p>No pods found.</p>";
-          return;
-        }
+		  filteredPods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
+		  podCount.textContent = filteredPods.length;
 
-        let tableHTML = `
-          <table>
-            <thead>
-              <tr>
-                <th>IP Address</th>
-                <th>Last Seen</th>
-                <th>Version</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
+		  if (filteredPods.length === 0) {
+			  output.innerHTML = "<p>No pods found.</p>";
+			  return;
+		  }
 
-        filteredPods.forEach(pod => {
-          const ip = pod.address.split(":")[0];
-          const lastSeen = formatRelativeTime(pod.last_seen_timestamp);
+		  const ipCache = {};
+		  let tableHTML = `
+		  <table>
+			<thead>
+			  <tr>
+				<th>IP Address</th>
+				<th>Country</th>
+				<th>Last Seen</th>
+				<th>Version</th>
+			  </tr>
+			</thead>
+			<tbody>
+		`;
 
-          tableHTML += `
-            <tr>
-              <td>${ip}</td>
-              <td class="${lastSeen.class}">${lastSeen.text}</td>
-              <td>${pod.version}</td>
-            </tr>
-          `;
-        });
+		  for (const pod of filteredPods) {
+			  const ip = pod.address.split(":")[0];
+			  const lastSeen = formatRelativeTime(pod.last_seen_timestamp);
+			  const country = ipCache[ip] || "Loading...";
 
-        tableHTML += "</tbody></table>";
-        output.innerHTML = tableHTML;
-      })
-      .catch(error => {
-        document.getElementById("output").innerHTML = "Error: " + error;
-      });
-    }
-  </script>
+			  tableHTML += `
+			<tr>
+			  <td>${ip}</td>
+			  <td id="country-${ip}">${country}</td>
+			  <td class="${lastSeen.class}">${lastSeen.text}</td>
+			  <td>${pod.version}</td>
+			</tr>
+		  `;
+
+			  if (!ipCache[ip]) {
+				  fetch(`${geoBase}?ip=${ip}`)
+				  .then(res => res.json())
+				  .then(data => {
+					  ipCache[ip] = data.country || "Unknown";
+					  const cell = document.getElementById(`country-${ip}`);
+					  if (cell)
+						  cell.textContent = ipCache[ip];
+				  })
+				  .catch(() => {
+					  ipCache[ip] = "Error";
+					  const cell = document.getElementById(`country-${ip}`);
+					  if (cell)
+						  cell.textContent = "Error";
+				  });
+			  }
+		  }
+
+		  tableHTML += "</tbody></table>";
+		  output.innerHTML = tableHTML;
+	  }
+	</script>
+
 </body>
 </html>
