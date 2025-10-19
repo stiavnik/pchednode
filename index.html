@@ -208,19 +208,20 @@
 		  `;
 
 			  if (!ipCache[ip]) {
-				  fetch(`${geoBase}?ip=${ip}`)
+				fetch(`${geoBase}?ip=${ip}`)
 				  .then(res => res.json())
 				  .then(data => {
-					  ipCache[ip] = data.country || "Unknown";
-					  const cell = document.getElementById(`country-${ip}`);
-					  if (cell)
-						  cell.textContent = ipCache[ip];
+					console.log("Geo response for", ip, data); // <-- Add this
+					const country = data.country || data.country_long || "Unknown";
+					ipCache[ip] = country;
+					const cell = document.getElementById(`country-${ip}`);
+					if (cell) cell.textContent = country;
 				  })
-				  .catch(() => {
-					  ipCache[ip] = "Error";
-					  const cell = document.getElementById(`country-${ip}`);
-					  if (cell)
-						  cell.textContent = "Error";
+				  .catch(err => {
+					console.error("Geo fetch error for", ip, err);
+					ipCache[ip] = "Error";
+					const cell = document.getElementById(`country-${ip}`);
+					if (cell) cell.textContent = "Error";
 				  });
 			  }
 		  }
