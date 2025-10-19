@@ -95,58 +95,66 @@
   </main>
 
   <script>
-    function sendRpcRequest() {
-        const rpcUrl = document.getElementById("rpcSelector").value;
+	function sendRpcRequest() {
+		const rpcUrl = document.getElementById("rpcSelector").value;
 
-        fetch(rpcUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                jsonrpc: "2.0",
-                method: "get-pods",
-                id: 1
-            })
-        })
-        .then(data => {
-            const pods = data.result?.pods || [];
-            const output = document.getElementById("output");
+		fetch(rpcUrl, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				jsonrpc: "2.0",
+				method: "get-pods",
+				id: 1
+			})
+		})
+		.then(response => {
+			if (!response.ok)
+				throw new Error("Network response was not ok: " + response.statusText);
+			return response.json();
+		})
+		.then(data => {
+			const pods = data.result?.pods || [];
+			const output = document.getElementById("output");
 
-            if (pods.length === 0) {
-                output.innerHTML = "<p>No pods found.</p>";
-                return;
-            }
+			if (pods.length === 0) {
+				output.innerHTML = "<p>No pods found.</p>";
+				return;
+			}
 
-            let tableHTML = `
-		<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; background-color: #fff;">
-		  <thead>
-			<tr style="background-color: #e0f7ff;">
-			  <th>IP Address</th>
-			  <th>Last Seen</th>
-			  <th>Timestamp</th>
-			  <th>Version</th>
-			</tr>
-		  </thead>
-		  <tbody>
-	  `;
-
-            pods.forEach(pod => {
-                const ip = pod.address.split(":")[0];
-                tableHTML += `
-		  <tr>
-			<td>${ip}</td>
-			<td>${pod.last_seen}</td>
-			<td>${pod.last_seen_timestamp}</td>
-			<td>${pod.version}</td>
-		  </tr>
+			let tableHTML = `
+		  <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; background-color: #fff;">
+			<thead>
+			  <tr style="background-color: #e0f7ff;">
+				<th>IP Address</th>
+				<th>Last Seen</th>
+				<th>Timestamp</th>
+				<th>Version</th>
+			  </tr>
+			</thead>
+			<tbody>
 		`;
-            });
 
-            tableHTML += "</tbody></table>";
-            output.innerHTML = tableHTML;
-        });
-    }
+			pods.forEach(pod => {
+				const ip = pod.address.split(":")[0];
+				tableHTML += `
+			<tr>
+			  <td>${ip}</td>
+			  <td>${pod.last_seen}</td>
+			  <td>${pod.last_seen_timestamp}</td>
+			  <td>${pod.version}</td>
+			</tr>
+		  `;
+			});
+
+			tableHTML += "</tbody></table>";
+			output.innerHTML = tableHTML;
+		})
+		.catch(error => {
+			document.getElementById("output").innerHTML = "Error: " + error;
+		});
+	}
   </script>
 </body>
 </html>
