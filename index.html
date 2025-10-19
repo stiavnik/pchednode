@@ -83,6 +83,10 @@
       background-color: #fffff8;
       padding: 6px;
     }
+
+    .fresh { color: green; font-weight: bold; }
+    .recent { color: orange; font-weight: bold; }
+    .stale { color: red; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -112,6 +116,15 @@
   </main>
 
   <script>
+    function formatRelativeTime(timestamp) {
+      const now = Math.floor(Date.now() / 1000);
+      const diff = now - timestamp;
+
+      if (diff < 60) return { text: `${diff} seconds ago`, class: "fresh" };
+      if (diff < 3600) return { text: `${Math.floor(diff / 60)} minutes ago`, class: "recent" };
+      return { text: `${Math.floor(diff / 3600)} hours ago`, class: "stale" };
+    }
+
     function sendRpcRequest() {
       const rpcUrl = document.getElementById("rpcSelector").value;
 
@@ -156,7 +169,6 @@
               <tr>
                 <th>IP Address</th>
                 <th>Last Seen</th>
-                <th>Timestamp</th>
                 <th>Version</th>
               </tr>
             </thead>
@@ -165,11 +177,12 @@
 
         filteredPods.forEach(pod => {
           const ip = pod.address.split(":")[0];
+          const lastSeen = formatRelativeTime(pod.last_seen_timestamp);
+
           tableHTML += `
             <tr>
               <td>${ip}</td>
-              <td>${pod.last_seen}</td>
-              <td>${pod.last_seen_timestamp}</td>
+              <td class="${lastSeen.class}">${lastSeen.text}</td>
               <td>${pod.version}</td>
             </tr>
           `;
