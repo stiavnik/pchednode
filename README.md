@@ -4,13 +4,11 @@ This project is a simple web interface for querying custom RPC servers and viewi
 
 ## Features
 
-- Select between two RPC endpoints
+- Select between four RPC endpoints
 - Sends a JSON-RPC request (`get-pods`) and displays the response
 - Designed to be hosted on [Cloudflare Pages](https://pages.cloudflare.com/)
 - Future plans:
-  - Filter pods by disk space or other metrics
-  - Display pod locations on a world map
-  - Add visualizations and sorting
+  - Filter and sort pods by disk space, staked amount, and reliability score
 
 ## Deployment
 
