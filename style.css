@@ -1,0 +1,95 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to bottom right, #fefee0, #e0f7ff);
+  margin: 0;
+  padding: 0;
+  position: relative;
+  min-height: 100vh;
+}
+
+header {
+  position: relative;
+  background-color: #ffffffcc;
+  padding: 20px;
+  text-align: left;
+  font-size: 1.8em;
+  font-weight: bold;
+  color: #333;
+}
+
+#logo {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 160px;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
+}
+
+main {
+  padding: 20px;
+  padding-bottom: 60px; /* space for footer */
+}
+
+label, select, button, input {
+  font-size: 1em;
+  margin: 10px 5px 10px 0;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #ffffe0;
+  color: #333;
+}
+
+select:hover, button:hover, input:hover {
+  background-color: #e0f7ff;
+}
+
+#filterBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+#output {
+  margin-top: 10px;
+  background: #f4f4f4;
+  padding: 10px;
+  border-radius: 5px;
+  font-family: monospace;
+}
+
+table {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  font-size: 0.95em;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  background-color: #e0f7ff;
+  padding: 6px;
+}
+
+td {
+  background-color: #fffff8;
+  padding: 6px;
+  vertical-align: middle;
+}
+
+.fresh { color: green; font-weight: bold; }
+.recent { color: orange; font-weight: bold; }
+.stale { color: red; font-weight: bold; }
+
+footer {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 0.8em;
+  color: #888;
+}
