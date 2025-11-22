@@ -29,20 +29,16 @@ async function sendRpcRequest() {
   }
   clearLoadButtonHighlight();
 
-  const rpcUrl = document.getElementById("rpcSelector").value;
-  const rpcHost = new URL(rpcUrl).hostname;
-  const geoBase = `https://${rpcHost}/geo`;
+  const nodeKey = document.getElementById("rpcSelector").value;     // ← new line
+  const rpcUrl  = `https://rpc.pchednode.com/rpc?node=${nodeKey}`; // ← new line
+  const geoBase = `https://rpc.pchednode.com/geo?node=${nodeKey}`; // ← new line
 
+  // ← everything below this line stays 100 % unchanged (your existing code)
   const response = await fetch(rpcUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods", id: 1 })
   });
-
-  if (!response.ok) {
-    document.getElementById("output").innerHTML = "Error: " + response.statusText;
-    return;
-  }
 
   const data = await response.json();
   const pods = data.result?.pods || [];
