@@ -6,55 +6,10 @@
     <title>pchednode RPC Viewer</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Custom styles for appearance */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        #output table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 8px; /* Space between rows */
-        }
-        #output thead th {
-            text-align: left;
-            padding: 8px 16px;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #6b7280; /* Gray-500 */
-        }
-        #output tbody tr {
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            transition: all 0.2s;
-        }
-        #output tbody tr:hover {
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transform: translateY(-1px);
-        }
-        #output tbody td {
-            padding: 12px 16px;
-            border: none;
-            font-size: 0.9rem;
-            color: #1f2937; /* Gray-800 */
-        }
-        .fresh { color: #10b981; font-weight: 600; } /* Green-500 */
-        .recent { color: #f59e0b; } /* Amber-500 */
-        .stale { color: #ef4444; } /* Red-500 */
-        
-        /* Highlighting known server rows */
-        .known-server {
-            background-color: #f0fdf4 !important; /* Green-50 (Changed to match green theme) */
-            border-left: 4px solid #10b981; /* Emerald-500 */
-        }
-        .known-server td {
-            font-weight: 600;
-        }
-    </style>
+    <!-- Load Custom CSS -->
+    <link rel="stylesheet" href="style.css">
 </head>
-<!-- Added bg-gradient-to-br from-green-50 to-emerald-100 -->
+<!-- Gradient background: Light green to emerald -->
 <body class="p-4 md:p-8 bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen">
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
@@ -95,6 +50,7 @@
                 </div>
             </div>
 
+            <!-- Output Container -->
             <div id="output" class="p-4 bg-white/60 backdrop-blur-sm rounded-lg shadow-xl text-center min-h-[200px]">
                 <p class="text-gray-500 mt-8">Click LOAD to fetch pod data...</p>
             </div>
