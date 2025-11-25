@@ -163,8 +163,22 @@ async function sendRpcRequest() {
     output.innerHTML = tableHTML;
 }
 
+// Security: Obfuscate email to prevent bot scraping
+function setupEmailObfuscation() {
+    const nickElement = document.getElementById("footer-nick");
+    if (nickElement) {
+        const part1 = "hlasenie-pchednode";
+        const part2 = "yahoo.com"; // <-- CHANGE THIS to your actual domain
+        
+        nickElement.addEventListener("click", () => {
+            window.location.href = `mailto:${part1}@${part2}`;
+        });
+    }
+}
+
 // Event Listeners
 window.addEventListener("load", markLoadButton);
+window.addEventListener("load", setupEmailObfuscation); // Add email security
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterToggle").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterValue").addEventListener("input", markLoadButton);
