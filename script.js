@@ -1,121 +1,173 @@
 let hasLoadedOnce = false;
 
 function formatRelativeTime(timestamp) {
-  const now = Math.floor(Date.now() / 1000);
-  const diff = now - timestamp;
+    const now = Math.floor(Date.now() / 1000);
+    const diff = now - timestamp;
 
-  if (diff < 60) return { text: `${diff} seconds ago`, class: "fresh" };
-  if (diff < 3600) return { text: `${Math.floor(diff / 60)} minutes ago`, class: "recent" };
-  return { text: `${Math.floor(diff / 3600)} hours ago`, class: "stale" };
+    if (diff < 60) return { text: `${diff} seconds ago`, class: "fresh" };
+    if (diff < 3600) return { text: `${Math.floor(diff / 60)} minutes ago`, class: "recent" };
+    return { text: `${Math.floor(diff / 3600)} hours ago`, class: "stale" };
 }
 
 function markLoadButton() {
-  const btn = document.getElementById("loadButton");
-  btn.style.backgroundColor = "#ffe066";
-  btn.style.boxShadow = "0 0 8px #ffcc00";
+    const btn = document.getElementById("loadButton");
+    btn.classList.add("bg-yellow-500", "shadow-yellow-400/70");
+    btn.classList.remove("bg-indigo-600");
+    btn.textContent = "RELOAD";
 }
 
 function clearLoadButtonHighlight() {
-  const btn = document.getElementById("loadButton");
-  btn.style.backgroundColor = "";
-  btn.style.boxShadow = "";
+    const btn = document.getElementById("loadButton");
+    btn.classList.remove("bg-yellow-500", "shadow-yellow-400/70");
+    btn.classList.add("bg-indigo-600");
 }
 
 async function sendRpcRequest() {
-  const btn = document.getElementById("loadButton");
-  if (!hasLoadedOnce) {
-    btn.textContent = "RELOAD";
-    hasLoadedOnce = true;
-  }
-  clearLoadButtonHighlight();
+    const btn = document.getElementById("loadButton");
+    if (!hasLoadedOnce) {
+        btn.textContent = "RELOAD";
+        hasLoadedOnce = true;
+    }
+    clearLoadButtonHighlight();
 
-  const rpcUrl = document.getElementById("rpcSelector").value;
-  const rpcHost = new URL(rpcUrl).hostname;
-  const geoBase = `https://${rpcHost}/geo`;
+    const rpcUrl = document.getElementById("rpcSelector").value;
+    const rpcHost = new URL(rpcUrl).hostname;
+    const geoBase = `https://${rpcHost}/geo`;
 
-  const response = await fetch(rpcUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods", id: 1 })
-  });
+    const output = document.getElementById("output");
+    output.innerHTML = '<p class="text-center text-indigo-600 font-semibold">Loading pod list...</p>';
 
-  if (!response.ok) {
-    document.getElementById("output").innerHTML = "Error: " + response.statusText;
-    return;
-  }
+    let response;
+    try {
+        response = await fetch(rpcUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods", id: 1 })
+        });
+    } catch (e) {
+        output.innerHTML = `<p class="text-red-500">Network Error: Could not reach ${rpcUrl}.</p>`;
+        return;
+    }
 
-  const data = await response.json();
-  const pods = data.result?.pods || [];
-  const output = document.getElementById("output");
-  const podCount = document.getElementById("podCount");
-  const filterToggle = document.getElementById("versionFilterToggle");
-  const filterValue = document.getElementById("versionFilterValue").value.trim();
+    if (!response.ok) {
+        output.innerHTML = `<p class="text-red-500">Error: RPC returned status ${response.status} (${response.statusText}).</p>`;
+        return;
+    }
 
-  let filteredPods = pods;
-  if (filterToggle.checked && filterValue !== "") {
-    filteredPods = pods.filter(pod => pod.version === filterValue);
-  }
+    const data = await response.json();
+    const pods = data.result?.pods || [];
+    const podCount = document.getElementById("podCount");
+    const filterToggle = document.getElementById("versionFilterToggle");
+    const filterValue = document.getElementById("versionFilterValue").value.trim();
 
-  filteredPods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
-  podCount.textContent = filteredPods.length;
+    let filteredPods = pods;
+    if (filterToggle.checked && filterValue !== "") {
+        filteredPods = pods.filter(pod => pod.version === filterValue);
+    }
 
-  if (filteredPods.length === 0) {
-    output.innerHTML = "<p>No pods found.</p>";
-    return;
-  }
+    filteredPods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
+    podCount.textContent = filteredPods.length;
 
-  const ipCache = {};
-  let tableHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>IP Address</th>
-          <th>Country</th>
-          <th>Last Seen</th>
-          <th>Version</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
+    if (filteredPods.length === 0) {
+        output.innerHTML = "<p class='text-gray-500'>No pods found matching the filter criteria.</p>";
+        return;
+    }
 
-  for (const pod of filteredPods) {
-    const ip = pod.address.split(":")[0];
-    const lastSeen = formatRelativeTime(pod.last_seen_timestamp);
-    const country = ipCache[ip] || "Loading...";
-
-    tableHTML += `
-      <tr>
-        <td>${ip}</td>
-        <td id="country-${ip}">${country}</td>
-        <td class="${lastSeen.class}">${lastSeen.text}</td>
-        <td>${pod.version}</td>
-      </tr>
+    // Cache to store IP info (Country, Name) to avoid duplicate lookups
+    const ipCache = {};
+    let tableHTML = `
+        <table class="min-w-full">
+            <thead>
+                <tr>
+                    <th class="rounded-tl-lg">Name</th> 
+                    <th>IP Address</th>
+                    <th>Country</th>
+                    <th>Last Seen</th>
+                    <th class="rounded-tr-lg">Version</th>
+                </tr>
+            </thead>
+            <tbody>
     `;
 
-    if (!ipCache[ip]) {
-      fetch(`${geoBase}?ip=${ip}`)
-        .then(res => res.json())
-        .then(data => {
-          const code = data.country_code?.toLowerCase() || "";
-          const name = data.country || "Unknown";
-          const flag = code ? `<img src="https://flagcdn.com/16x12/${code}.png" alt="${code}" style="margin-right:4px;">` : "";
-          ipCache[ip] = `${flag}${name}`;
-          const cell = document.getElementById(`country-${ip}`);
-          if (cell) cell.innerHTML = ipCache[ip];
-        })
-        .catch(() => {
-          ipCache[ip] = "Error";
-          const cell = document.getElementById(`country-${ip}`);
-          if (cell) cell.textContent = "Error";
-        });
-    }
-  }
+    for (const pod of filteredPods) {
+        const ip = pod.address.split(":")[0];
+        const lastSeen = formatRelativeTime(pod.last_seen_timestamp);
+        
+        // Initialize country and name placeholders
+        const countryDisplay = ipCache[ip]?.country || "Loading...";
+        const nameDisplay = ipCache[ip]?.name || "N/A";
 
-  tableHTML += "</tbody></table>";
-  output.innerHTML = tableHTML;
+        tableHTML += `
+            <tr class="mb-2">
+                <td id="name-${ip}" class="${nameDisplay !== 'N/A' ? 'font-semibold text-indigo-700' : 'text-gray-500'}">${nameDisplay}</td>
+                <td>${ip}</td>
+                <td id="country-${ip}">${countryDisplay}</td>
+                <td class="${lastSeen.class}">${lastSeen.text}</td>
+                <td>${pod.version}</td>
+            </tr>
+        `;
+
+        // If IP not in cache, fetch Geo data
+        if (!ipCache[ip]) {
+            ipCache[ip] = { country: "Loading...", name: "N/A" }; // Mark as loading
+            
+            // Asynchronously fetch geo info
+            fetch(`${geoBase}?ip=${ip}`)
+                .then(res => res.json())
+                .then(geoData => {
+                    const code = geoData.country_code?.toLowerCase() || "";
+                    const countryName = geoData.country || "Unknown";
+                    const serverName = geoData.name; // The custom name from geo.py
+                    
+                    // 1. Update Name Cell
+                    const nameCell = document.getElementById(`name-${ip}`);
+                    if (nameCell) {
+                        nameCell.textContent = serverName || "N/A";
+                        nameCell.classList.remove('text-gray-500');
+                        nameCell.classList.add('font-semibold');
+                        
+                        // Highlight the entire row if a custom name is found
+                        if (serverName) {
+                            nameCell.parentElement.classList.add('known-server');
+                            nameCell.classList.add('text-indigo-700');
+                        } else {
+                                nameCell.classList.add('text-gray-500');
+                        }
+                        ipCache[ip].name = serverName || "N/A";
+                    }
+                    
+                    // 2. Update Country/Flag Cell
+                    const flag = code ? `<img src="https://flagcdn.com/16x12/${code}.png" alt="${code}" class="inline-block mr-2">` : "";
+                    const countryDisplayHtml = `${flag}${countryName}`;
+                    
+                    ipCache[ip].country = countryDisplayHtml;
+                    
+                    const countryCell = document.getElementById(`country-${ip}`);
+                    if (countryCell) countryCell.innerHTML = countryDisplayHtml;
+
+                })
+                .catch(error => {
+                    console.error(`Error fetching geo data for ${ip}:`, error);
+                    // Update Name and Country cells to show error
+                    const nameCell = document.getElementById(`name-${ip}`);
+                    if (nameCell) nameCell.textContent = "Geo Error";
+                    const countryCell = document.getElementById(`country-${ip}`);
+                    if (countryCell) countryCell.textContent = "Geo Error";
+                    ipCache[ip].country = "Geo Error";
+                    ipCache[ip].name = "N/A";
+                });
+        }
+    }
+
+    tableHTML += "</tbody></table>";
+    output.innerHTML = tableHTML;
 }
 
+// Event Listeners
 window.addEventListener("load", markLoadButton);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterToggle").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterValue").addEventListener("input", markLoadButton);
+
+// Initial load on startup
+window.addEventListener("load", sendRpcRequest);
