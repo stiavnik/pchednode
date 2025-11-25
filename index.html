@@ -10,7 +10,6 @@
         /* Custom styles for appearance */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f7f9fc;
         }
         #output table {
             width: 100%;
@@ -47,30 +46,32 @@
         
         /* Highlighting known server rows */
         .known-server {
-            background-color: #eef2ff !important; /* Indigo-50 */
-            border-left: 4px solid #4f46e5; /* Indigo-600 */
+            background-color: #f0fdf4 !important; /* Green-50 (Changed to match green theme) */
+            border-left: 4px solid #10b981; /* Emerald-500 */
         }
         .known-server td {
             font-weight: 600;
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<!-- Added bg-gradient-to-br from-green-50 to-emerald-100 -->
+<body class="p-4 md:p-8 bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen">
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
-        <header class="mb-6 flex items-center justify-between border-b pb-4">
-            <h1 class="text-3xl font-extrabold text-gray-900">
-                pchednode RPC Viewer for Xandeum Network
+        <header class="mb-6 flex items-center justify-between border-b border-gray-200/50 pb-4">
+            <h1 class="text-3xl font-extrabold text-gray-900 drop-shadow-sm">
+                pchednode RPC Viewer <span class="text-indigo-600 font-normal text-xl">for Xandeum</span>
             </h1>
-            <img src="pched.jpg" alt="Logo" id="logo" class="w-12 h-12 rounded-lg shadow-md">
+            <!-- Fixed size 160x90 -->
+            <img src="pched.jpg" alt="Logo" id="logo" class="w-[160px] h-[90px] rounded-lg shadow-md object-cover">
         </header>
 
         <!-- Controls -->
         <main class="space-y-6">
-            <div class="flex flex-col md:flex-row items-stretch md:items-center space-y-4 md:space-y-0 md:space-x-4 p-4 bg-white rounded-lg shadow-md">
+            <div class="flex flex-col md:flex-row items-stretch md:items-center space-y-4 md:space-y-0 md:space-x-4 p-4 bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/50">
                 <div class="flex items-center space-x-2">
                     <label for="rpcSelector" class="font-medium text-gray-700 whitespace-nowrap">RPC Server:</label>
-                    <select id="rpcSelector" class="form-select border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <select id="rpcSelector" class="form-select border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
                         <option value="https://rpc1.pchednode.com/rpc">DevNet 1</option>
                         <option value="https://rpc2.pchednode.com/rpc">DevNet 2</option>
                         <option value="https://rpc3.pchednode.com/rpc">DevNet 3</option>
@@ -94,194 +95,18 @@
                 </div>
             </div>
 
-            <div id="output" class="p-4 bg-white rounded-lg shadow-xl text-center">
-                <p class="text-gray-500">Click LOAD to fetch pod data...</p>
+            <div id="output" class="p-4 bg-white/60 backdrop-blur-sm rounded-lg shadow-xl text-center min-h-[200px]">
+                <p class="text-gray-500 mt-8">Click LOAD to fetch pod data...</p>
             </div>
         </main>
 
         <!-- Footer -->
-        <footer class="mt-8 text-center text-sm text-gray-500 border-t pt-4">
+        <footer class="mt-8 text-center text-sm text-gray-500 border-t border-gray-200/50 pt-4">
             &copy; 2025 Substance242 | Data sourced via pchednode RPCs and custom Geo API.
         </footer>
     </div>
 
-    <!-- JavaScript Logic -->
-    <script>
-        let hasLoadedOnce = false;
-
-        function formatRelativeTime(timestamp) {
-            const now = Math.floor(Date.now() / 1000);
-            const diff = now - timestamp;
-
-            if (diff < 60) return { text: `${diff} seconds ago`, class: "fresh" };
-            if (diff < 3600) return { text: `${Math.floor(diff / 60)} minutes ago`, class: "recent" };
-            return { text: `${Math.floor(diff / 3600)} hours ago`, class: "stale" };
-        }
-
-        function markLoadButton() {
-            const btn = document.getElementById("loadButton");
-            btn.classList.add("bg-yellow-500", "shadow-yellow-400/70");
-            btn.classList.remove("bg-indigo-600");
-            btn.textContent = "RELOAD";
-        }
-
-        function clearLoadButtonHighlight() {
-            const btn = document.getElementById("loadButton");
-            btn.classList.remove("bg-yellow-500", "shadow-yellow-400/70");
-            btn.classList.add("bg-indigo-600");
-        }
-
-        async function sendRpcRequest() {
-            const btn = document.getElementById("loadButton");
-            if (!hasLoadedOnce) {
-                btn.textContent = "RELOAD";
-                hasLoadedOnce = true;
-            }
-            clearLoadButtonHighlight();
-
-            const rpcUrl = document.getElementById("rpcSelector").value;
-            const rpcHost = new URL(rpcUrl).hostname;
-            const geoBase = `https://${rpcHost}/geo`;
-
-            const output = document.getElementById("output");
-            output.innerHTML = '<p class="text-center text-indigo-600 font-semibold">Loading pod list...</p>';
-
-            let response;
-            try {
-                response = await fetch(rpcUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods", id: 1 })
-                });
-            } catch (e) {
-                output.innerHTML = `<p class="text-red-500">Network Error: Could not reach ${rpcUrl}.</p>`;
-                return;
-            }
-
-            if (!response.ok) {
-                output.innerHTML = `<p class="text-red-500">Error: RPC returned status ${response.status} (${response.statusText}).</p>`;
-                return;
-            }
-
-            const data = await response.json();
-            const pods = data.result?.pods || [];
-            const podCount = document.getElementById("podCount");
-            const filterToggle = document.getElementById("versionFilterToggle");
-            const filterValue = document.getElementById("versionFilterValue").value.trim();
-
-            let filteredPods = pods;
-            if (filterToggle.checked && filterValue !== "") {
-                filteredPods = pods.filter(pod => pod.version === filterValue);
-            }
-
-            filteredPods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
-            podCount.textContent = filteredPods.length;
-
-            if (filteredPods.length === 0) {
-                output.innerHTML = "<p class='text-gray-500'>No pods found matching the filter criteria.</p>";
-                return;
-            }
-
-            // Cache to store IP info (Country, Name) to avoid duplicate lookups
-            const ipCache = {};
-            let tableHTML = `
-                <table class="min-w-full">
-                    <thead>
-                        <tr>
-                            <!-- NEW COLUMN HEADER ADDED HERE -->
-                            <th class="rounded-tl-lg">Name</th> 
-                            <th>IP Address</th>
-                            <th>Country</th>
-                            <th>Last Seen</th>
-                            <th class="rounded-tr-lg">Version</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            for (const pod of filteredPods) {
-                const ip = pod.address.split(":")[0];
-                const lastSeen = formatRelativeTime(pod.last_seen_timestamp);
-                
-                // Initialize country and name placeholders
-                const countryDisplay = ipCache[ip]?.country || "Loading...";
-                const nameDisplay = ipCache[ip]?.name || "N/A";
-
-                tableHTML += `
-                    <tr class="mb-2">
-                        <!-- NEW COLUMN DATA CELL -->
-                        <td id="name-${ip}" class="${nameDisplay !== 'N/A' ? 'font-semibold text-indigo-700' : 'text-gray-500'}">${nameDisplay}</td>
-                        <td>${ip}</td>
-                        <td id="country-${ip}">${countryDisplay}</td>
-                        <td class="${lastSeen.class}">${lastSeen.text}</td>
-                        <td>${pod.version}</td>
-                    </tr>
-                `;
-
-                // If IP not in cache, fetch Geo data
-                if (!ipCache[ip]) {
-                    ipCache[ip] = { country: "Loading...", name: "N/A" }; // Mark as loading
-                    
-                    // Asynchronously fetch geo info
-                    fetch(`${geoBase}?ip=${ip}`)
-                        .then(res => res.json())
-                        .then(geoData => {
-                            const code = geoData.country_code?.toLowerCase() || "";
-                            const countryName = geoData.country || "Unknown";
-                            const serverName = geoData.name; // The custom name from geo.py
-                            
-                            // 1. Update Name Cell
-                            const nameCell = document.getElementById(`name-${ip}`);
-                            if (nameCell) {
-                                nameCell.textContent = serverName || "N/A";
-                                nameCell.classList.remove('text-gray-500');
-                                nameCell.classList.add('font-semibold');
-                                
-                                // Highlight the entire row if a custom name is found
-                                if (serverName) {
-                                    nameCell.parentElement.classList.add('known-server');
-                                    nameCell.classList.add('text-indigo-700');
-                                } else {
-                                     nameCell.classList.add('text-gray-500');
-                                }
-                                ipCache[ip].name = serverName || "N/A";
-                            }
-                            
-                            // 2. Update Country/Flag Cell
-                            const flag = code ? `<img src="https://flagcdn.com/16x12/${code}.png" alt="${code}" class="inline-block mr-2">` : "";
-                            const countryDisplayHtml = `${flag}${countryName}`;
-                            
-                            ipCache[ip].country = countryDisplayHtml;
-                            
-                            const countryCell = document.getElementById(`country-${ip}`);
-                            if (countryCell) countryCell.innerHTML = countryDisplayHtml;
-
-                        })
-                        .catch(error => {
-                            console.error(`Error fetching geo data for ${ip}:`, error);
-                            // Update Name and Country cells to show error
-                            const nameCell = document.getElementById(`name-${ip}`);
-                            if (nameCell) nameCell.textContent = "Geo Error";
-                            const countryCell = document.getElementById(`country-${ip}`);
-                            if (countryCell) countryCell.textContent = "Geo Error";
-                            ipCache[ip].country = "Geo Error";
-                            ipCache[ip].name = "N/A";
-                        });
-                }
-            }
-
-            tableHTML += "</tbody></table>";
-            output.innerHTML = tableHTML;
-        }
-
-        // Event Listeners
-        window.addEventListener("load", markLoadButton);
-        document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
-        document.getElementById("versionFilterToggle").addEventListener("change", markLoadButton);
-        document.getElementById("versionFilterValue").addEventListener("input", markLoadButton);
-        
-        // Initial load on startup
-        window.addEventListener("load", sendRpcRequest); 
-    </script>
+    <!-- External JavaScript File -->
+    <script src="script.js"></script>
 </body>
 </html>
