@@ -79,7 +79,7 @@ async function sendRpcRequest() {
         <table class="min-w-full">
             <thead>
                 <tr>
-                    <th class="rounded-tl-lg">Name</th> 
+                    <th class="rounded-tl-lg cursor-help" title="To have your name listed, send email">Name</th> 
                     <th>IP Address</th>
                     <th>Country</th>
                     <th>Last Seen</th>
