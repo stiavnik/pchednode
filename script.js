@@ -80,6 +80,7 @@ async function sendRpcRequest() {
             <thead>
                 <tr>
                     <th class="rounded-tl-lg cursor-help" title="To have your name listed, send email">Name</th> 
+                    <th>Pubkey</th> <!-- New Column Header -->
                     <th>IP Address</th>
                     <th>Country</th>
                     <th>Last Seen</th>
@@ -93,6 +94,13 @@ async function sendRpcRequest() {
         const ip = pod.address.split(":")[0];
         const lastSeen = formatRelativeTime(pod.last_seen_timestamp);
         
+        // --- NEW: Handle Pubkey ---
+        const fullPubkey = pod.pubkey || "";
+        // If key is long, truncate it (e.g. "7UMj...XnXv"), otherwise show full
+        const shortPubkey = fullPubkey.length > 10 
+            ? fullPubkey.substring(0, 4) + "..." + fullPubkey.substring(fullPubkey.length - 4) 
+            : (fullPubkey || "N/A");
+        
         // Initialize country and name placeholders
         const countryDisplay = ipCache[ip]?.country || "Loading...";
         const nameDisplay = ipCache[ip]?.name || "N/A";
@@ -100,6 +108,12 @@ async function sendRpcRequest() {
         tableHTML += `
             <tr class="mb-2">
                 <td id="name-${ip}" class="${nameDisplay !== 'N/A' ? 'font-semibold text-indigo-700' : 'text-gray-500'}">${nameDisplay}</td>
+                
+                <!-- NEW: Pubkey Cell -->
+                <td class="font-mono text-xs text-gray-600 cursor-help" title="${fullPubkey}">
+                    ${shortPubkey}
+                </td>
+                
                 <td>${ip}</td>
                 <td id="country-${ip}">${countryDisplay}</td>
                 <td class="${lastSeen.class}">${lastSeen.text}</td>
