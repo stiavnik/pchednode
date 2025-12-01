@@ -23,6 +23,21 @@ function clearLoadButtonHighlight() {
     b.classList.add("bg-indigo-600");
 }
 
+// Click-to-copy full pubkey with nice feedback
+function copyPubkey(text, element) {
+    navigator.clipboard.writeText(text).then(() => {
+        const original = element.textContent;
+        element.textContent = "Copied!";
+        element.classList.replace("text-gray-600", "text-green-600");
+        element.classList.add("font-bold");
+        setTimeout(() => {
+            element.textContent = original;
+            element.classList.replace("text-green-600", "text-gray-600");
+            element.classList.remove("font-bold");
+        }, 1000);
+    });
+}
+
 function refilterAndRestyle() {
     const toggle = document.getElementById("globalFilterToggle").checked;
     const value = document.getElementById("globalFilterValue").value.trim().toLowerCase();
@@ -55,7 +70,6 @@ function refilterAndRestyle() {
     });
 }
 
-// Debounced live filter
 let filterTimer;
 function scheduleFilter() {
     clearTimeout(filterTimer);
@@ -83,19 +97,17 @@ async function sendRpcRequest() {
         if (!res.ok) throw new Error(res.status);
         data = await res.json();
     } catch (e) {
-        output.innerHTML = `<p class="text-red-500">Error: Could not reach RPC or invalid response.</p>`;
+        output.innerHTML = `<p class="text-red-500">Error: Could not reach RPC.</p>`;
         return;
     }
 
     let pods = data.result?.pods || [];
 
-    // Version filter
     if (document.getElementById("versionFilterToggle").checked) {
         const v = document.getElementById("versionFilterValue").value.trim();
         if (v) pods = pods.filter(p => p.version === v);
     }
 
-    // Immediate IP/pubkey filter
     if (document.getElementById("globalFilterToggle").checked) {
         const f = document.getElementById("globalFilterValue").value.trim().toLowerCase();
         if (f) pods = pods.filter(p => {
@@ -129,7 +141,8 @@ async function sendRpcRequest() {
 
         html += `<tr>
             <td id="name-${ip}" class="text-gray-500 cursor-pointer" title="IP: ${ip}\nTo list your name, send email.">${name}</td>
-            <td class="font-mono text-xs text-gray-600 cursor-help hover:text-indigo-600 transition-colors" title="${pubkey}">${shortKey}</td>
+            <td class="font-mono text-xs text-gray-600 cursor-pointer hover:text-indigo-600 transition-colors"
+                onclick="copyPubkey('${pubkey}', this)" title="Click to copy full pubkey">${shortKey}</td>
             <td id="country-${ip}">${country}</td>
             <td class="${timeClass}">${timeText}</td>
             <td>${pod.version}</td>
@@ -171,5 +184,5 @@ document.getElementById("versionFilterValue").addEventListener("input", markLoad
 document.getElementById("globalFilterToggle").addEventListener("change", scheduleFilter);
 document.getElementById("globalFilterValue").addEventListener("input", scheduleFilter);
 
-// Optional auto-refresh every 5 minutes
+// Auto-refresh every 5 minutes
 setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
