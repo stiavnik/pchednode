@@ -13,7 +13,9 @@ function markLoadButton() {
     const btn = document.getElementById("loadButton");
     btn.classList.add("bg-yellow-500", "shadow-yellow-400/70");
     btn.classList.remove("bg-indigo-600");
-    btn.textContent = "RELOAD";
+    
+    // Update: Check if it's the first load. If so, display "LOAD". Otherwise, "RELOAD".
+    btn.textContent = hasLoadedOnce ? "RELOAD" : "LOAD";
 }
 
 function clearLoadButtonHighlight() {
@@ -24,10 +26,15 @@ function clearLoadButtonHighlight() {
 
 async function sendRpcRequest() {
     const btn = document.getElementById("loadButton");
+
+    // Check if it's the first time the button is clicked to set hasLoadedOnce flag
     if (!hasLoadedOnce) {
-        btn.textContent = "RELOAD";
         hasLoadedOnce = true;
     }
+    
+    // Ensure the button text is set to RELOAD after this first click
+    btn.textContent = "RELOAD";
+
     clearLoadButtonHighlight();
 
     const rpcUrl = document.getElementById("rpcSelector").value;
@@ -213,5 +220,3 @@ window.addEventListener("load", setupEmailObfuscation); // Add email security
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterToggle").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterValue").addEventListener("input", markLoadButton);
-
-// Removed initial load on startup: window.addEventListener("load", sendRpcRequest);
