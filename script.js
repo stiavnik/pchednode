@@ -37,6 +37,32 @@ function clearLoadButtonHighlight() {
     btn.classList.add("bg-indigo-600");
 }
 
+/**
+ * Applies the global filter (NAME, IP, or PUBKEY) to a single pod object.
+ * @param {Object} pod The pod object to check.
+ * @param {string} filterString The user's input string (case-insensitive).
+ * @param {Object} ipCache The geolocation cache containing 'name' keyed by IP.
+ * @returns {boolean} True if the pod matches the filter, false otherwise.
+ */
+function applyGlobalFilter(pod, filterString, ipCache) {
+    const filter = filterString.toLowerCase();
+
+    // 1. IP Check (using the address property)
+    const ip = pod.address.split(":")[0].toLowerCase();
+    if (ip.includes(filter)) return true;
+
+    // 2. Pubkey Check
+    const pubkey = (pod.pubkey || "").toLowerCase();
+    if (pubkey.includes(filter)) return true;
+
+    // 3. Name Check (requires checking the cache)
+    const podName = (ipCache[ip]?.name || "N/A").toLowerCase();
+    if (podName.includes(filter)) return true;
+
+    return false;
+}
+
+
 async function sendRpcRequest() {
     const btn = document.getElementById("loadButton");
 
@@ -73,16 +99,32 @@ async function sendRpcRequest() {
 
     const data = await response.json();
     const pods = data.result?.pods || [];
-    const podCount = document.getElementById("podCount");
-    const filterToggle = document.getElementById("versionFilterToggle");
-    const filterValue = document.getElementById("versionFilterValue").value.trim();
+    
+    // --- Get Filter Values ---
+    const versionToggle = document.getElementById("versionFilterToggle");
+    const versionValue = document.getElementById("versionFilterValue").value.trim();
+    
+    const globalToggle = document.getElementById("globalFilterToggle");
+    const globalValue = document.getElementById("globalFilterValue").value.trim();
 
+    // The IP cache is needed for the NAME lookup in the global filter
+    const ipCache = {}; 
+    
+    // --- Apply Filtering ---
     let filteredPods = pods;
-    if (filterToggle.checked && filterValue !== "") {
-        filteredPods = pods.filter(pod => pod.version === filterValue);
+    
+    if (versionToggle.checked && versionValue !== "") {
+        filteredPods = filteredPods.filter(pod => pod.version === versionValue);
     }
-
+    
+    // NOTE: This check ensures the geo data is prioritized for the filter when it loads
+    if (globalToggle.checked && globalValue !== "") {
+        filteredPods = filteredPods.filter(pod => applyGlobalFilter(pod, globalValue, ipCache));
+    }
+    
     filteredPods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
+    
+    const podCount = document.getElementById("podCount");
     podCount.textContent = filteredPods.length;
 
     if (filteredPods.length === 0) {
@@ -90,7 +132,6 @@ async function sendRpcRequest() {
         return;
     }
 
-    const ipCache = {};
     let tableHTML = `
         <table class="min-w-full">
             <thead>
@@ -114,6 +155,7 @@ async function sendRpcRequest() {
             ? fullPubkey.substring(0, 4) + "..." + fullPubkey.substring(fullPubkey.length - 4) 
             : (fullPubkey || "N/A");
         
+        // Use placeholder 'N/A' while geo lookup is pending
         const countryDisplay = ipCache[ip]?.country || "Loading...";
         const nameDisplay = ipCache[ip]?.name || "N/A";
         
@@ -137,6 +179,7 @@ async function sendRpcRequest() {
             </tr>
         `;
 
+        // --- GEO Lookup and Update ---
         if (!ipCache[ip]) {
             ipCache[ip] = { country: "Loading...", name: "N/A" };
             
@@ -168,8 +211,6 @@ async function sendRpcRequest() {
                         ipCache[ip].name = serverName || "N/A";
                     }
                     
-                    // --- CHANGED: Use Local Flag ---
-                    // We now fetch from ${geoBase}/flag/${code} instead of flagcdn
                     const flag = code ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px; height:auto; display:inline-block;">` : "";
                     const countryDisplayHtml = `${flag} ${countryName}`;
                     
@@ -210,5 +251,9 @@ function setupEmailObfuscation() {
 window.addEventListener("load", markLoadButton);
 window.addEventListener("load", setupEmailObfuscation);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
+
+// Filter Listeners
 document.getElementById("versionFilterToggle").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterValue").addEventListener("input", markLoadButton);
+document.getElementById("globalFilterToggle").addEventListener("change", markLoadButton);
+document.getElementById("globalFilterValue").addEventListener("input", markLoadButton);
