@@ -1,4 +1,5 @@
 let hasLoadedOnce = false;
+let ipCache = {}; // Global cache to store IP -> Geo/Name data
 
 function formatRelativeTime(timestamp) {
     const now = Math.floor(Date.now() / 1000);
@@ -26,209 +27,178 @@ function formatRelativeTime(timestamp) {
 
 function markLoadButton() {
     const btn = document.getElementById("loadButton");
-    btn.classList.add("bg-yellow-500", "shadow-yellow-400/70");
-    btn.classList.remove("bg-indigo-600");
-    btn.textContent = hasLoadedOnce ? "RELOAD" : "LOAD";
-}
-
-function clearLoadButtonHighlight() {
-    const btn = document.getElementById("loadButton");
-    btn.classList.remove("bg-yellow-500", "shadow-yellow-400/70");
-    btn.classList.add("bg-indigo-600");
-}
-
-/**
- * Applies the global filter (NAME, IP, or PUBKEY) to a single pod object.
- * @param {Object} pod The pod object to check.
- * @param {string} filterString The user's input string (case-insensitive).
- * @param {Object} ipCache The geolocation cache containing 'name' keyed by IP.
- * @returns {boolean} True if the pod matches the filter, false otherwise.
- */
-function applyGlobalFilter(pod, filterString, ipCache) {
-    const filter = filterString.toLowerCase();
-
-    // 1. IP Check (using the address property)
-    const ip = pod.address.split(":")[0].toLowerCase();
-    if (ip.includes(filter)) return true;
-
-    // 2. Pubkey Check
-    const pubkey = (pod.pubkey || "").toLowerCase();
-    if (pubkey.includes(filter)) return true;
-
-    // 3. Name Check (requires checking the cache)
-    const podName = (ipCache[ip]?.name || "N/A").toLowerCase();
-    if (podName.includes(filter)) return true;
-
-    return false;
-}
-
-
-async function sendRpcRequest() {
-    const btn = document.getElementById("loadButton");
-
-    if (!hasLoadedOnce) {
-        hasLoadedOnce = true;
-    }
+    btn.classList.add("bg-yellow-500", "hover:bg-yellow-600");
+    btn.classList.remove("bg-indigo-600", "hover:bg-indigo-700");
     
-    btn.textContent = "RELOAD";
-    clearLoadButtonHighlight();
+    // If data is already loaded, re-render the table for filtering changes
+    if (hasLoadedOnce) {
+        // We assume global variable 'rpcData' holds the last fetched data
+        if (typeof rpcData !== 'undefined' && rpcData && rpcData.result && rpcData.result.pods) {
+            renderTable(rpcData);
+        }
+    }
+}
 
-    const rpcUrl = document.getElementById("rpcSelector").value;
-    const rpcHost = new URL(rpcUrl).hostname;
-    const geoBase = `https://${rpcHost}/geo`;
+// Function to fetch Geo data (remains the same as per snippets)
+function fetchGeoData(ip, nameCell, countryCell) {
+    const geoUrl = `/geo/${ip}`; // Assumes geo-proxy runs on the same host
+    
+    fetch(geoUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Update cache and display
+            ipCache[ip].country = data.country || "Unknown";
+            ipCache[ip].name = data.name || "N/A";
+            ipCache[ip].country_code = data.country_code || "--";
 
-    const output = document.getElementById("output");
-    output.innerHTML = '<p class="text-center text-indigo-600 font-semibold">Loading pod list...</p>';
+            nameCell.textContent = ipCache[ip].name;
 
-    let response;
-    try {
-        response = await fetch(rpcUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods", id: 1 })
+            const flag = ipCache[ip].country_code !== '--' 
+                ? `<img src="/flags/${ipCache[ip].country_code}.svg" alt="Flag" class="inline-block w-6 h-4 mr-2 border border-gray-200" onerror="this.onerror=null;this.src='/flags/--.svg';">`
+                : '';
+            const countryDisplayHtml = `${flag} ${ipCache[ip].country}`;
+            countryCell.innerHTML = countryDisplayHtml;
+
+        })
+        .catch(error => {
+            console.error(`Error fetching geo data for ${ip}:`, error);
+            const nameCell = document.getElementById(`name-${ip}`);
+            if (nameCell) nameCell.textContent = "Geo Error";
+            const countryCell = document.getElementById(`country-${ip}`);
+            if (countryCell) countryCell.textContent = "Geo Error";
+            ipCache[ip].country = "Geo Error";
+            ipCache[ip].name = "N/A";
         });
-    } catch (e) {
-        output.innerHTML = `<p class="text-red-500">Network Error: Could not reach ${rpcUrl}.</p>`;
+}
+
+
+function renderTable(data) {
+    const output = document.getElementById("output");
+    const podCountElement = document.getElementById("podCount");
+
+    if (!data || !data.result || !data.result.pods) {
+        output.innerHTML = "<p class=\"text-red-500 mt-8\">Error: Invalid RPC data received.</p>";
+        podCountElement.textContent = "0";
         return;
     }
 
-    if (!response.ok) {
-        output.innerHTML = `<p class="text-red-500">Error: RPC returned status ${response.status} (${response.statusText}).</p>`;
+    let pods = data.result.pods;
+    
+    // --- FILTERING LOGIC ---
+    
+    // 1. Version Filter
+    const versionFilterToggle = document.getElementById("versionFilterToggle").checked;
+    const versionFilterValue = document.getElementById("versionFilterValue").value.trim();
+
+    if (versionFilterToggle && versionFilterValue) {
+        pods = pods.filter(pod => pod.version === versionFilterValue);
+    }
+    
+    // 2. Global Search Filter
+    const globalFilterToggle = document.getElementById("globalFilterToggle").checked;
+    const globalFilterValue = document.getElementById("globalFilterValue").value.trim().toLowerCase();
+    
+    if (globalFilterToggle && globalFilterValue) {
+        pods = pods.filter(pod => {
+            // Check for IP address match
+            if (pod.address.toLowerCase().includes(globalFilterValue)) {
+                return true;
+            }
+            
+            // Check for Public Key (PUBKEY) match (assuming this was already working)
+            if (pod.public_key.toLowerCase().includes(globalFilterValue)) {
+                return true;
+            }
+            
+            // --- FIX: Implement case-insensitive substring search for NAME ---
+            // Check the cached name, which can contain spaces and is the source for 'NAME' column
+            const cachedPod = ipCache[pod.address];
+            const podName = (cachedPod && cachedPod.name) ? cachedPod.name.toLowerCase() : "";
+            
+            if (podName.includes(globalFilterValue)) {
+                return true;
+            }
+            // --- END FIX ---
+            
+            return false;
+        });
+    }
+
+    // Update pod count
+    podCountElement.textContent = pods.length;
+
+    if (pods.length === 0) {
+        output.innerHTML = "<p class=\"text-gray-500 mt-8\">No pods found matching the filters.</p>";
         return;
     }
 
-    const data = await response.json();
-    const pods = data.result?.pods || [];
-    
-    // --- Get Filter Values ---
-    const versionToggle = document.getElementById("versionFilterToggle");
-    const versionValue = document.getElementById("versionFilterValue").value.trim();
-    
-    const globalToggle = document.getElementById("globalFilterToggle");
-    const globalValue = document.getElementById("globalFilterValue").value.trim();
-
-    // The IP cache is needed for the NAME lookup in the global filter
-    const ipCache = {}; 
-    
-    // --- Apply Filtering ---
-    let filteredPods = pods;
-    
-    if (versionToggle.checked && versionValue !== "") {
-        filteredPods = filteredPods.filter(pod => pod.version === versionValue);
-    }
-    
-    // NOTE: This check ensures the geo data is prioritized for the filter when it loads
-    if (globalToggle.checked && globalValue !== "") {
-        filteredPods = filteredPods.filter(pod => applyGlobalFilter(pod, globalValue, ipCache));
-    }
-    
-    filteredPods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
-    
-    const podCount = document.getElementById("podCount");
-    podCount.textContent = filteredPods.length;
-
-    if (filteredPods.length === 0) {
-        output.innerHTML = "<p class='text-gray-500'>No pods found matching the filter criteria.</p>";
-        return;
-    }
-
+    // --- TABLE RENDERING ---
     let tableHTML = `
-        <table class="min-w-full">
+        <table class="w-full">
             <thead>
                 <tr>
-                    <th class="rounded-tl-lg cursor-help" title="To have your name listed, send email">Name</th> 
-                    <th>Pubkey</th>
+                    <th>Version</th>
+                    <th>Name</th>
+                    <th>Public Key</th>
+                    <th>Address</th>
                     <th>Country</th>
                     <th>Last Seen</th>
-                    <th class="rounded-tr-lg">Version</th>
                 </tr>
             </thead>
             <tbody>
     `;
 
-    for (const pod of filteredPods) {
-        const ip = pod.address.split(":")[0];
+    for (const pod of pods) {
+        const ip = pod.address;
         const lastSeen = formatRelativeTime(pod.last_seen_timestamp);
         
-        const fullPubkey = pod.pubkey || "";
-        const shortPubkey = fullPubkey.length > 10 
-            ? fullPubkey.substring(0, 4) + "..." + fullPubkey.substring(fullPubkey.length - 4) 
-            : (fullPubkey || "N/A");
-        
-        // Use placeholder 'N/A' while geo lookup is pending
-        const countryDisplay = ipCache[ip]?.country || "Loading...";
-        const nameDisplay = ipCache[ip]?.name || "N/A";
-        
-        const nameTitle = `IP: ${ip}\nTo list your name, send email.`;
+        // Initialize cache entry if it doesn't exist
+        if (!ipCache[ip]) {
+            ipCache[ip] = {
+                name: "Loading...",
+                country: "Loading...",
+                country_code: "--"
+            };
+        }
+
+        const cachedPod = ipCache[ip];
+
+        // Prepare Name and Country display
+        let nameDisplay = cachedPod.name;
+        let countryFlag = cachedPod.country_code !== '--' 
+            ? `<img src="/flags/${cachedPod.country_code}.svg" alt="Flag" class="inline-block w-6 h-4 mr-2 border border-gray-200" onerror="this.onerror=null;this.src='/flags/--.svg';">`
+            : '';
+        let countryDisplay = `${countryFlag} ${cachedPod.country}`;
+
 
         tableHTML += `
-            <tr class="mb-2">
-                <td id="name-${ip}" 
-                    class="${nameDisplay !== 'N/A' ? 'font-semibold text-indigo-700 cursor-pointer' : 'text-gray-500 cursor-pointer'}" 
-                    title="${nameTitle}">
-                    ${nameDisplay}
-                </td>
-                
-                <td class="font-mono text-xs text-gray-600 cursor-help" title="${fullPubkey}">
-                    ${shortPubkey}
-                </td>
-                
-                <td id="country-${ip}">${countryDisplay}</td>
-                <td class="${lastSeen.class}">${lastSeen.text}</td>
-                <td>${pod.version}</td>
+            <tr id="row-${ip}">
+                <td>${pod.version || 'N/A'}</td>
+                <td id="name-${ip}" class="font-semibold">${nameDisplay}</td>
+                <td class="text-xs break-all">${pod.public_key || 'N/A'}</td>
+                <td class="text-sm break-all">${pod.address}</td>
+                <td id="country-${ip}" class="text-sm whitespace-nowrap">${countryDisplay}</td>
+                <td class="${lastSeen.class} whitespace-nowrap">${lastSeen.text}</td>
             </tr>
         `;
-
-        // --- GEO Lookup and Update ---
-        if (!ipCache[ip]) {
-            ipCache[ip] = { country: "Loading...", name: "N/A" };
-            
-            fetch(`${geoBase}?ip=${ip}`)
-                .then(res => res.json())
-                .then(geoData => {
-                    const code = geoData.country_code?.toLowerCase() || "";
-                    const countryName = geoData.country || "Unknown";
-                    const serverName = geoData.name;
-                    
-                    const nameCell = document.getElementById(`name-${ip}`);
-                    if (nameCell) {
-                        nameCell.textContent = serverName || "N/A";
-                        nameCell.classList.remove('text-gray-500');
-                        nameCell.classList.add('font-semibold');
-                        
-                        const currentTitle = nameCell.getAttribute('title');
-                        const newTitle = serverName 
-                            ? currentTitle.replace(/(\nTo list your name, send email\.)/, `\nServer Name: ${serverName}$1`)
-                            : currentTitle;
-                        nameCell.setAttribute('title', newTitle);
-                        
-                        if (serverName) {
-                            nameCell.parentElement.classList.add('known-server');
-                            nameCell.classList.add('text-indigo-700');
-                        } else {
-                                nameCell.classList.add('text-gray-500');
-                        }
-                        ipCache[ip].name = serverName || "N/A";
-                    }
-                    
-                    const flag = code ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px; height:auto; display:inline-block;">` : "";
-                    const countryDisplayHtml = `${flag} ${countryName}`;
-                    
-                    ipCache[ip].country = countryDisplayHtml;
-                    
-                    const countryCell = document.getElementById(`country-${ip}`);
-                    if (countryCell) countryCell.innerHTML = countryDisplayHtml;
-
-                })
-                .catch(error => {
-                    console.error(`Error fetching geo data for ${ip}:`, error);
-                    const nameCell = document.getElementById(`name-${ip}`);
-                    if (nameCell) nameCell.textContent = "Geo Error";
-                    const countryCell = document.getElementById(`country-${ip}`);
-                    if (countryCell) countryCell.textContent = "Geo Error";
-                    ipCache[ip].country = "Geo Error";
-                    ipCache[ip].name = "N/A";
-                });
+        
+        // Trigger fetch only if the data is not yet loaded
+        if (cachedPod.name === "Loading...") {
+            // Using a simple delay to ensure the DOM is updated before trying to find the cell elements
+            setTimeout(() => {
+                const nameCell = document.getElementById(`name-${ip}`);
+                const countryCell = document.getElementById(`country-${ip}`);
+                if (nameCell && countryCell) {
+                    fetchGeoData(ip, nameCell, countryCell);
+                } else {
+                    console.warn(`Could not find DOM elements for IP: ${ip} after rendering.`);
+                }
+            }, 10);
         }
     }
 
@@ -247,6 +217,42 @@ function setupEmailObfuscation() {
         });
     }
 }
+
+// Global variable to hold the last fetched RPC data
+let rpcData = null;
+
+// The load button handler needs to be able to fetch the data
+document.getElementById("loadButton").addEventListener("click", async () => {
+    const btn = document.getElementById("loadButton");
+    const output = document.getElementById("output");
+    
+    // Reset button color to indicate loading has started
+    btn.classList.remove("bg-yellow-500", "hover:bg-yellow-600");
+    btn.classList.add("bg-indigo-600", "hover:bg-indigo-700");
+    btn.textContent = "Loading...";
+
+    const rpcUrl = document.getElementById("rpcSelector").value;
+    output.innerHTML = `<p class="text-gray-500 mt-8">Fetching data from ${rpcUrl}...</p>`;
+
+    try {
+        const response = await fetch(rpcUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        
+        rpcData = data; // Store the fetched data globally
+        hasLoadedOnce = true;
+        renderTable(rpcData);
+
+    } catch (error) {
+        output.innerHTML = `<p class="text-red-500 mt-8">Failed to load data: ${error.message}. Please check the URL or try again later.</p>`;
+        console.error("RPC Fetch Error:", error);
+    } finally {
+        btn.textContent = "LOAD";
+    }
+});
+
 
 window.addEventListener("load", markLoadButton);
 window.addEventListener("load", setupEmailObfuscation);
