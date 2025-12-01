@@ -174,42 +174,38 @@ async function sendRpcRequest() {
 
             fetch(`${geoBase}?ip=${ip}`)
                 .then(res => res.json())
-                .then(geoData => {
-                    const code = geoData.country_code?.toLowerCase() || "";
-                    const countryName = geoData.country || "Unknown";
-                    const serverName = geoData.name;
+				.then(geoData => {
+					const code = geoData.country_code?.toLowerCase() || "";
+					const countryName = geoData.country || "Unknown";
+					const serverName = geoData.name;
 
-                    const nameCell = document.getElementById(`name-${ip}`);
-                    if (nameCell) {
-                        nameCell.textContent = serverName || "N/A";
-                        nameCell.classList.remove('text-gray-500');
-                        nameCell.classList.add('font-semibold');
+					const nameCell = document.getElementById(`name-${ip}`);
+					if (nameCell) {
+						nameCell.textContent = serverName || "N/A";
+						nameCell.classList.remove('text-gray-500');
+						nameCell.classList.add('font-semibold');
+						if (serverName) nameCell.classList.add('text-indigo-700');
 
-                        const currentTitle = nameCell.getAttribute('title');
-                        const newTitle = serverName
-                            ? currentTitle.replace(/(\nTo list your name, send email\.)/, `\nServer Name: ${serverName}$1`)
-                            : currentTitle;
-                        nameCell.setAttribute('title', newTitle);
+						const currentTitle = nameCell.getAttribute('title');
+						const newTitle = serverName
+							? currentTitle.replace(/(\nTo list your name, send email\.)/, `\nServer Name: ${serverName}$1`)
+							: currentTitle;
+						nameCell.setAttribute('title', newTitle);
 
-                        if (serverName) {
-                            nameCell.parentElement.classList.add('known-server');
-                            nameCell.classList.add('text-indigo-700');
-                        } else {
-                            nameCell.classList.add('text-gray-500');
-                        }
-                        ipCache[ip].name = serverName || "N/A";
-                    }
+						// THIS IS THE FIX — ensure known-server class is always applied
+						nameCell.parentElement.classList.add('known-server');
+					}
 
-                    const flag = code ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px; height:auto;">` : "";
-                    const countryDisplayHtml = `${flag} ${countryName}`;
-                    ipCache[ip].country = countryDisplayHtml;
+					const flag = code ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px; height:auto;">` : "";
+					const countryDisplayHtml = `${flag} ${countryName}`;
+					ipCache[ip].country = countryDisplayHtml;
+					ipCache[ip].name = serverName || "N/A";
 
-                    const countryCell = document.getElementById(`country-${ip}`);
-                    if (countryCell) countryCell.innerHTML = countryDisplayHtml;
+					const countryCell = document.getElementById(`country-${ip}`);
+					if (countryCell) countryCell.innerHTML = countryDisplayHtml;
 
-                    // Re-apply global filter now that name is available
-                    refilterWithNames();
-                })
+					refilterWithNames(); // already there
+				})
                 .catch(error => {
                     console.error(`Error fetching geo data for ${ip}:`, error);
                     const nameCell = document.getElementById(`name-${ip}`);
