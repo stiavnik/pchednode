@@ -1,26 +1,20 @@
 let hasLoadedOnce = false;
+const ipCache = {}; // Moved outside so it's shared across loads
 
 function formatRelativeTime(timestamp) {
     const now = Math.floor(Date.now() / 1000);
     const diff = now - timestamp;
-    
-    // Constants for comparison
+
     const SECONDS_IN_HOUR = 3600;
-    const SECONDS_IN_DAY = 86400; // 24 * 3600
-    const SECONDS_IN_WEEK = 604800; // 7 * 86400
+    const SECONDS_IN_DAY = 86400;
+    const SECONDS_IN_WEEK = 604800;
 
     if (diff < 60) return { text: `${diff} seconds ago`, class: "fresh" };
     if (diff < SECONDS_IN_HOUR) return { text: `${Math.floor(diff / 60)} minutes ago`, class: "recent" };
-    
-    // If less than 1 day, display hours
     if (diff < SECONDS_IN_DAY) return { text: `${Math.floor(diff / SECONDS_IN_HOUR)} hours ago`, class: "stale" };
-
-    // If less than 7 days, display days
     if (diff < SECONDS_IN_WEEK) {
         return { text: `${Math.floor(diff / SECONDS_IN_DAY)} days ago`, class: "very-stale" };
     }
-    
-    // If 7 days or more, display weeks
     return { text: `${Math.floor(diff / SECONDS_IN_WEEK)} weeks ago`, class: "very-stale" };
 }
 
@@ -37,39 +31,38 @@ function clearLoadButtonHighlight() {
     btn.classList.add("bg-indigo-600");
 }
 
-/**
- * Applies the global filter (NAME, IP, or PUBKEY) to a single pod object.
- * @param {Object} pod The pod object to check.
- * @param {string} filterString The user's input string (case-insensitive).
- * @param {Object} ipCache The geolocation cache containing 'name' keyed by IP.
- * @returns {boolean} True if the pod matches the filter, false otherwise.
- */
-function applyGlobalFilter(pod, filterString, ipCache) {
-    const filter = filterString.toLowerCase();
+// Refilter visible rows when new name data arrives or filter changes
+function refilterWithNames() {
+    const globalToggle = document.getElementById("globalFilterToggle");
+    const globalValue = document.getElementById("globalFilterValue").value.trim();
 
-    // 1. IP Check (using the address property)
-    const ip = pod.address.split(":")[0].toLowerCase();
-    if (ip.includes(filter)) return true;
+    if (!globalToggle.checked || globalValue === "") {
+        document.querySelectorAll("#output tbody tr").forEach(row => {
+            row.style.display = "";
+            row.classList.remove("hidden-by-filter");
+        });
+        return;
+    }
 
-    // 2. Pubkey Check
-    const pubkey = (pod.pubkey || "").toLowerCase();
-    if (pubkey.includes(filter)) return true;
+    const filter = globalValue.toLowerCase();
+    document.querySelectorAll("#output tbody tr").forEach(row => {
+        const nameCell = row.querySelector("td[id^='name-']");
+        const ip = nameCell.id.replace("name-", "");
+        const name = (ipCache[ip]?.name || "N/A").toLowerCase();
+        const ipText = ip.toLowerCase();
+        const pubkey = row.cells[1].title.toLowerCase(); // full pubkey in title
 
-    // 3. Name Check (requires checking the cache)
-    const podName = (ipCache[ip]?.name || "N/A").toLowerCase();
-    if (podName.includes(filter)) return true;
-
-    return false;
+        const matches = ipText.includes(filter) || pubkey.includes(filter) || name.includes(filter);
+        row.style.display = matches ? "" : "none";
+        if (!matches) row.classList.add("hidden-by-filter");
+        else row.classList.remove("hidden-by-filter");
+    });
 }
-
 
 async function sendRpcRequest() {
     const btn = document.getElementById("loadButton");
 
-    if (!hasLoadedOnce) {
-        hasLoadedOnce = true;
-    }
-    
+    if (!hasLoadedOnce) hasLoadedOnce = true;
     btn.textContent = "RELOAD";
     clearLoadButtonHighlight();
 
@@ -99,31 +92,31 @@ async function sendRpcRequest() {
 
     const data = await response.json();
     const pods = data.result?.pods || [];
-    
+
     // --- Get Filter Values ---
     const versionToggle = document.getElementById("versionFilterToggle");
     const versionValue = document.getElementById("versionFilterValue").value.trim();
-    
     const globalToggle = document.getElementById("globalFilterToggle");
     const globalValue = document.getElementById("globalFilterValue").value.trim();
 
-    // The IP cache is needed for the NAME lookup in the global filter
-    const ipCache = {}; 
-    
-    // --- Apply Filtering ---
+    // --- Apply Filtering (immediate filters only) ---
     let filteredPods = pods;
-    
+
     if (versionToggle.checked && versionValue !== "") {
         filteredPods = filteredPods.filter(pod => pod.version === versionValue);
     }
-    
-    // NOTE: This check ensures the geo data is prioritized for the filter when it loads
+
     if (globalToggle.checked && globalValue !== "") {
-        filteredPods = filteredPods.filter(pod => applyGlobalFilter(pod, globalValue, ipCache));
+        const f = globalValue.toLowerCase();
+        filteredPods = filteredPods.filter(pod => {
+            const ip = pod.address.split(":")[0].toLowerCase();
+            const pubkey = (pod.pubkey || "").toLowerCase();
+            return ip.includes(f) || pubkey.includes(f);
+        });
     }
-    
+
     filteredPods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
-    
+
     const podCount = document.getElementById("podCount");
     podCount.textContent = filteredPods.length;
 
@@ -149,16 +142,14 @@ async function sendRpcRequest() {
     for (const pod of filteredPods) {
         const ip = pod.address.split(":")[0];
         const lastSeen = formatRelativeTime(pod.last_seen_timestamp);
-        
+
         const fullPubkey = pod.pubkey || "";
-        const shortPubkey = fullPubkey.length > 10 
-            ? fullPubkey.substring(0, 4) + "..." + fullPubkey.substring(fullPubkey.length - 4) 
+        const shortPubkey = fullPubkey.length > 10
+            ? fullPubkey.substring(0, 4) + "..." + fullPubkey.substring(fullPubkey.length - 4)
             : (fullPubkey || "N/A");
-        
-        // Use placeholder 'N/A' while geo lookup is pending
+
         const countryDisplay = ipCache[ip]?.country || "Loading...";
         const nameDisplay = ipCache[ip]?.name || "N/A";
-        
         const nameTitle = `IP: ${ip}\nTo list your name, send email.`;
 
         tableHTML += `
@@ -168,57 +159,56 @@ async function sendRpcRequest() {
                     title="${nameTitle}">
                     ${nameDisplay}
                 </td>
-                
                 <td class="font-mono text-xs text-gray-600 cursor-help" title="${fullPubkey}">
                     ${shortPubkey}
                 </td>
-                
                 <td id="country-${ip}">${countryDisplay}</td>
                 <td class="${lastSeen.class}">${lastSeen.text}</td>
                 <td>${pod.version}</td>
             </tr>
         `;
 
-        // --- GEO Lookup and Update ---
+        // --- GEO Lookup ---
         if (!ipCache[ip]) {
             ipCache[ip] = { country: "Loading...", name: "N/A" };
-            
+
             fetch(`${geoBase}?ip=${ip}`)
                 .then(res => res.json())
                 .then(geoData => {
                     const code = geoData.country_code?.toLowerCase() || "";
                     const countryName = geoData.country || "Unknown";
                     const serverName = geoData.name;
-                    
+
                     const nameCell = document.getElementById(`name-${ip}`);
                     if (nameCell) {
                         nameCell.textContent = serverName || "N/A";
                         nameCell.classList.remove('text-gray-500');
                         nameCell.classList.add('font-semibold');
-                        
+
                         const currentTitle = nameCell.getAttribute('title');
-                        const newTitle = serverName 
+                        const newTitle = serverName
                             ? currentTitle.replace(/(\nTo list your name, send email\.)/, `\nServer Name: ${serverName}$1`)
                             : currentTitle;
                         nameCell.setAttribute('title', newTitle);
-                        
+
                         if (serverName) {
                             nameCell.parentElement.classList.add('known-server');
                             nameCell.classList.add('text-indigo-700');
                         } else {
-                                nameCell.classList.add('text-gray-500');
+                            nameCell.classList.add('text-gray-500');
                         }
                         ipCache[ip].name = serverName || "N/A";
                     }
-                    
-                    const flag = code ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px; height:auto; display:inline-block;">` : "";
+
+                    const flag = code ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px; height:auto;">` : "";
                     const countryDisplayHtml = `${flag} ${countryName}`;
-                    
                     ipCache[ip].country = countryDisplayHtml;
-                    
+
                     const countryCell = document.getElementById(`country-${ip}`);
                     if (countryCell) countryCell.innerHTML = countryDisplayHtml;
 
+                    // Re-apply global filter now that name is available
+                    refilterWithNames();
                 })
                 .catch(error => {
                     console.error(`Error fetching geo data for ${ip}:`, error);
@@ -228,12 +218,16 @@ async function sendRpcRequest() {
                     if (countryCell) countryCell.textContent = "Geo Error";
                     ipCache[ip].country = "Geo Error";
                     ipCache[ip].name = "N/A";
+                    refilterWithNames();
                 });
         }
     }
 
     tableHTML += "</tbody></table>";
     output.innerHTML = tableHTML;
+
+    // Apply name-based filtering for any already-cached names
+    refilterWithNames();
 }
 
 function setupEmailObfuscation() {
@@ -241,19 +235,26 @@ function setupEmailObfuscation() {
     if (nickElement) {
         const part1 = "hlasenie-pchednode";
         const part2 = "yahoo.com";
-        
         nickElement.addEventListener("click", () => {
             window.location.href = `mailto:${part1}@${part2}`;
         });
     }
 }
 
+// --- Event Listeners ---
 window.addEventListener("load", markLoadButton);
 window.addEventListener("load", setupEmailObfuscation);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
 
-// Filter Listeners
+// Filter changes → highlight button + live refilter
 document.getElementById("versionFilterToggle").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterValue").addEventListener("input", markLoadButton);
-document.getElementById("globalFilterToggle").addEventListener("change", markLoadButton);
-document.getElementById("globalFilterValue").addEventListener("input", markLoadButton);
+
+document.getElementById("globalFilterToggle").addEventListener("change", () => {
+    markLoadButton();
+    refilterWithNames();
+});
+document.getElementById("globalFilterValue").addEventListener("input", () => {
+    markLoadButton();
+    refilterWithNames();
+});
