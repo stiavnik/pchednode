@@ -20,36 +20,59 @@
             <!-- Logo wrapped in anchor tag to open pchednode.jpg in a new tab -->
             <a href="pchednode.jpg" target="_blank" title="View high-resolution logo (3840x2160)">
                 <!-- Fixed size 160x90 -->
-                <img src="pched.jpg" alt="Logo" id="logo" class="w-[160px] h-[90px] rounded-lg shadow-md object-cover cursor-pointer hover:opacity-90 transition-opacity">
+                <img src="pched.jpg" alt="Logo" id="logo" class="w-[160px] h-[90px] rounded-lg shadow-md hover:shadow-xl transition-shadow object-cover">
             </a>
         </header>
 
-        <!-- Controls -->
-        <main class="space-y-6">
-            <div class="flex flex-col md:flex-row items-stretch md:items-center space-y-4 md:space-y-0 md:space-x-4 p-4 bg-white/80 backdrop-blur-sm rounded-lg shadow-md border border-white/50">
-                <div class="flex items-center space-x-2">
-                    <label for="rpcSelector" class="font-medium text-gray-700 whitespace-nowrap">RPC Server:</label>
-                    <select id="rpcSelector" class="form-select border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
-                        <option value="https://rpc1.pchednode.com/rpc">DevNet 1</option>
-                        <option value="https://rpc2.pchednode.com/rpc">DevNet 2</option>
-                        <option value="https://rpc3.pchednode.com/rpc">MainNet 1</option>
-                        <option value="https://rpc4.pchednode.com/rpc">MainNet 2</option>
+        <!-- Main Content -->
+        <main>
+            
+            <!-- RPC Selector and Controls (Single Line Layout, responsive to wrap on small screens) -->
+            <div class="flex flex-wrap items-center space-x-2 md:space-x-4 space-y-2 md:space-y-0 p-4 bg-white/70 backdrop-blur-sm rounded-lg shadow-xl">
+
+                <!-- 1. RPC Selector -->
+                <div class="flex-shrink-0">
+                    <label for="rpcSelector" class="sr-only">RPC Endpoint</label>
+                    <select id="rpcSelector" class="border border-gray-300 rounded-md p-1.5 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-medium">
+                        <!-- Used user-friendly names for the selection -->
+                        <option value="https://rpc1.pchednode.com:443/api">DevNet 1</option>
+                        <option value="https://rpc1.pchednode.com:443/api">DevNet 2</option>
+                        <option value="https://rpc2.pchednode.com:443/api">MainNet 1</option>
+                        <option value="https://rpc2.pchednode.com:443/api">MainNet 2</option>
                     </select>
                 </div>
-            
-                <button id="loadButton" onclick="sendRpcRequest()" 
-                        class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-lg hover:bg-indigo-700 transition duration-150 ease-in-out focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
+
+                <!-- 2. Load Button -->
+                <button id="loadButton" 
+                        onclick="sendRpcRequest()"
+                        class="px-4 py-1.5 text-white font-semibold rounded-lg shadow-lg bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 whitespace-nowrap flex-shrink-0">
                     LOAD
                 </button>
-            
-                <div id="filterBar" class="flex items-center space-x-4 text-sm md:text-base ml-auto">
-                    <div class="font-bold text-gray-700">Pods: <span id="podCount" class="text-indigo-600">0</span></div>
+                
+                <!-- 3. Pod Count (Pushed right on larger screens) -->
+                <div class="font-bold text-gray-700 whitespace-nowrap text-sm ml-auto mr-2 flex-shrink-0">
+                    Pods: <span id="podCount" class="text-indigo-600">0</span>
+                </div>
+
+
+                <!-- 4. Version Filter (Label changed to "Version", input narrower) -->
+                <div class="flex items-center space-x-1 flex-shrink-0">
                     <label class="flex items-center space-x-1 cursor-pointer">
                         <input type="checkbox" id="versionFilterToggle" class="form-checkbox h-4 w-4 text-indigo-600 rounded">
-                        <span class="text-gray-700 whitespace-nowrap">Filter by version</span>
+                        <span class="text-gray-700 whitespace-nowrap text-sm font-medium">Version</span>
                     </label>
                     <input type="text" id="versionFilterValue" value="0.5.1" placeholder="e.g. 0.5.1" 
-                           class="w-24 border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                           class="w-20 border border-gray-300 rounded-md p-1.5 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                </div>
+
+                <!-- 5. Global Filter (Checkbox + Wide Input) -->
+                <div class="flex items-center space-x-1 w-full md:w-auto md:flex-grow">
+                    <label class="flex items-center space-x-1 cursor-pointer flex-shrink-0">
+                        <input type="checkbox" id="globalFilterToggle" class="form-checkbox h-4 w-4 text-indigo-600 rounded">
+                        <span class="text-gray-700 whitespace-nowrap text-sm font-medium">Filter</span>
+                    </label>
+                    <input type="text" id="globalFilterValue" placeholder="NAME or IP or PUBKEY" 
+                           class="w-full border border-gray-300 rounded-md p-1.5 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                 </div>
             </div>
 
@@ -62,11 +85,12 @@
         <!-- Footer -->
         <footer class="mt-8 text-center text-sm text-gray-500 border-t border-gray-200/50 pt-4">
             <!-- Modified Nickname: Clickable ID, no href -->
-            &copy; 2025 <a id="footer-nick" class="cursor-pointer hover:text-indigo-600 transition-colors font-medium" title="Contact Admin">Substance242</a> | v0.3 | Data sourced via pchednode RPCs and custom Geo API.
+            &copy; 2025 <a id="footer-nick" class="cursor-pointer hover:text-indigo-600 transition-colors font-medium" title="Contact Admin">Substance242</a> | v0.4 | Data sourced via pchednode RPCs and custom Geo API.
         </footer>
-    </div>
 
-    <!-- External JavaScript File -->
+    </div>
+    
+    <!-- Custom JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>
