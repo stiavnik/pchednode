@@ -40,8 +40,9 @@ body {
 }
 
 .fresh { color: #10b981; font-weight: 600; } /* Green-500 */
-.recent { color: #f59e0b; } /* Amber-500 */
-.stale { color: #ef4444; } /* Red-500 */
+.recent { color: #2563eb; font-weight: 500; } /* Blue-600 */
+.stale { color: #f59e0b; font-weight: 500; } /* Amber-500 */
+.very-stale { color: #ef4444; font-weight: 500; } /* Red-500 */
 
 /* Highlighting known server rows */
 .known-server {
