@@ -1,50 +1,43 @@
 let hasLoadedOnce = false;
-const ipCache = {}; // Persistent cache across reloads
+const ipCache = {};
 
-function formatRelativeTime(timestamp) {
-    const now = Math.floor(Date.now() / 1000);
-    const diff = now - timestamp;
-    const SECONDS_IN_HOUR = 3600;
-    const SECONDS_IN_DAY = 86400;
-    const SECONDS_IN_WEEK = 604800;
-
-    if (diff < 60) return { text: `${diff} seconds ago`, class: "fresh" };
-    if (diff < SECONDS_IN_HOUR) return { text: `${Math.floor(diff / 60)} minutes ago`, class: "recent" };
-    if (diff < SECONDS_IN_DAY) return { text: `${Math.floor(diff / SECONDS_IN_HOUR)} hours ago`, class: "stale" };
-    if (diff < SECONDS_IN_WEEK) return { text: `${Math.floor(diff / SECONDS_IN_DAY)} days ago`, class: "very-stale" };
-    return { text: `${Math.floor(diff / SECONDS_IN_WEEK)} weeks ago`, class: "very-stale" };
+function formatRelativeTime(ts) {
+    const diff = Math.floor(Date.now() / 1000) - ts;
+    if (diff < 60) return { text: `${diff}s ago`, class: "fresh" };
+    if (diff < 3600) return { text: `${Math.floor(diff/60)}m ago`, class: "recent" };
+    if (diff < 86400) return { text: `${Math.floor(diff/3600)}h ago`, class: "stale" };
+    if (diff < 604800) return { text: `${Math.floor(diff/86400)}d ago`, class: "very-stale" };
+    return { text: `${Math.floor(diff/604800)}w ago`, class: "very-stale" };
 }
 
 function markLoadButton() {
-    const btn = document.getElementById("loadButton");
-    btn.classList.add("bg-yellow-500", "shadow-yellow-400/70");
-    btn.classList.remove("bg-indigo-600");
-    btn.textContent = hasLoadedOnce ? "RELOAD" : "LOAD";
+    const b = document.getElementById("loadButton");
+    b.classList.add("bg-yellow-500", "shadow-yellow-400/70");
+    b.classList.remove("bg-indigo-600");
+    b.textContent = hasLoadedOnce ? "RELOAD" : "LOAD";
 }
 
 function clearLoadButtonHighlight() {
-    const btn = document.getElementById("loadButton");
-    btn.classList.remove("bg-yellow-500", "shadow-yellow-400/70");
-    btn.classList.add("bg-indigo-600");
+    const b = document.getElementById("loadButton");
+    b.classList.remove("bg-yellow-500", "shadow-yellow-400/70");
+    b.classList.add("bg-indigo-600");
 }
 
-// Re-apply filtering + known-server styling when new geo data arrives
 function refilterAndRestyle() {
-    const globalToggle = document.getElementById("globalFilterToggle");
-    const globalValue = document.getElementById("globalFilterValue").value.trim().toLowerCase();
+    const toggle = document.getElementById("globalFilterToggle").checked;
+    const value = document.getElementById("globalFilterValue").value.trim().toLowerCase();
 
     document.querySelectorAll("#output tbody tr").forEach(row => {
         const nameCell = row.querySelector("td[id^='name-']");
         if (!nameCell) return;
-
         const ip = nameCell.id.replace("name-", "");
-        const cached = ipCache[ip] || {};
-        const name = (cached.name || "N/A").toLowerCase();
+        const cache = ipCache[ip] || {};
+        const name = (cache.name || "N/A").toLowerCase();
         const ipText = ip.toLowerCase();
         const pubkey = row.cells[1]?.title?.toLowerCase() || "";
 
-        // Apply known-server style if we have a real name
-        if (cached.name && cached.name !== "N/A") {
+        // Known-server styling
+        if (cache.name && cache.name !== "N/A") {
             row.classList.add("known-server");
             nameCell.classList.remove("text-gray-500");
             nameCell.classList.add("font-semibold", "text-indigo-700");
@@ -53,157 +46,130 @@ function refilterAndRestyle() {
         }
 
         // Filtering
-        if (!globalToggle.checked || globalValue === "") {
+        if (!toggle || value === "") {
             row.style.display = "";
         } else {
-            const matches = ipText.includes(globalValue) || pubkey.includes(globalValue) || name.includes(globalValue);
-            row.style.display = matches ? "" : "none";
+            const match = ipText.includes(value) || pubkey.includes(value) || name.includes(value);
+            row.style.display = match ? "" : "none";
         }
     });
 }
 
+// Debounced live filter
+let filterTimer;
+function scheduleFilter() {
+    clearTimeout(filterTimer);
+    filterTimer = setTimeout(() => {
+        markLoadButton();
+        refilterAndRestyle();
+    }, 150);
+}
+
 async function sendRpcRequest() {
-    const btn = document.getElementById("loadButton");
     if (!hasLoadedOnce) hasLoadedOnce = true;
-    btn.textContent = "RELOAD";
+    document.getElementById("loadButton").textContent = "RELOAD";
     clearLoadButtonHighlight();
 
     const rpcUrl = document.getElementById("rpcSelector").value;
-    const rpcHost = new URL(rpcUrl).hostname;
-    const geoBase = `https://${rpcHost}/geo`;
-
+    const host = new URL(rpcUrl).hostname;
+    const geoBase = `https://${host}/geo`;
     const output = document.getElementById("output");
     output.innerHTML = '<p class="text-center text-indigo-600 font-semibold">Loading pod list...</p>';
 
-    let response;
+    let data;
     try {
-        response = await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods", id: 1 }) });
+        const res = await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods", id: 1 }) });
+        if (!res.ok) throw new Error(res.status);
+        data = await res.json();
     } catch (e) {
-        output.innerHTML = `<p class="text-red-500">Network Error: Could not reach ${rpcUrl}.</p>`;
+        output.innerHTML = `<p class="text-red-500">Error: Could not reach RPC or invalid response.</p>`;
         return;
     }
 
-    if (!response.ok) {
-        output.innerHTML = `<p class="text-red-500">Error: RPC returned status ${response.status}.</p>`;
-        return;
+    let pods = data.result?.pods || [];
+
+    // Version filter
+    if (document.getElementById("versionFilterToggle").checked) {
+        const v = document.getElementById("versionFilterValue").value.trim();
+        if (v) pods = pods.filter(p => p.version === v);
     }
 
-    const data = await response.json();
-    const pods = data.result?.pods || [];
-
-    // Filters
-    const versionToggle = document.getElementById("versionFilterToggle");
-    const versionValue = document.getElementById("versionFilterValue").value.trim();
-    const globalToggle = document.getElementById("globalFilterToggle");
-    const globalValue = document.getElementById("globalFilterValue").value.trim();
-
-    let filteredPods = pods;
-
-    if (versionToggle.checked && versionValue !== "") {
-        filteredPods = filteredPods.filter(p => p.version === versionValue);
-    }
-
-    if (globalToggle.checked && globalValue !== "") {
-        const f = globalValue.toLowerCase();
-        filteredPods = filteredPods.filter(p => {
+    // Immediate IP/pubkey filter
+    if (document.getElementById("globalFilterToggle").checked) {
+        const f = document.getElementById("globalFilterValue").value.trim().toLowerCase();
+        if (f) pods = pods.filter(p => {
             const ip = p.address.split(":")[0].toLowerCase();
-            const pubkey = (p.pubkey || "").toLowerCase();
-            return ip.includes(f) || pubkey.includes(f);
+            const pk = (p.pubkey || "").toLowerCase();
+            return ip.includes(f) || pk.includes(f);
         });
     }
 
-    filteredPods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
-    document.getElementById("podCount").textContent = filteredPods.length;
+    pods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
+    document.getElementById("podCount").textContent = pods.length;
 
-    if (filteredPods.length === 0) {
-        output.innerHTML = "<p class='text-gray-500'>No pods found matching the filter criteria.</p>";
+    if (pods.length === 0) {
+        output.innerHTML = "<p class='text-gray-500'>No pods found.</p>";
         return;
     }
 
-    let tableHTML = `<table class="min-w-full"><thead><tr>
+    let html = `<table class="min-w-full"><thead><tr>
         <th class="rounded-tl-lg cursor-help" title="To have your name listed, send email">Name</th>
         <th>Pubkey</th><th>Country</th><th>Last Seen</th><th class="rounded-tr-lg">Version</th>
     </tr></thead><tbody>`;
 
-    for (const pod of filteredPods) {
+    for (const pod of pods) {
         const ip = pod.address.split(":")[0];
-        const lastSeen = formatRelativeTime(pod.last_seen_timestamp);
-        const fullPubkey = pod.pubkey || "";
-        const shortPubkey = fullPubkey.length > 10 ? fullPubkey.slice(0,4) + "..." + fullPubkey.slice(-4) : (fullPubkey || "N/A");
-
+        const { text: timeText, class: timeClass } = formatRelativeTime(pod.last_seen_timestamp);
+        const pubkey = pod.pubkey || "";
+        const shortKey = pubkey ? pubkey.slice(0,4) + "..." + pubkey.slice(-4) : "N/A";
         const cached = ipCache[ip] || {};
-        const nameDisplay = cached.name || "N/A";
-        const countryDisplay = cached.country || "Loading...";
+        const name = cached.name || "N/A";
+        const country = cached.country || '<span class="loading-spinner">Loading</span>';
 
-        tableHTML += `
-            <tr>
-                <td id="name-${ip}" class="text-gray-500 cursor-pointer font-medium" title="IP: ${ip}\nTo list your name, send email.">
-                    ${nameDisplay}
-                </td>
-                <td class="font-mono text-xs text-gray-600 cursor-help" title="${fullPubkey}">${shortPubkey}</td>
-                <td id="country-${ip}">${countryDisplay}</td>
-                <td class="${lastSeen.class}">${lastSeen.text}</td>
-                <td>${pod.version}</td>
-            </tr>`;
+        html += `<tr>
+            <td id="name-${ip}" class="text-gray-500 cursor-pointer" title="IP: ${ip}\nTo list your name, send email.">${name}</td>
+            <td class="font-mono text-xs text-gray-600 cursor-help hover:text-indigo-600 transition-colors" title="${pubkey}">${shortKey}</td>
+            <td id="country-${ip}">${country}</td>
+            <td class="${timeClass}">${timeText}</td>
+            <td>${pod.version}</td>
+        </tr>`;
 
-        // Geo lookup (only once per IP)
         if (!ipCache[ip]) {
-            ipCache[ip] = { country: "Loading...", name: "N/A" };
-
-            fetch(`${geoBase}?ip=${ip}`)
-                .then(r => r.json())
-                .then(geo => {
-                    const code = (geo.country_code || "").toLowerCase();
-                    const countryName = geo.country || "Unknown";
-                    const serverName = geo.name || "";
-
-                    ipCache[ip].name = serverName || "N/A";
-                    ipCache[ip].country = code 
-                        ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;"> ${countryName}`
-                        : countryName;
-
-                    // Update cells if they exist
-                    const nameCell = document.getElementById(`name-${ip}`);
-                    const countryCell = document.getElementById(`country-${ip}`);
-                    if (nameCell) {
-                        nameCell.textContent = serverName || "N/A";
-                        if (serverName) {
-                            nameCell.setAttribute("title", nameCell.getAttribute("title").replace("To list your name", `Server Name: ${serverName}\nTo list your name`));
-                        }
-                    }
-                    if (countryCell) countryCell.innerHTML = ipCache[ip].country;
-
-                    // This is the key: re-style + re-filter everything
-                    refilterAndRestyle();
-                })
-                .catch(err => {
-                    console.error("Geo error for", ip, err);
-                    ipCache[ip].country = "Geo Error";
-                    ipCache[ip].name = "N/A";
-                    refilterAndRestyle();
-                });
+            ipCache[ip] = { name: "N/A", country: '<span class="loading-spinner">Loading</span>' };
+            fetch(`${geoBase}?ip=${ip}`).then(r => r.json()).then(g => {
+                const code = (g.country_code || "").toLowerCase();
+                const flag = code ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;">` : "";
+                ipCache[ip].name = g.name || "N/A";
+                ipCache[ip].country = `${flag} ${g.country || "Unknown"}`;
+                const nc = document.getElementById(`name-${ip}`);
+                const cc = document.getElementById(`country-${ip}`);
+                if (nc) nc.textContent = ipCache[ip].name;
+                if (cc) cc.innerHTML = ipCache[ip].country;
+                if (g.name) nc?.setAttribute("title", nc.title.replace("To list your name", `Server Name: ${g.name}\nTo list your name`));
+                refilterAndRestyle();
+            }).catch(() => {
+                ipCache[ip].country = "Geo Error";
+                refilterAndRestyle();
+            });
         }
     }
 
-    tableHTML += "</tbody></table>";
-    output.innerHTML = tableHTML;
-
-    // Initial styling pass for already-cached entries
+    html += "</tbody></table>";
+    output.innerHTML = html;
     refilterAndRestyle();
 }
 
-function setupEmailObfuscation() {
-    const el = document.getElementById("footer-nick");
-    if (el) el.addEventListener("click", () => location.href = "mailto:hlasenie-pchednode@yahoo.com");
-}
+// Footer email
+document.getElementById("footer-nick")?.addEventListener("click", () => location.href = "mailto:hlasenie-pchednode@yahoo.com");
 
-// Event listeners
+// Listeners
 window.addEventListener("load", markLoadButton);
-window.addEventListener("load", setupEmailObfuscation);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
-
 document.getElementById("versionFilterToggle").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterValue").addEventListener("input", markLoadButton);
+document.getElementById("globalFilterToggle").addEventListener("change", scheduleFilter);
+document.getElementById("globalFilterValue").addEventListener("input", scheduleFilter);
 
-document.getElementById("globalFilterToggle").addEventListener("change", () => { markLoadButton(); refilterAndRestyle(); });
-document.getElementById("globalFilterValue").addEventListener("input", () => { markLoadButton(); refilterAndRestyle(); });
+// Optional auto-refresh every 5 minutes
+setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
