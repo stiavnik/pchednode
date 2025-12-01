@@ -1,10 +1,9 @@
 let hasLoadedOnce = false;
-const ipCache = {}; // Moved outside so it's shared across loads
+const ipCache = {}; // Persistent cache across reloads
 
 function formatRelativeTime(timestamp) {
     const now = Math.floor(Date.now() / 1000);
     const diff = now - timestamp;
-
     const SECONDS_IN_HOUR = 3600;
     const SECONDS_IN_DAY = 86400;
     const SECONDS_IN_WEEK = 604800;
@@ -12,9 +11,7 @@ function formatRelativeTime(timestamp) {
     if (diff < 60) return { text: `${diff} seconds ago`, class: "fresh" };
     if (diff < SECONDS_IN_HOUR) return { text: `${Math.floor(diff / 60)} minutes ago`, class: "recent" };
     if (diff < SECONDS_IN_DAY) return { text: `${Math.floor(diff / SECONDS_IN_HOUR)} hours ago`, class: "stale" };
-    if (diff < SECONDS_IN_WEEK) {
-        return { text: `${Math.floor(diff / SECONDS_IN_DAY)} days ago`, class: "very-stale" };
-    }
+    if (diff < SECONDS_IN_WEEK) return { text: `${Math.floor(diff / SECONDS_IN_DAY)} days ago`, class: "very-stale" };
     return { text: `${Math.floor(diff / SECONDS_IN_WEEK)} weeks ago`, class: "very-stale" };
 }
 
@@ -31,37 +28,42 @@ function clearLoadButtonHighlight() {
     btn.classList.add("bg-indigo-600");
 }
 
-// Refilter visible rows when new name data arrives or filter changes
-function refilterWithNames() {
+// Re-apply filtering + known-server styling when new geo data arrives
+function refilterAndRestyle() {
     const globalToggle = document.getElementById("globalFilterToggle");
-    const globalValue = document.getElementById("globalFilterValue").value.trim();
+    const globalValue = document.getElementById("globalFilterValue").value.trim().toLowerCase();
 
-    if (!globalToggle.checked || globalValue === "") {
-        document.querySelectorAll("#output tbody tr").forEach(row => {
-            row.style.display = "";
-            row.classList.remove("hidden-by-filter");
-        });
-        return;
-    }
-
-    const filter = globalValue.toLowerCase();
     document.querySelectorAll("#output tbody tr").forEach(row => {
         const nameCell = row.querySelector("td[id^='name-']");
-        const ip = nameCell.id.replace("name-", "");
-        const name = (ipCache[ip]?.name || "N/A").toLowerCase();
-        const ipText = ip.toLowerCase();
-        const pubkey = row.cells[1].title.toLowerCase(); // full pubkey in title
+        if (!nameCell) return;
 
-        const matches = ipText.includes(filter) || pubkey.includes(filter) || name.includes(filter);
-        row.style.display = matches ? "" : "none";
-        if (!matches) row.classList.add("hidden-by-filter");
-        else row.classList.remove("hidden-by-filter");
+        const ip = nameCell.id.replace("name-", "");
+        const cached = ipCache[ip] || {};
+        const name = (cached.name || "N/A").toLowerCase();
+        const ipText = ip.toLowerCase();
+        const pubkey = row.cells[1]?.title?.toLowerCase() || "";
+
+        // Apply known-server style if we have a real name
+        if (cached.name && cached.name !== "N/A") {
+            row.classList.add("known-server");
+            nameCell.classList.remove("text-gray-500");
+            nameCell.classList.add("font-semibold", "text-indigo-700");
+        } else {
+            row.classList.remove("known-server");
+        }
+
+        // Filtering
+        if (!globalToggle.checked || globalValue === "") {
+            row.style.display = "";
+        } else {
+            const matches = ipText.includes(globalValue) || pubkey.includes(globalValue) || name.includes(globalValue);
+            row.style.display = matches ? "" : "none";
+        }
     });
 }
 
 async function sendRpcRequest() {
     const btn = document.getElementById("loadButton");
-
     if (!hasLoadedOnce) hasLoadedOnce = true;
     btn.textContent = "RELOAD";
     clearLoadButtonHighlight();
@@ -75,146 +77,110 @@ async function sendRpcRequest() {
 
     let response;
     try {
-        response = await fetch(rpcUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods", id: 1 })
-        });
+        response = await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods", id: 1 }) });
     } catch (e) {
         output.innerHTML = `<p class="text-red-500">Network Error: Could not reach ${rpcUrl}.</p>`;
         return;
     }
 
     if (!response.ok) {
-        output.innerHTML = `<p class="text-red-500">Error: RPC returned status ${response.status} (${response.statusText}).</p>`;
+        output.innerHTML = `<p class="text-red-500">Error: RPC returned status ${response.status}.</p>`;
         return;
     }
 
     const data = await response.json();
     const pods = data.result?.pods || [];
 
-    // --- Get Filter Values ---
+    // Filters
     const versionToggle = document.getElementById("versionFilterToggle");
     const versionValue = document.getElementById("versionFilterValue").value.trim();
     const globalToggle = document.getElementById("globalFilterToggle");
     const globalValue = document.getElementById("globalFilterValue").value.trim();
 
-    // --- Apply Filtering (immediate filters only) ---
     let filteredPods = pods;
 
     if (versionToggle.checked && versionValue !== "") {
-        filteredPods = filteredPods.filter(pod => pod.version === versionValue);
+        filteredPods = filteredPods.filter(p => p.version === versionValue);
     }
 
     if (globalToggle.checked && globalValue !== "") {
         const f = globalValue.toLowerCase();
-        filteredPods = filteredPods.filter(pod => {
-            const ip = pod.address.split(":")[0].toLowerCase();
-            const pubkey = (pod.pubkey || "").toLowerCase();
+        filteredPods = filteredPods.filter(p => {
+            const ip = p.address.split(":")[0].toLowerCase();
+            const pubkey = (p.pubkey || "").toLowerCase();
             return ip.includes(f) || pubkey.includes(f);
         });
     }
 
     filteredPods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
-
-    const podCount = document.getElementById("podCount");
-    podCount.textContent = filteredPods.length;
+    document.getElementById("podCount").textContent = filteredPods.length;
 
     if (filteredPods.length === 0) {
         output.innerHTML = "<p class='text-gray-500'>No pods found matching the filter criteria.</p>";
         return;
     }
 
-    let tableHTML = `
-        <table class="min-w-full">
-            <thead>
-                <tr>
-                    <th class="rounded-tl-lg cursor-help" title="To have your name listed, send email">Name</th> 
-                    <th>Pubkey</th>
-                    <th>Country</th>
-                    <th>Last Seen</th>
-                    <th class="rounded-tr-lg">Version</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
+    let tableHTML = `<table class="min-w-full"><thead><tr>
+        <th class="rounded-tl-lg cursor-help" title="To have your name listed, send email">Name</th>
+        <th>Pubkey</th><th>Country</th><th>Last Seen</th><th class="rounded-tr-lg">Version</th>
+    </tr></thead><tbody>`;
 
     for (const pod of filteredPods) {
         const ip = pod.address.split(":")[0];
         const lastSeen = formatRelativeTime(pod.last_seen_timestamp);
-
         const fullPubkey = pod.pubkey || "";
-        const shortPubkey = fullPubkey.length > 10
-            ? fullPubkey.substring(0, 4) + "..." + fullPubkey.substring(fullPubkey.length - 4)
-            : (fullPubkey || "N/A");
+        const shortPubkey = fullPubkey.length > 10 ? fullPubkey.slice(0,4) + "..." + fullPubkey.slice(-4) : (fullPubkey || "N/A");
 
-        const countryDisplay = ipCache[ip]?.country || "Loading...";
-        const nameDisplay = ipCache[ip]?.name || "N/A";
-        const nameTitle = `IP: ${ip}\nTo list your name, send email.`;
+        const cached = ipCache[ip] || {};
+        const nameDisplay = cached.name || "N/A";
+        const countryDisplay = cached.country || "Loading...";
 
         tableHTML += `
-            <tr class="mb-2">
-                <td id="name-${ip}" 
-                    class="${nameDisplay !== 'N/A' ? 'font-semibold text-indigo-700 cursor-pointer' : 'text-gray-500 cursor-pointer'}" 
-                    title="${nameTitle}">
+            <tr>
+                <td id="name-${ip}" class="text-gray-500 cursor-pointer font-medium" title="IP: ${ip}\nTo list your name, send email.">
                     ${nameDisplay}
                 </td>
-                <td class="font-mono text-xs text-gray-600 cursor-help" title="${fullPubkey}">
-                    ${shortPubkey}
-                </td>
+                <td class="font-mono text-xs text-gray-600 cursor-help" title="${fullPubkey}">${shortPubkey}</td>
                 <td id="country-${ip}">${countryDisplay}</td>
                 <td class="${lastSeen.class}">${lastSeen.text}</td>
                 <td>${pod.version}</td>
-            </tr>
-        `;
+            </tr>`;
 
-        // --- GEO Lookup ---
+        // Geo lookup (only once per IP)
         if (!ipCache[ip]) {
             ipCache[ip] = { country: "Loading...", name: "N/A" };
 
             fetch(`${geoBase}?ip=${ip}`)
-                .then(res => res.json())
-				.then(geoData => {
-					const code = geoData.country_code?.toLowerCase() || "";
-					const countryName = geoData.country || "Unknown";
-					const serverName = geoData.name;
+                .then(r => r.json())
+                .then(geo => {
+                    const code = (geo.country_code || "").toLowerCase();
+                    const countryName = geo.country || "Unknown";
+                    const serverName = geo.name || "";
 
-					const nameCell = document.getElementById(`name-${ip}`);
-					if (nameCell) {
-						nameCell.textContent = serverName || "N/A";
-						nameCell.classList.remove('text-gray-500');
-						nameCell.classList.add('font-semibold');
-						if (serverName) nameCell.classList.add('text-indigo-700');
+                    ipCache[ip].name = serverName || "N/A";
+                    ipCache[ip].country = code 
+                        ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;"> ${countryName}`
+                        : countryName;
 
-						const currentTitle = nameCell.getAttribute('title');
-						const newTitle = serverName
-							? currentTitle.replace(/(\nTo list your name, send email\.)/, `\nServer Name: ${serverName}$1`)
-							: currentTitle;
-						nameCell.setAttribute('title', newTitle);
-
-						// THIS IS THE FIX — ensure known-server class is always applied
-						nameCell.parentElement.classList.add('known-server');
-					}
-
-					const flag = code ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px; height:auto;">` : "";
-					const countryDisplayHtml = `${flag} ${countryName}`;
-					ipCache[ip].country = countryDisplayHtml;
-					ipCache[ip].name = serverName || "N/A";
-
-					const countryCell = document.getElementById(`country-${ip}`);
-					if (countryCell) countryCell.innerHTML = countryDisplayHtml;
-
-					refilterWithNames(); // already there
-				})
-                .catch(error => {
-                    console.error(`Error fetching geo data for ${ip}:`, error);
+                    // Update cells if they exist
                     const nameCell = document.getElementById(`name-${ip}`);
-                    if (nameCell) nameCell.textContent = "Geo Error";
                     const countryCell = document.getElementById(`country-${ip}`);
-                    if (countryCell) countryCell.textContent = "Geo Error";
+                    if (nameCell) {
+                        nameCell.textContent = serverName || "N/A";
+                        if (serverName) {
+                            nameCell.setAttribute("title", nameCell.getAttribute("title").replace("To list your name", `Server Name: ${serverName}\nTo list your name`));
+                        }
+                    }
+                    if (countryCell) countryCell.innerHTML = ipCache[ip].country;
+
+                    // This is the key: re-style + re-filter everything
+                    refilterAndRestyle();
+                })
+                .catch(err => {
+                    console.error("Geo error for", ip, err);
                     ipCache[ip].country = "Geo Error";
                     ipCache[ip].name = "N/A";
-                    refilterWithNames();
+                    refilterAndRestyle();
                 });
         }
     }
@@ -222,35 +188,22 @@ async function sendRpcRequest() {
     tableHTML += "</tbody></table>";
     output.innerHTML = tableHTML;
 
-    // Apply name-based filtering for any already-cached names
-    refilterWithNames();
+    // Initial styling pass for already-cached entries
+    refilterAndRestyle();
 }
 
 function setupEmailObfuscation() {
-    const nickElement = document.getElementById("footer-nick");
-    if (nickElement) {
-        const part1 = "hlasenie-pchednode";
-        const part2 = "yahoo.com";
-        nickElement.addEventListener("click", () => {
-            window.location.href = `mailto:${part1}@${part2}`;
-        });
-    }
+    const el = document.getElementById("footer-nick");
+    if (el) el.addEventListener("click", () => location.href = "mailto:hlasenie-pchednode@yahoo.com");
 }
 
-// --- Event Listeners ---
+// Event listeners
 window.addEventListener("load", markLoadButton);
 window.addEventListener("load", setupEmailObfuscation);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
 
-// Filter changes → highlight button + live refilter
 document.getElementById("versionFilterToggle").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterValue").addEventListener("input", markLoadButton);
 
-document.getElementById("globalFilterToggle").addEventListener("change", () => {
-    markLoadButton();
-    refilterWithNames();
-});
-document.getElementById("globalFilterValue").addEventListener("input", () => {
-    markLoadButton();
-    refilterWithNames();
-});
+document.getElementById("globalFilterToggle").addEventListener("change", () => { markLoadButton(); refilterAndRestyle(); });
+document.getElementById("globalFilterValue").addEventListener("input", () => { markLoadButton(); refilterAndRestyle(); });
