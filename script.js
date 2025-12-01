@@ -3,10 +3,25 @@ let hasLoadedOnce = false;
 function formatRelativeTime(timestamp) {
     const now = Math.floor(Date.now() / 1000);
     const diff = now - timestamp;
+    
+    // Constants for comparison
+    const SECONDS_IN_HOUR = 3600;
+    const SECONDS_IN_DAY = 86400; // 24 * 3600
+    const SECONDS_IN_WEEK = 604800; // 7 * 86400
 
     if (diff < 60) return { text: `${diff} seconds ago`, class: "fresh" };
-    if (diff < 3600) return { text: `${Math.floor(diff / 60)} minutes ago`, class: "recent" };
-    return { text: `${Math.floor(diff / 3600)} hours ago`, class: "stale" };
+    if (diff < SECONDS_IN_HOUR) return { text: `${Math.floor(diff / 60)} minutes ago`, class: "recent" };
+    
+    // If less than 1 day, display hours
+    if (diff < SECONDS_IN_DAY) return { text: `${Math.floor(diff / SECONDS_IN_HOUR)} hours ago`, class: "stale" };
+
+    // If less than 7 days, display days
+    if (diff < SECONDS_IN_WEEK) {
+        return { text: `${Math.floor(diff / SECONDS_IN_DAY)} days ago`, class: "very-stale" };
+    }
+    
+    // If 7 days or more, display weeks
+    return { text: `${Math.floor(diff / SECONDS_IN_WEEK)} weeks ago`, class: "very-stale" };
 }
 
 function markLoadButton() {
