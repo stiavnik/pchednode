@@ -80,8 +80,8 @@ async function sendRpcRequest() {
             <thead>
                 <tr>
                     <th class="rounded-tl-lg cursor-help" title="To have your name listed, send email">Name</th> 
-                    <th>Pubkey</th> <!-- New Column Header -->
-                    <th>IP Address</th>
+                    <th>Pubkey</th>
+                    <!-- IP Address column is REMOVED -->
                     <th>Country</th>
                     <th>Last Seen</th>
                     <th class="rounded-tr-lg">Version</th>
@@ -94,9 +94,8 @@ async function sendRpcRequest() {
         const ip = pod.address.split(":")[0];
         const lastSeen = formatRelativeTime(pod.last_seen_timestamp);
         
-        // --- NEW: Handle Pubkey ---
+        // --- Pubkey Handling ---
         const fullPubkey = pod.pubkey || "";
-        // If key is long, truncate it (e.g. "7UMj...XnXv"), otherwise show full
         const shortPubkey = fullPubkey.length > 10 
             ? fullPubkey.substring(0, 4) + "..." + fullPubkey.substring(fullPubkey.length - 4) 
             : (fullPubkey || "N/A");
@@ -104,17 +103,27 @@ async function sendRpcRequest() {
         // Initialize country and name placeholders
         const countryDisplay = ipCache[ip]?.country || "Loading...";
         const nameDisplay = ipCache[ip]?.name || "N/A";
+        
+        // The title for the Name cell includes the IP address on hover
+        const nameTitle = `IP: ${ip}\nTo list your name, send email.`;
+
 
         tableHTML += `
             <tr class="mb-2">
-                <td id="name-${ip}" class="${nameDisplay !== 'N/A' ? 'font-semibold text-indigo-700' : 'text-gray-500'}">${nameDisplay}</td>
+                <!-- Name Cell now includes the IP address in the title attribute for hover -->
+                <td id="name-${ip}" 
+                    class="${nameDisplay !== 'N/A' ? 'font-semibold text-indigo-700 cursor-pointer' : 'text-gray-500 cursor-pointer'}" 
+                    title="${nameTitle}">
+                    ${nameDisplay}
+                </td>
                 
-                <!-- NEW: Pubkey Cell -->
+                <!-- Pubkey Cell -->
                 <td class="font-mono text-xs text-gray-600 cursor-help" title="${fullPubkey}">
                     ${shortPubkey}
                 </td>
                 
-                <td>${ip}</td>
+                <!-- IP Address column cell removed -->
+                
                 <td id="country-${ip}">${countryDisplay}</td>
                 <td class="${lastSeen.class}">${lastSeen.text}</td>
                 <td>${pod.version}</td>
@@ -139,6 +148,14 @@ async function sendRpcRequest() {
                         nameCell.textContent = serverName || "N/A";
                         nameCell.classList.remove('text-gray-500');
                         nameCell.classList.add('font-semibold');
+                        
+                        // Update title attribute with the server name (if available)
+                        const currentTitle = nameCell.getAttribute('title');
+                        const newTitle = serverName 
+                            ? currentTitle.replace(/(\nTo list your name, send email\.)/, `\nServer Name: ${serverName}$1`)
+                            : currentTitle;
+                        nameCell.setAttribute('title', newTitle);
+
                         
                         // Highlight the entire row if a custom name is found
                         if (serverName) {
