@@ -13,8 +13,6 @@ function markLoadButton() {
     const btn = document.getElementById("loadButton");
     btn.classList.add("bg-yellow-500", "shadow-yellow-400/70");
     btn.classList.remove("bg-indigo-600");
-    
-    // Update: Check if it's the first load. If so, display "LOAD". Otherwise, "RELOAD".
     btn.textContent = hasLoadedOnce ? "RELOAD" : "LOAD";
 }
 
@@ -27,14 +25,11 @@ function clearLoadButtonHighlight() {
 async function sendRpcRequest() {
     const btn = document.getElementById("loadButton");
 
-    // Check if it's the first time the button is clicked to set hasLoadedOnce flag
     if (!hasLoadedOnce) {
         hasLoadedOnce = true;
     }
     
-    // Ensure the button text is set to RELOAD after this first click
     btn.textContent = "RELOAD";
-
     clearLoadButtonHighlight();
 
     const rpcUrl = document.getElementById("rpcSelector").value;
@@ -80,7 +75,6 @@ async function sendRpcRequest() {
         return;
     }
 
-    // Cache to store IP info (Country, Name) to avoid duplicate lookups
     const ipCache = {};
     let tableHTML = `
         <table class="min-w-full">
@@ -88,7 +82,6 @@ async function sendRpcRequest() {
                 <tr>
                     <th class="rounded-tl-lg cursor-help" title="To have your name listed, send email">Name</th> 
                     <th>Pubkey</th>
-                    <!-- IP Address column is REMOVED -->
                     <th>Country</th>
                     <th>Last Seen</th>
                     <th class="rounded-tr-lg">Version</th>
@@ -101,35 +94,27 @@ async function sendRpcRequest() {
         const ip = pod.address.split(":")[0];
         const lastSeen = formatRelativeTime(pod.last_seen_timestamp);
         
-        // --- Pubkey Handling ---
         const fullPubkey = pod.pubkey || "";
         const shortPubkey = fullPubkey.length > 10 
             ? fullPubkey.substring(0, 4) + "..." + fullPubkey.substring(fullPubkey.length - 4) 
             : (fullPubkey || "N/A");
         
-        // Initialize country and name placeholders
         const countryDisplay = ipCache[ip]?.country || "Loading...";
         const nameDisplay = ipCache[ip]?.name || "N/A";
         
-        // The title for the Name cell includes the IP address on hover
         const nameTitle = `IP: ${ip}\nTo list your name, send email.`;
-
 
         tableHTML += `
             <tr class="mb-2">
-                <!-- Name Cell now includes the IP address in the title attribute for hover -->
                 <td id="name-${ip}" 
                     class="${nameDisplay !== 'N/A' ? 'font-semibold text-indigo-700 cursor-pointer' : 'text-gray-500 cursor-pointer'}" 
                     title="${nameTitle}">
                     ${nameDisplay}
                 </td>
                 
-                <!-- Pubkey Cell -->
                 <td class="font-mono text-xs text-gray-600 cursor-help" title="${fullPubkey}">
                     ${shortPubkey}
                 </td>
-                
-                <!-- IP Address column cell removed -->
                 
                 <td id="country-${ip}">${countryDisplay}</td>
                 <td class="${lastSeen.class}">${lastSeen.text}</td>
@@ -137,34 +122,28 @@ async function sendRpcRequest() {
             </tr>
         `;
 
-        // If IP not in cache, fetch Geo data
         if (!ipCache[ip]) {
-            ipCache[ip] = { country: "Loading...", name: "N/A" }; // Mark as loading
+            ipCache[ip] = { country: "Loading...", name: "N/A" };
             
-            // Asynchronously fetch geo info
             fetch(`${geoBase}?ip=${ip}`)
                 .then(res => res.json())
                 .then(geoData => {
                     const code = geoData.country_code?.toLowerCase() || "";
                     const countryName = geoData.country || "Unknown";
-                    const serverName = geoData.name; // The custom name from geo.py
+                    const serverName = geoData.name;
                     
-                    // 1. Update Name Cell
                     const nameCell = document.getElementById(`name-${ip}`);
                     if (nameCell) {
                         nameCell.textContent = serverName || "N/A";
                         nameCell.classList.remove('text-gray-500');
                         nameCell.classList.add('font-semibold');
                         
-                        // Update title attribute with the server name (if available)
                         const currentTitle = nameCell.getAttribute('title');
                         const newTitle = serverName 
                             ? currentTitle.replace(/(\nTo list your name, send email\.)/, `\nServer Name: ${serverName}$1`)
                             : currentTitle;
                         nameCell.setAttribute('title', newTitle);
-
                         
-                        // Highlight the entire row if a custom name is found
                         if (serverName) {
                             nameCell.parentElement.classList.add('known-server');
                             nameCell.classList.add('text-indigo-700');
@@ -174,9 +153,10 @@ async function sendRpcRequest() {
                         ipCache[ip].name = serverName || "N/A";
                     }
                     
-                    // 2. Update Country/Flag Cell
-                    const flag = code ? `<img src="https://flagcdn.com/16x12/${code}.png" alt="${code}" class="inline-block mr-2">` : "";
-                    const countryDisplayHtml = `${flag}${countryName}`;
+                    // --- CHANGED: Use Local Flag ---
+                    // We now fetch from ${geoBase}/flag/${code} instead of flagcdn
+                    const flag = code ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px; height:auto; display:inline-block;">` : "";
+                    const countryDisplayHtml = `${flag} ${countryName}`;
                     
                     ipCache[ip].country = countryDisplayHtml;
                     
@@ -186,7 +166,6 @@ async function sendRpcRequest() {
                 })
                 .catch(error => {
                     console.error(`Error fetching geo data for ${ip}:`, error);
-                    // Update Name and Country cells to show error
                     const nameCell = document.getElementById(`name-${ip}`);
                     if (nameCell) nameCell.textContent = "Geo Error";
                     const countryCell = document.getElementById(`country-${ip}`);
@@ -201,7 +180,6 @@ async function sendRpcRequest() {
     output.innerHTML = tableHTML;
 }
 
-// Security: Obfuscate email to prevent bot scraping
 function setupEmailObfuscation() {
     const nickElement = document.getElementById("footer-nick");
     if (nickElement) {
@@ -214,9 +192,8 @@ function setupEmailObfuscation() {
     }
 }
 
-// Event Listeners
 window.addEventListener("load", markLoadButton);
-window.addEventListener("load", setupEmailObfuscation); // Add email security
+window.addEventListener("load", setupEmailObfuscation);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterToggle").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterValue").addEventListener("input", markLoadButton);
