@@ -149,7 +149,7 @@ async function sendRpcRequest() {
                 pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
             }
         } else {
-            pingHtml = '<span class="text-gray-400">…</span>';
+            pingHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
         }
 
         html += `<tr>
