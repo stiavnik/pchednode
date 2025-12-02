@@ -23,7 +23,6 @@ function clearLoadButtonHighlight() {
     b.classList.add("bg-indigo-600");
 }
 
-// Click-to-copy full pubkey with nice feedback
 function copyPubkey(text, element) {
     navigator.clipboard.writeText(text).then(() => {
         const original = element.textContent;
@@ -49,9 +48,8 @@ function refilterAndRestyle() {
         const cache = ipCache[ip] || {};
         const name = (cache.name || "N/A").toLowerCase();
         const ipText = ip.toLowerCase();
-        const pubkey = row.cells[1]?.title?.toLowerCase() || "";
+        const pubkey = row.cells[1]?.dataset.pubkey?.toLowerCase() || "";
 
-        // Known-server styling
         if (cache.name && cache.name !== "N/A") {
             row.classList.add("known-server");
             nameCell.classList.remove("text-gray-500");
@@ -60,7 +58,6 @@ function refilterAndRestyle() {
             row.classList.remove("known-server");
         }
 
-        // Filtering
         if (!toggle || value === "") {
             row.style.display = "";
         } else {
@@ -142,6 +139,7 @@ async function sendRpcRequest() {
         html += `<tr>
             <td id="name-${ip}" class="text-gray-500 cursor-pointer" title="IP: ${ip}\nTo list your name, click email in footer">${name}</td>
             <td class="font-mono text-xs text-gray-600 cursor-pointer hover:text-indigo-600 transition-colors"
+                data-pubkey="${pubkey}"
                 onclick="copyPubkey('${pubkey}', this)" title="Click to copy full pubkey">${shortKey}</td>
             <td id="country-${ip}">${country}</td>
             <td class="${timeClass}">${timeText}</td>
@@ -173,10 +171,8 @@ async function sendRpcRequest() {
     refilterAndRestyle();
 }
 
-// Footer email
 document.getElementById("footer-nick")?.addEventListener("click", () => location.href = "mailto:hlasenie-pchednode@yahoo.com");
 
-// Listeners
 window.addEventListener("load", markLoadButton);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterToggle").addEventListener("change", markLoadButton);
@@ -184,5 +180,4 @@ document.getElementById("versionFilterValue").addEventListener("input", markLoad
 document.getElementById("globalFilterToggle").addEventListener("change", scheduleFilter);
 document.getElementById("globalFilterValue").addEventListener("input", scheduleFilter);
 
-// Auto-refresh every 5 minutes
 setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
