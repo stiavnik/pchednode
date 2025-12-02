@@ -37,7 +37,6 @@ function copyPubkey(text, element) {
     });
 }
 
-// NEW: updates only the Ping cell when geo/ping data arrives
 function updatePingDisplay(ip) {
     const cached = ipCache[ip];
     if (!cached || cached.ping === undefined) return;
@@ -59,6 +58,34 @@ function updatePingDisplay(ip) {
     }
 }
 
+function updateRowAfterGeo(ip) {
+    const cached = ipCache[ip];
+    if (!cached) return;
+
+    const row = document.querySelector(`#name-${ip}`)?.parentElement;
+    if (!row) return;
+
+    // Name
+    const nameCell = row.cells[0];
+    if (nameCell) {
+        nameCell.textContent = cached.name || "N/A";
+        if (cached.name && cached.name !== "N/A") {
+            row.classList.add("known-server");
+            nameCell.classList.remove("text-gray-500");
+            nameCell.classList.add("font-semibold", "text-indigo-700");
+        }
+    }
+
+    // Country
+    const countryCell = row.cells[2];
+    if (countryCell) {
+        countryCell.innerHTML = cached.country || "Geo Error";
+    }
+
+    // Ping
+    updatePingDisplay(ip);
+}
+
 function refilterAndRestyle() {
     const toggle = document.getElementById("globalFilterToggle").checked;
     const value = document.getElementById("globalFilterValue").value.trim().toLowerCase();
@@ -71,14 +98,6 @@ function refilterAndRestyle() {
         const name = (cache.name || "N/A").toLowerCase();
         const ipText = ip.toLowerCase();
         const pubkey = row.cells[1]?.dataset.pubkey?.toLowerCase() || "";
-
-        if (cache.name && cache.name !== "N/A") {
-            row.classList.add("known-server");
-            nameCell.classList.remove("text-gray-500");
-            nameCell.classList.add("font-semibold", "text-indigo-700");
-        } else {
-            row.classList.remove("known-server");
-        }
 
         if (!toggle || value === "") {
             row.style.display = "";
@@ -158,10 +177,8 @@ async function sendRpcRequest() {
         const name = cached.name || "N/A";
         const country = cached.country || '<span class="loading-spinner">Loading</span>';
 
-        // Ping spinner or value
         let pingHtml = cached.ping !== undefined
-            ? (cached.ping === null
-                ? '<span class="text-red-600 font-medium">offline</span>'
+            ? (cached.ping === null ? '<span class="text-red-600 font-medium">offline</span>'
                 : cached.ping > 400 ? `<span class="text-red-500">${cached.ping} ms</span>`
                 : cached.ping > 200 ? `<span class="text-orange-500">${cached.ping} ms</span>`
                 : `<span class="text-green-600">${cached.ping} ms</span>`)
@@ -187,18 +204,12 @@ async function sendRpcRequest() {
                 ipCache[ip].country = `${flag} ${g.country || "Unknown"}`;
                 ipCache[ip].ping = g.ping;
 
-                const nc = document.getElementById(`name-${ip}`);
-                const cc = document.getElementById(`country-${ip}`);
-                if (nc) nc.textContent = ipCache[ip].name;
-                if (cc) cc.innerHTML = ipCache[ip].country;
-                if (g.name) nc?.setAttribute("title", nc.title.replace("To list your name", `Server Name: ${g.name}\nTo list your name`));
-
-                updatePingDisplay(ip);   // ← THIS MAKES THE SPINNER TURN INTO REAL PING
+                updateRowAfterGeo(ip);
                 refilterAndRestyle();
             }).catch(() => {
                 ipCache[ip].country = "Geo Error";
                 ipCache[ip].ping = null;
-                updatePingDisplay(ip);
+                updateRowAfterGeo(ip);
                 refilterAndRestyle();
             });
         }
