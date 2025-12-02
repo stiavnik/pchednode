@@ -52,10 +52,8 @@ function updatePingDisplay(ip) {
         pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
     }
 
-    // FIX: Use getElementById to handle IPs with dots safely
     const nameCell = document.getElementById(`name-${ip}`);
     const row = nameCell?.parentElement;
-    
     if (row && row.cells[3]) {
         row.cells[3].innerHTML = `<div class="text-right font-mono text-sm">${pingHtml}</div>`;
     }
@@ -65,21 +63,22 @@ function updateRowAfterGeo(ip) {
     const cached = ipCache[ip];
     if (!cached) return;
 
-    // FIX: Use getElementById to handle IPs with dots safely
     const nameCell = document.getElementById(`name-${ip}`);
     const row = nameCell?.parentElement;
-    
     if (!row) return;
 
-    // Name
+    // Name & Highlight Logic
     if (nameCell) {
         if (cached.name && cached.name !== "N/A") {
              nameCell.textContent = cached.name;
+             // Apply highlight dynamically when data arrives
              row.classList.add("known-server");
              nameCell.classList.remove("text-gray-500");
              nameCell.classList.add("font-semibold", "text-indigo-700");
         } else if (cached.name === "N/A") {
              nameCell.textContent = "N/A";
+             // Ensure we remove it if it turned out to be unknown (rare but safe)
+             row.classList.remove("known-server");
         }
     }
 
@@ -98,7 +97,6 @@ function refilterAndRestyle() {
     const value = document.getElementById("globalFilterValue").value.trim().toLowerCase();
 
     document.querySelectorAll("#output tbody tr").forEach(row => {
-        // This selector is safe because it uses an attribute selector, not ID selector
         const nameCell = row.querySelector("td[id^='name-']");
         if (!nameCell) return;
         
@@ -185,8 +183,12 @@ async function sendRpcRequest() {
         
         const existing = ipCache[ip];
         const needsFetch = !existing || existing.country.includes("loading-spinner") || existing.country === "Geo Error";
-
         const cached = existing && !needsFetch ? existing : { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined };
+
+        // FIX: Determine Highlight Class IMMEDIATELY
+        const isKnown = cached.name && cached.name !== "N/A";
+        const rowClass = isKnown ? "known-server" : "";
+        const nameClass = isKnown ? "font-semibold text-indigo-700" : "text-gray-500";
 
         let pingHtml = cached.ping !== undefined
             ? (cached.ping === null ? '<span class="text-red-600 font-medium">offline</span>'
@@ -195,8 +197,8 @@ async function sendRpcRequest() {
                 : `<span class="text-green-600">${cached.ping} ms</span>`)
             : '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
 
-        html += `<tr>
-            <td id="name-${ip}" class="text-gray-500 cursor-pointer" title="IP: ${ip}\nTo list your name, click email in footer">${cached.name}</td>
+        html += `<tr class="${rowClass}">
+            <td id="name-${ip}" class="${nameClass} cursor-pointer" title="IP: ${ip}\nTo list your name, click email in footer">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 cursor-pointer hover:text-indigo-600 transition-colors"
                 data-pubkey="${pubkey}"
                 onclick="copyPubkey('${pubkey}', this)" title="Click to copy full pubkey">${shortKey}</td>
