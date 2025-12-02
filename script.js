@@ -124,7 +124,7 @@ async function sendRpcRequest() {
 
     let html = `<table class="min-w-full"><thead><tr>
         <th class="rounded-tl-lg cursor-help" title="To have your name listed, click email in footer">Name</th>
-        <th>Pubkey</th><th>Country</th><th>Last Seen</th><th class="rounded-tr-lg">Version</th>
+        <th>Pubkey</th><th>Country</th><th class="text-right">Ping</th><th>Last Seen</th><th class="rounded-tr-lg">Version</th>
     </tr></thead><tbody>`;
 
     for (const pod of pods) {
@@ -136,23 +136,42 @@ async function sendRpcRequest() {
         const name = cached.name || "N/A";
         const country = cached.country || '<span class="loading-spinner">Loading</span>';
 
+        // Ping display + color
+        let pingHtml = "";
+        if (cached.ping !== undefined) {
+            if (cached.ping === null) {
+                pingHtml = '<span class="text-red-600 font-medium">offline</span>';
+            } else if (cached.ping > 400) {
+                pingHtml = `<span class="text-red-500">${cached.ping} ms</span>`;
+            } else if (cached.ping > 200) {
+                pingHtml = `<span class="text-orange-500">${cached.ping} ms</span>`;
+            } else {
+                pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
+            }
+        } else {
+            pingHtml = '<span class="text-gray-400">…</span>';
+        }
+
         html += `<tr>
             <td id="name-${ip}" class="text-gray-500 cursor-pointer" title="IP: ${ip}\nTo list your name, click email in footer">${name}</td>
             <td class="font-mono text-xs text-gray-600 cursor-pointer hover:text-indigo-600 transition-colors"
                 data-pubkey="${pubkey}"
                 onclick="copyPubkey('${pubkey}', this)" title="Click to copy full pubkey">${shortKey}</td>
             <td id="country-${ip}">${country}</td>
+            <td class="text-right font-mono text-sm">${pingHtml}</td>
             <td class="${timeClass}">${timeText}</td>
             <td>${pod.version}</td>
         </tr>`;
 
         if (!ipCache[ip]) {
-            ipCache[ip] = { name: "N/A", country: '<span class="loading-spinner">Loading</span>' };
+            ipCache[ip] = { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined };
             fetch(`${geoBase}?ip=${ip}`).then(r => r.json()).then(g => {
                 const code = (g.country_code || "").toLowerCase();
-                const flag = code ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;">` : "";
+                const flag = code && code !== "--" ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;">` : "";
                 ipCache[ip].name = g.name || "N/A";
                 ipCache[ip].country = `${flag} ${g.country || "Unknown"}`;
+                ipCache[ip].ping = g.ping;   // <-- NEW
+
                 const nc = document.getElementById(`name-${ip}`);
                 const cc = document.getElementById(`country-${ip}`);
                 if (nc) nc.textContent = ipCache[ip].name;
@@ -161,6 +180,7 @@ async function sendRpcRequest() {
                 refilterAndRestyle();
             }).catch(() => {
                 ipCache[ip].country = "Geo Error";
+                ipCache[ip].ping = null;
                 refilterAndRestyle();
             });
         }
