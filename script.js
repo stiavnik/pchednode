@@ -153,14 +153,21 @@ async function sendRpcRequest() {
         if (v) pods = pods.filter(p => p.version === v);
     }
 
+    // FIX: Include cached name check in pre-render filter logic
     if (document.getElementById("globalFilterToggle").checked) {
         const f = document.getElementById("globalFilterValue").value.trim().toLowerCase();
         if (f) pods = pods.filter(p => {
             const ip = p.address.split(":")[0].toLowerCase();
             const pk = (p.pubkey || "").toLowerCase();
-            return ip.includes(f) || pk.includes(f);
+            
+            // Retrieve name from persistent cache (populated from the previous run)
+            const cachedName = ipCache[ip]?.name?.toLowerCase() || ""; 
+
+            // Filter by IP, PUBKEY, OR cached NAME
+            return ip.includes(f) || pk.includes(f) || cachedName.includes(f);
         });
     }
+    // END FIX
 
     pods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
     document.getElementById("podCount").textContent = pods.length;
@@ -185,7 +192,6 @@ async function sendRpcRequest() {
         const needsFetch = !existing || existing.country.includes("loading-spinner") || existing.country === "Geo Error";
         const cached = existing && !needsFetch ? existing : { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined };
 
-        // FIX: Determine Highlight Class IMMEDIATELY
         const isKnown = cached.name && cached.name !== "N/A";
         const rowClass = isKnown ? "known-server" : "";
         const nameClass = isKnown ? "font-semibold text-indigo-700" : "text-gray-500";
