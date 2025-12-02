@@ -44,7 +44,6 @@ body { font-family: 'Inter', system-ui, sans-serif; }
 
 #output tbody tr:hover {
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-    transform:
     transform: translateY(-2px);
 }
 
@@ -61,10 +60,10 @@ body { font-family: 'Inter', system-ui, sans-serif; }
 .stale      { color: #f59e0b; font-weight: 500; }
 .very-stale { color: #ef4444; font-weight: 500; }
 
-/* Known server highlight */
+/* Known server highlight - IMPROVED SATURATION */
 .known-server {
-    background-color: #f0fdf4 !important;
-    border-left: 5px solid #10b981 !important;
+    background-color: #dcfce7 !important; /* Brighter Green (was #f0fdf4) */
+    border-left: 5px solid #16a34a !important; /* Stronger Green Border (was #10b981) */
 }
 
 .known-server td {
