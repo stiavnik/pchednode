@@ -126,7 +126,7 @@ async function sendRpcRequest() {
     }
 
     let html = `<table class="min-w-full"><thead><tr>
-        <th class="rounded-tl-lg cursor-help" title="To have your name listed, send email">Name</th>
+        <th class="rounded-tl-lg cursor-help" title="To have your name listed, click email in footer">Name</th>
         <th>Pubkey</th><th>Country</th><th>Last Seen</th><th class="rounded-tr-lg">Version</th>
     </tr></thead><tbody>`;
 
@@ -140,7 +140,7 @@ async function sendRpcRequest() {
         const country = cached.country || '<span class="loading-spinner">Loading</span>';
 
         html += `<tr>
-            <td id="name-${ip}" class="text-gray-500 cursor-pointer" title="IP: ${ip}\nTo list your name, send email.">${name}</td>
+            <td id="name-${ip}" class="text-gray-500 cursor-pointer" title="IP: ${ip}\nTo list your name, click email in footer">${name}</td>
             <td class="font-mono text-xs text-gray-600 cursor-pointer hover:text-indigo-600 transition-colors"
                 onclick="copyPubkey('${pubkey}', this)" title="Click to copy full pubkey">${shortKey}</td>
             <td id="country-${ip}">${country}</td>
