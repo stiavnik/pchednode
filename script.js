@@ -1,6 +1,4 @@
 let hasLoadedOnce = false;
-// Changed from const to let so we can manage it if needed, 
-// though we will manage the internal states better now.
 let ipCache = {}; 
 
 function formatRelativeTime(ts) {
@@ -41,7 +39,6 @@ function copyPubkey(text, element) {
 
 function updatePingDisplay(ip) {
     const cached = ipCache[ip];
-    // We strictly check if ping is undefined to allow 'null' (offline) to pass through
     if (!cached || cached.ping === undefined) return;
 
     let pingHtml;
@@ -55,7 +52,10 @@ function updatePingDisplay(ip) {
         pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
     }
 
-    const row = document.querySelector(`#name-${ip}`)?.parentElement;
+    // FIX: Use getElementById to handle IPs with dots safely
+    const nameCell = document.getElementById(`name-${ip}`);
+    const row = nameCell?.parentElement;
+    
     if (row && row.cells[3]) {
         row.cells[3].innerHTML = `<div class="text-right font-mono text-sm">${pingHtml}</div>`;
     }
@@ -65,13 +65,14 @@ function updateRowAfterGeo(ip) {
     const cached = ipCache[ip];
     if (!cached) return;
 
-    const row = document.querySelector(`#name-${ip}`)?.parentElement;
+    // FIX: Use getElementById to handle IPs with dots safely
+    const nameCell = document.getElementById(`name-${ip}`);
+    const row = nameCell?.parentElement;
+    
     if (!row) return;
 
     // Name
-    const nameCell = row.cells[0];
     if (nameCell) {
-        // Only update text if we actually have a name, otherwise keep spinner or N/A
         if (cached.name && cached.name !== "N/A") {
              nameCell.textContent = cached.name;
              row.classList.add("known-server");
@@ -97,8 +98,10 @@ function refilterAndRestyle() {
     const value = document.getElementById("globalFilterValue").value.trim().toLowerCase();
 
     document.querySelectorAll("#output tbody tr").forEach(row => {
+        // This selector is safe because it uses an attribute selector, not ID selector
         const nameCell = row.querySelector("td[id^='name-']");
         if (!nameCell) return;
+        
         const ip = nameCell.id.replace("name-", "");
         const cache = ipCache[ip] || {};
         const name = (cache.name || "N/A").toLowerCase();
@@ -180,11 +183,9 @@ async function sendRpcRequest() {
         const pubkey = pod.pubkey || "";
         const shortKey = pubkey ? pubkey.slice(0,4) + "..." + pubkey.slice(-4) : "N/A";
         
-        // FIX: Check if cache is missing OR if it's in a broken/loading state from previous run
         const existing = ipCache[ip];
         const needsFetch = !existing || existing.country.includes("loading-spinner") || existing.country === "Geo Error";
 
-        // If we are about to fetch, ensure we display the spinner initially
         const cached = existing && !needsFetch ? existing : { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined };
 
         let pingHtml = cached.ping !== undefined
@@ -206,7 +207,6 @@ async function sendRpcRequest() {
         </tr>`;
 
         if (needsFetch) {
-            // Initialize/Reset cache state to loading to prevent duplicate fetches in short window
             ipCache[ip] = { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined };
             
             fetch(`${geoBase}?ip=${ip}`)
@@ -236,7 +236,6 @@ async function sendRpcRequest() {
     html += "</tbody></table>";
     output.innerHTML = html;
     
-    // Immediate re-style in case cache was already hot
     setTimeout(refilterAndRestyle, 0);
 }
 
