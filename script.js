@@ -37,6 +37,28 @@ function copyPubkey(text, element) {
     });
 }
 
+// NEW: updates only the Ping cell when geo/ping data arrives
+function updatePingDisplay(ip) {
+    const cached = ipCache[ip];
+    if (!cached || cached.ping === undefined) return;
+
+    let pingHtml;
+    if (cached.ping === null) {
+        pingHtml = '<span class="text-red-600 font-medium">offline</span>';
+    } else if (cached.ping > 400) {
+        pingHtml = `<span class="text-red-500">${cached.ping} ms</span>`;
+    } else if (cached.ping > 200) {
+        pingHtml = `<span class="text-orange-500">${cached.ping} ms</span>`;
+    } else {
+        pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
+    }
+
+    const row = document.querySelector(`#name-${ip}`)?.parentElement;
+    if (row && row.cells[3]) {
+        row.cells[3].innerHTML = `<div class="text-right font-mono text-sm">${pingHtml}</div>`;
+    }
+}
+
 function refilterAndRestyle() {
     const toggle = document.getElementById("globalFilterToggle").checked;
     const value = document.getElementById("globalFilterValue").value.trim().toLowerCase();
@@ -136,21 +158,14 @@ async function sendRpcRequest() {
         const name = cached.name || "N/A";
         const country = cached.country || '<span class="loading-spinner">Loading</span>';
 
-        // Ping display + color
-        let pingHtml = "";
-        if (cached.ping !== undefined) {
-            if (cached.ping === null) {
-                pingHtml = '<span class="text-red-600 font-medium">offline</span>';
-            } else if (cached.ping > 400) {
-                pingHtml = `<span class="text-red-500">${cached.ping} ms</span>`;
-            } else if (cached.ping > 200) {
-                pingHtml = `<span class="text-orange-500">${cached.ping} ms</span>`;
-            } else {
-                pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
-            }
-        } else {
-            pingHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
-        }
+        // Ping spinner or value
+        let pingHtml = cached.ping !== undefined
+            ? (cached.ping === null
+                ? '<span class="text-red-600 font-medium">offline</span>'
+                : cached.ping > 400 ? `<span class="text-red-500">${cached.ping} ms</span>`
+                : cached.ping > 200 ? `<span class="text-orange-500">${cached.ping} ms</span>`
+                : `<span class="text-green-600">${cached.ping} ms</span>`)
+            : '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
 
         html += `<tr>
             <td id="name-${ip}" class="text-gray-500 cursor-pointer" title="IP: ${ip}\nTo list your name, click email in footer">${name}</td>
@@ -170,17 +185,20 @@ async function sendRpcRequest() {
                 const flag = code && code !== "--" ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;">` : "";
                 ipCache[ip].name = g.name || "N/A";
                 ipCache[ip].country = `${flag} ${g.country || "Unknown"}`;
-                ipCache[ip].ping = g.ping;   // <-- NEW
+                ipCache[ip].ping = g.ping;
 
                 const nc = document.getElementById(`name-${ip}`);
                 const cc = document.getElementById(`country-${ip}`);
                 if (nc) nc.textContent = ipCache[ip].name;
                 if (cc) cc.innerHTML = ipCache[ip].country;
                 if (g.name) nc?.setAttribute("title", nc.title.replace("To list your name", `Server Name: ${g.name}\nTo list your name`));
+
+                updatePingDisplay(ip);   // ← THIS MAKES THE SPINNER TURN INTO REAL PING
                 refilterAndRestyle();
             }).catch(() => {
                 ipCache[ip].country = "Geo Error";
                 ipCache[ip].ping = null;
+                updatePingDisplay(ip);
                 refilterAndRestyle();
             });
         }
