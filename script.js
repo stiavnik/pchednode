@@ -1,5 +1,7 @@
 let hasLoadedOnce = false;
-const ipCache = {};
+// Changed from const to let so we can manage it if needed, 
+// though we will manage the internal states better now.
+let ipCache = {}; 
 
 function formatRelativeTime(ts) {
     const diff = Math.floor(Date.now() / 1000) - ts;
@@ -39,6 +41,7 @@ function copyPubkey(text, element) {
 
 function updatePingDisplay(ip) {
     const cached = ipCache[ip];
+    // We strictly check if ping is undefined to allow 'null' (offline) to pass through
     if (!cached || cached.ping === undefined) return;
 
     let pingHtml;
@@ -68,11 +71,14 @@ function updateRowAfterGeo(ip) {
     // Name
     const nameCell = row.cells[0];
     if (nameCell) {
-        nameCell.textContent = cached.name || "N/A";
+        // Only update text if we actually have a name, otherwise keep spinner or N/A
         if (cached.name && cached.name !== "N/A") {
-            row.classList.add("known-server");
-            nameCell.classList.remove("text-gray-500");
-            nameCell.classList.add("font-semibold", "text-indigo-700");
+             nameCell.textContent = cached.name;
+             row.classList.add("known-server");
+             nameCell.classList.remove("text-gray-500");
+             nameCell.classList.add("font-semibold", "text-indigo-700");
+        } else if (cached.name === "N/A") {
+             nameCell.textContent = "N/A";
         }
     }
 
@@ -124,7 +130,7 @@ async function sendRpcRequest() {
 
     const rpcUrl = document.getElementById("rpcSelector").value;
     const host = new URL(rpcUrl).hostname;
-    const geoBase = `https://${host}/geo`;  // host = rpc1.pchednode.com, etc.
+    const geoBase = `https://${host}/geo`;
     const output = document.getElementById("output");
     output.innerHTML = '<p class="text-center text-indigo-600 font-semibold">Loading pod list...</p>';
 
@@ -173,9 +179,13 @@ async function sendRpcRequest() {
         const { text: timeText, class: timeClass } = formatRelativeTime(pod.last_seen_timestamp);
         const pubkey = pod.pubkey || "";
         const shortKey = pubkey ? pubkey.slice(0,4) + "..." + pubkey.slice(-4) : "N/A";
-        const cached = ipCache[ip] || {};
-        const name = cached.name || "N/A";
-        const country = cached.country || '<span class="loading-spinner">Loading</span>';
+        
+        // FIX: Check if cache is missing OR if it's in a broken/loading state from previous run
+        const existing = ipCache[ip];
+        const needsFetch = !existing || existing.country.includes("loading-spinner") || existing.country === "Geo Error";
+
+        // If we are about to fetch, ensure we display the spinner initially
+        const cached = existing && !needsFetch ? existing : { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined };
 
         let pingHtml = cached.ping !== undefined
             ? (cached.ping === null ? '<span class="text-red-600 font-medium">offline</span>'
@@ -185,39 +195,49 @@ async function sendRpcRequest() {
             : '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
 
         html += `<tr>
-            <td id="name-${ip}" class="text-gray-500 cursor-pointer" title="IP: ${ip}\nTo list your name, click email in footer">${name}</td>
+            <td id="name-${ip}" class="text-gray-500 cursor-pointer" title="IP: ${ip}\nTo list your name, click email in footer">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 cursor-pointer hover:text-indigo-600 transition-colors"
                 data-pubkey="${pubkey}"
                 onclick="copyPubkey('${pubkey}', this)" title="Click to copy full pubkey">${shortKey}</td>
-            <td id="country-${ip}">${country}</td>
+            <td id="country-${ip}">${cached.country}</td>
             <td class="text-right font-mono text-sm">${pingHtml}</td>
             <td class="${timeClass}">${timeText}</td>
             <td>${pod.version}</td>
         </tr>`;
 
-        if (!ipCache[ip]) {
+        if (needsFetch) {
+            // Initialize/Reset cache state to loading to prevent duplicate fetches in short window
             ipCache[ip] = { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined };
-            fetch(`${geoBase}?ip=${ip}`).then(r => r.json()).then(g => {
-                const code = (g.country_code || "").toLowerCase();
-                const flag = code && code !== "--" ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;">` : "";
-                ipCache[ip].name = g.name || "N/A";
-                ipCache[ip].country = `${flag} ${g.country || "Unknown"}`;
-                ipCache[ip].ping = g.ping;
+            
+            fetch(`${geoBase}?ip=${ip}`)
+                .then(r => {
+                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                    return r.json();
+                })
+                .then(g => {
+                    const code = (g.country_code || "").toLowerCase();
+                    const flag = code && code !== "--" ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;">` : "";
+                    ipCache[ip].name = g.name || "N/A";
+                    ipCache[ip].country = `${flag} ${g.country || "Unknown"}`;
+                    ipCache[ip].ping = g.ping;
 
-                updateRowAfterGeo(ip);
-                refilterAndRestyle();
-            }).catch(() => {
-                ipCache[ip].country = "Geo Error";
-                ipCache[ip].ping = null;
-                updateRowAfterGeo(ip);
-                refilterAndRestyle();
-            });
+                    updateRowAfterGeo(ip);
+                    refilterAndRestyle();
+                }).catch((err) => {
+                    console.error(`Geo fetch failed for ${ip}:`, err);
+                    ipCache[ip].country = "Geo Error";
+                    ipCache[ip].ping = null;
+                    updateRowAfterGeo(ip);
+                    refilterAndRestyle();
+                });
         }
     }
 
     html += "</tbody></table>";
     output.innerHTML = html;
-    refilterAndRestyle();
+    
+    // Immediate re-style in case cache was already hot
+    setTimeout(refilterAndRestyle, 0);
 }
 
 document.getElementById("footer-nick")?.addEventListener("click", () => location.href = "mailto:hlasenie-pchednode@yahoo.com");
