@@ -124,7 +124,7 @@ async function sendRpcRequest() {
 
     const rpcUrl = document.getElementById("rpcSelector").value;
     const host = new URL(rpcUrl).hostname;
-    const geoBase = `https://${host}/geo`;
+    const geoBase = "/geo";   // served by your VPS, proxied to Flask on 127.0.0.1:5998
     const output = document.getElementById("output");
     output.innerHTML = '<p class="text-center text-indigo-600 font-semibold">Loading pod list...</p>';
 
