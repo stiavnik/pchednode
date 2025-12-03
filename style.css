@@ -1,5 +1,18 @@
 /* Base */
-body { font-family: 'Inter', system-ui, sans-serif; }
+html {
+    min-height: 100%;
+    /* Ensure mobile browsers don't show white/black bands on overscroll */
+    background: #f0fdf4; /* Match lime-100ish */
+}
+html.dark {
+    background: #0f172a; /* Match slate-900 */
+}
+
+body { 
+    font-family: 'Inter', system-ui, sans-serif; 
+    min-height: 100vh;
+    /* Move gradient here but ensure it covers everything */
+}
 
 /* Spinner */
 .loading-spinner::after {
@@ -11,11 +24,17 @@ body { font-family: 'Inter', system-ui, sans-serif; }
 
 /* Table */
 #output table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+
+/* Header Styling */
 #output thead th {
-    position: sticky; top: 0; background: #f8fafc; dark:bg-gray-800;
+    position: sticky; top: 0; 
+    background: #f8fafc; 
     padding: 14px 16px; font-size: 0.8rem; text-transform: uppercase; color: #64748b;
     letter-spacing: 0.05em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    /* Fix for "Bright Border" in dark mode: Ensure border doesn't bleed */
+    border-bottom: 1px solid #e2e8f0;
 }
+
 #output tbody tr {
     background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.07);
     transition: all 0.2s;
@@ -24,7 +43,13 @@ body { font-family: 'Inter', system-ui, sans-serif; }
 #output tbody td { padding: 16px; color: #1f2937; }
 
 /* Dark mode overrides */
-.dark #output thead th { background: #1e293b; color: #cbd5e1; }
+.dark #output thead th { 
+    background: #1e293b; 
+    color: #cbd5e1; 
+    border-bottom: 1px solid #334155; /* Dark border for headers */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
 .dark #output tbody tr { background: #1e293b; }
 .dark #output tbody tr:hover { background: #334155; }
 .dark #output tbody td { color: #e2e8f0; }
@@ -33,7 +58,7 @@ body { font-family: 'Inter', system-ui, sans-serif; }
 .known-server {
     background-color: #dcfce7 !important; border-left: 6px solid #16a34a !important;
 }
-.dark .known-server { background-color: #166534 !important; border-left-color: #22c55e !important; }
+.dark .known-server { background-color: #14532d !important; border-left-color: #22c55e !important; }
 
 tr.duplicate-pubkey-row {
     background-color: #fee2e2 !important; border-left: 5px solid #dc2626 !important;
