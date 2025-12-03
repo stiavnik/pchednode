@@ -251,8 +251,10 @@ async function sendRpcRequest() {
     setTimeout(refilterAndRestyle, 0);
 }
 
-// Footer email
-document.getElementById("footer-nick")?.addEventListener("click", () => location.href = "mailto:hlasenie-pchednode@yahoo.com");
+// Footer email click
+document.getElementById("footer-nick")?.addEventListener("click", () => {
+    location.href = "mailto:hlasenie-pchednode@yahoo.com";
+});
 
 // UI triggers
 window.addEventListener("load", markLoadButton);
@@ -264,11 +266,10 @@ document.getElementById("globalFilterValue").addEventListener("input", scheduleF
 
 setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
 
-// DARK MODE — FIXED & PERFECT
+// DARK MODE – persistent via localStorage
 const themeToggle = document.getElementById('themeToggle');
 const html = document.documentElement;
 
-// Load preference
 if (localStorage.getItem('theme') === 'dark' || 
    (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     html.classList.add('dark');
@@ -276,7 +277,6 @@ if (localStorage.getItem('theme') === 'dark' ||
     html.classList.remove('dark');
 }
 
-// Toggle
 themeToggle?.addEventListener('click', () => {
     html.classList.toggle('dark');
     localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
