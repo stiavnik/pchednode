@@ -24,8 +24,20 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Table Overflow Fix for Mobile */
+#output {
+    overflow-x: auto; /* Allows horizontal scrolling */
+    -webkit-overflow-scrolling: touch; /* Better scrolling performance on iOS */
+}
+
 /* Table */
-#output table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+#output table { 
+    /* The table itself should now have enough space for all columns */
+    width: 100%; 
+    min-width: 800px; /* Optional: Sets a minimum width to ensure all columns fit, forcing scroll */
+    border-collapse: separate; 
+    border-spacing: 0 10px; 
+}
 
 /* Header Styling */
 #output thead th {
