@@ -137,7 +137,7 @@ async function sendRpcRequest() {
     try {
         const res = await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods", id: 1 }) });
-        if (!:!res.ok) throw new Error(res.status);
+        if (!res.ok) throw new Error(res.status);  // ← FIXED LINE
         data = await res.json();
     } catch (e) {
         output.innerHTML = `<p class="text-red-500">Error: Could not reach RPC.</p>`;
@@ -274,7 +274,7 @@ if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.match
     html.classList.remove('dark');
 }
 
-themeToggle.addEventListener('click', () => {
+themeToggle?.addEventListener('click', () => {
     html.classList.toggle('dark');
     localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
 });
