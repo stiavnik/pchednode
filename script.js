@@ -264,11 +264,12 @@ document.getElementById("globalFilterValue").addEventListener("input", scheduleF
 
 setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
 
-// ——————— DARK MODE TOGGLE ———————
+// ——————— DARK MODE TOGGLE (updated) ———————
 const themeToggle = document.getElementById('themeToggle');
 const html = document.documentElement;
 
-if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+// Respect saved preference or system setting
+if (localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     html.classList.add('dark');
 } else {
     html.classList.remove('dark');
