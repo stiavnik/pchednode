@@ -1,7 +1,5 @@
 let hasLoadedOnce = false;
 let ipCache = {};
-
-// Global maps for duplicate detection (populated on each load)
 let pubkeyCountMap = {};
 let pubkeyToIpsMap = {};
 
@@ -29,20 +27,15 @@ function clearLoadButtonHighlight() {
 
 function copyPubkey(text, element) {
     navigator.clipboard.writeText(text).then(() => {
-        // Save the exact original HTML (including spans and classes)
         const originalHTML = element.innerHTML;
-        const originalTitle = element.title || "";
-
         element.innerHTML = "Copied!";
         element.classList.replace("text-gray-600", "text-green-600");
         element.classList.add("font-bold");
 
         setTimeout(() => {
-            // Restore the exact original HTML (keeps <span class="short-key"> and the !)
             element.innerHTML = originalHTML;
             element.classList.replace("text-green-600", "text-gray-600");
             element.classList.remove("font-bold");
-            // Title stays correct automatically because we didn’t touch it
         }, 1000);
     });
 }
@@ -138,13 +131,13 @@ async function sendRpcRequest() {
     const host = new URL(rpcUrl).hostname;
     const geoBase = `https://${host}/geo`;
     const output = document.getElementById("output");
-    output.innerHTML = '<p class="text-center text-indigo-600 font-semibold">Loading pod list...</p>';
+    output.innerHTML = '<p class="text-center text-indigo-600 dark:text-indigo-400 font-semibold">Loading pod list...</p>';
 
     let data;
     try {
         const res = await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods", id: 1 }) });
-        if (!res.ok) throw new Error(res.status);
+        if (!:!res.ok) throw new Error(res.status);
         data = await res.json();
     } catch (e) {
         output.innerHTML = `<p class="text-red-500">Error: Could not reach RPC.</p>`;
@@ -153,13 +146,11 @@ async function sendRpcRequest() {
 
     let pods = data.result?.pods || [];
 
-    // Version filter
     if (document.getElementById("versionFilterToggle").checked) {
         const v = document.getElementById("versionFilterValue").value.trim();
         if (v) pods = pods.filter(p => p.version === v);
     }
 
-    // Global filter (pre-render)
     if (document.getElementById("globalFilterToggle").checked) {
         const f = document.getElementById("globalFilterValue").value.trim().toLowerCase();
         if (f) pods = pods.filter(p => {
@@ -174,11 +165,11 @@ async function sendRpcRequest() {
     document.getElementById("podCount").textContent = pods.length;
 
     if (pods.length === 0) {
-        output.innerHTML = "<p class='text-gray-500'>No pods found.</p>";
+        output.innerHTML = "<p class='text-gray-500 dark:text-gray-400'>No pods found.</p>";
         return;
     }
 
-    // === DETECT DUPLICATE PUBKEYS ===
+    // Detect duplicate pubkeys
     pubkeyCountMap = {};
     pubkeyToIpsMap = {};
     pods.forEach(pod => {
@@ -188,7 +179,6 @@ async function sendRpcRequest() {
         if (!pubkeyToIpsMap[pk]) pubkeyToIpsMap[pk] = [];
         pubkeyToIpsMap[pk].push(pod.address.split(":")[0]);
     });
-    // === END DETECTION ===
 
     let html = `<table class="min-w-full"><thead><tr>
         <th class="rounded-tl-lg cursor-help" title="To have your name listed, click email in footer">Name</th>
@@ -222,7 +212,7 @@ async function sendRpcRequest() {
 
         html += `<tr class="${rowClass}">
             <td id="name-${ip}" class="${nameClass} cursor-pointer" title="IP: ${ip}\nTo list your name, click email in footer">${cached.name}</td>
-            <td class="font-mono text-xs text-gray-600 cursor-pointer hover:text-indigo-600 transition-colors ${pubkeyCellClass}"
+            <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${pubkeyCellClass}"
                 data-pubkey="${pubkey}"
                 onclick="copyPubkey('${pubkey}', this)"
                 title="Click to copy full pubkey${isDuplicated ? '\nDUPLICATE: also on ' + pubkeyToIpsMap[pubkey].filter(i => i !== ip).join(', ') : ''}">
@@ -236,7 +226,6 @@ async function sendRpcRequest() {
 
         if (needsFetch) {
             ipCache[ip] = { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined };
-            
             fetch(`${geoBase}?ip=${ip}`)
                 .then(r => { if (!r.ok) throw new Error(); return r.json(); })
                 .then(g => {
@@ -265,7 +254,7 @@ async function sendRpcRequest() {
 // Footer email
 document.getElementById("footer-nick")?.addEventListener("click", () => location.href = "mailto:hlasenie-pchednode@yahoo.com");
 
-// Auto-highlight button on changes
+// UI triggers
 window.addEventListener("load", markLoadButton);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterToggle").addEventListener("change", markLoadButton);
@@ -273,5 +262,19 @@ document.getElementById("versionFilterValue").addEventListener("input", markLoad
 document.getElementById("globalFilterToggle").addEventListener("change", scheduleFilter);
 document.getElementById("globalFilterValue").addEventListener("input", scheduleFilter);
 
-// Auto-refresh every 5 minutes
 setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
+
+// ——————— DARK MODE TOGGLE ———————
+const themeToggle = document.getElementById('themeToggle');
+const html = document.documentElement;
+
+if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    html.classList.add('dark');
+} else {
+    html.classList.remove('dark');
+}
+
+themeToggle.addEventListener('click', () => {
+    html.classList.toggle('dark');
+    localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+});
