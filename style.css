@@ -1,17 +1,17 @@
-/* Base */
+/* Base Setup */
 html {
     min-height: 100%;
-    /* Ensure mobile browsers don't show white/black bands on overscroll */
-    background: #f0fdf4; /* Match lime-100ish */
+    /* Fix mobile "overscroll" bands: match the gradient start colors */
+    background-color: #ecfccb; /* lime-100ish */
 }
 html.dark {
-    background: #0f172a; /* Match slate-900 */
+    background-color: #0f172a; /* slate-900 */
 }
 
 body { 
     font-family: 'Inter', system-ui, sans-serif; 
+    /* Gradient handles the main visual, but html handles the rubber-band scrolling */
     min-height: 100vh;
-    /* Move gradient here but ensure it covers everything */
 }
 
 /* Spinner */
@@ -31,8 +31,9 @@ body {
     background: #f8fafc; 
     padding: 14px 16px; font-size: 0.8rem; text-transform: uppercase; color: #64748b;
     letter-spacing: 0.05em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    /* Fix for "Bright Border" in dark mode: Ensure border doesn't bleed */
-    border-bottom: 1px solid #e2e8f0;
+    
+    /* FIX: This border was staying bright in dark mode. We remove it here... */
+    border-bottom: 1px solid #e2e8f0; 
 }
 
 #output tbody tr {
@@ -46,7 +47,8 @@ body {
 .dark #output thead th { 
     background: #1e293b; 
     color: #cbd5e1; 
-    border-bottom: 1px solid #334155; /* Dark border for headers */
+    /* ...and explicitly override it with a dark color here */
+    border-bottom: 1px solid #374151; 
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
@@ -54,7 +56,7 @@ body {
 .dark #output tbody tr:hover { background: #334155; }
 .dark #output tbody td { color: #e2e8f0; }
 
-/* Known & duplicate */
+/* Known & duplicate styling */
 .known-server {
     background-color: #dcfce7 !important; border-left: 6px solid #16a34a !important;
 }
@@ -71,7 +73,7 @@ tr.duplicate-pubkey-row {
 .warning-icon { color: #dc2626; font-weight: bold; font-size: 1.3em; margin-left: 5px; }
 .dark .warning-icon { color: #fca5a5 !important; }
 
-/* Time colors (same in both modes) */
+/* Time colors */
 .fresh { color: #10b981; font-weight: 600; }
 .recent { color: #3b82f6; }
 .stale { color: #f59e0b; }
