@@ -1,5 +1,9 @@
 let hasLoadedOnce = false;
-let ipCache = {}; 
+let ipCache = {};
+
+// Global maps for duplicate detection (populated on each load)
+let pubkeyCountMap = {};
+let pubkeyToIpsMap = {};
 
 function formatRelativeTime(ts) {
     const diff = Math.floor(Date.now() / 1000) - ts;
@@ -67,28 +71,23 @@ function updateRowAfterGeo(ip) {
     const row = nameCell?.parentElement;
     if (!row) return;
 
-    // Name & Highlight Logic
     if (nameCell) {
         if (cached.name && cached.name !== "N/A") {
-             nameCell.textContent = cached.name;
-             // Apply highlight dynamically when data arrives
-             row.classList.add("known-server");
-             nameCell.classList.remove("text-gray-500");
-             nameCell.classList.add("font-semibold", "text-indigo-700");
+            nameCell.textContent = cached.name;
+            row.classList.add("known-server");
+            nameCell.classList.remove("text-gray-500");
+            nameCell.classList.add("font-semibold", "text-indigo-700");
         } else if (cached.name === "N/A") {
-             nameCell.textContent = "N/A";
-             // Ensure we remove it if it turned out to be unknown (rare but safe)
-             row.classList.remove("known-server");
+            nameCell.textContent = "N/A";
+            row.classList.remove("known-server");
         }
     }
 
-    // Country
     const countryCell = row.cells[2];
     if (countryCell) {
         countryCell.innerHTML = cached.country || "Geo Error";
     }
 
-    // Ping
     updatePingDisplay(ip);
 }
 
@@ -148,26 +147,22 @@ async function sendRpcRequest() {
 
     let pods = data.result?.pods || [];
 
+    // Version filter
     if (document.getElementById("versionFilterToggle").checked) {
         const v = document.getElementById("versionFilterValue").value.trim();
         if (v) pods = pods.filter(p => p.version === v);
     }
 
-    // FIX: Include cached name check in pre-render filter logic
+    // Global filter (pre-render)
     if (document.getElementById("globalFilterToggle").checked) {
         const f = document.getElementById("globalFilterValue").value.trim().toLowerCase();
         if (f) pods = pods.filter(p => {
             const ip = p.address.split(":")[0].toLowerCase();
             const pk = (p.pubkey || "").toLowerCase();
-            
-            // Retrieve name from persistent cache (populated from the previous run)
-            const cachedName = ipCache[ip]?.name?.toLowerCase() || ""; 
-
-            // Filter by IP, PUBKEY, OR cached NAME
+            const cachedName = ipCache[ip]?.name?.toLowerCase() || "";
             return ip.includes(f) || pk.includes(f) || cachedName.includes(f);
         });
     }
-    // END FIX
 
     pods.sort((a, b) => b.last_seen_timestamp - a.last_seen_timestamp);
     document.getElementById("podCount").textContent = pods.length;
@@ -176,6 +171,18 @@ async function sendRpcRequest() {
         output.innerHTML = "<p class='text-gray-500'>No pods found.</p>";
         return;
     }
+
+    // === DETECT DUPLICATE PUBKEYS ===
+    pubkeyCountMap = {};
+    pubkeyToIpsMap = {};
+    pods.forEach(pod => {
+        const pk = pod.pubkey || "";
+        if (!pk) return;
+        pubkeyCountMap[pk] = (pubkeyCountMap[pk] || 0) + 1;
+        if (!pubkeyToIpsMap[pk]) pubkeyToIpsMap[pk] = [];
+        pubkeyToIpsMap[pk].push(pod.address.split(":")[0]);
+    });
+    // === END DETECTION ===
 
     let html = `<table class="min-w-full"><thead><tr>
         <th class="rounded-tl-lg cursor-help" title="To have your name listed, click email in footer">Name</th>
@@ -187,14 +194,18 @@ async function sendRpcRequest() {
         const { text: timeText, class: timeClass } = formatRelativeTime(pod.last_seen_timestamp);
         const pubkey = pod.pubkey || "";
         const shortKey = pubkey ? pubkey.slice(0,4) + "..." + pubkey.slice(-4) : "N/A";
-        
+        const isDuplicated = pubkey && pubkeyCountMap[pubkey] > 1;
+
         const existing = ipCache[ip];
-        const needsFetch = !existing || existing.country.includes("loading-spinner") || existing.country === "Geo Error";
+        const needsFetch = !existing || existing.country?.includes("loading-spinner") || existing.country === "Geo Error";
         const cached = existing && !needsFetch ? existing : { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined };
 
         const isKnown = cached.name && cached.name !== "N/A";
-        const rowClass = isKnown ? "known-server" : "";
+        const rowClass = (isKnown ? "known-server" : "") + (isDuplicated ? " duplicate-pubkey-row" : "");
         const nameClass = isKnown ? "font-semibold text-indigo-700" : "text-gray-500";
+
+        const pubkeyCellClass = isDuplicated ? "pubkey-duplicate" : "";
+        const warningIcon = isDuplicated ? `<span class="warning-icon" title="This pubkey is used on ${pubkeyCountMap[pubkey]} nodes!">!</span>` : "";
 
         let pingHtml = cached.ping !== undefined
             ? (cached.ping === null ? '<span class="text-red-600 font-medium">offline</span>'
@@ -205,9 +216,12 @@ async function sendRpcRequest() {
 
         html += `<tr class="${rowClass}">
             <td id="name-${ip}" class="${nameClass} cursor-pointer" title="IP: ${ip}\nTo list your name, click email in footer">${cached.name}</td>
-            <td class="font-mono text-xs text-gray-600 cursor-pointer hover:text-indigo-600 transition-colors"
+            <td class="font-mono text-xs text-gray-600 cursor-pointer hover:text-indigo-600 transition-colors ${pubkeyCellClass}"
                 data-pubkey="${pubkey}"
-                onclick="copyPubkey('${pubkey}', this)" title="Click to copy full pubkey">${shortKey}</td>
+                onclick="copyPubkey('${pubkey}', this)"
+                title="Click to copy full pubkey${isDuplicated ? '\nDUPLICATE: also on ' + pubkeyToIpsMap[pubkey].filter(i => i !== ip).join(', ') : ''}">
+                <span class="short-key">${shortKey}</span>${warningIcon}
+            </td>
             <td id="country-${ip}">${cached.country}</td>
             <td class="text-right font-mono text-sm">${pingHtml}</td>
             <td class="${timeClass}">${timeText}</td>
@@ -218,21 +232,17 @@ async function sendRpcRequest() {
             ipCache[ip] = { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined };
             
             fetch(`${geoBase}?ip=${ip}`)
-                .then(r => {
-                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                    return r.json();
-                })
+                .then(r => { if (!r.ok) throw new Error(); return r.json(); })
                 .then(g => {
                     const code = (g.country_code || "").toLowerCase();
                     const flag = code && code !== "--" ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;">` : "";
                     ipCache[ip].name = g.name || "N/A";
                     ipCache[ip].country = `${flag} ${g.country || "Unknown"}`;
                     ipCache[ip].ping = g.ping;
-
                     updateRowAfterGeo(ip);
                     refilterAndRestyle();
-                }).catch((err) => {
-                    console.error(`Geo fetch failed for ${ip}:`, err);
+                })
+                .catch(() => {
                     ipCache[ip].country = "Geo Error";
                     ipCache[ip].ping = null;
                     updateRowAfterGeo(ip);
@@ -243,12 +253,13 @@ async function sendRpcRequest() {
 
     html += "</tbody></table>";
     output.innerHTML = html;
-    
     setTimeout(refilterAndRestyle, 0);
 }
 
+// Footer email
 document.getElementById("footer-nick")?.addEventListener("click", () => location.href = "mailto:hlasenie-pchednode@yahoo.com");
 
+// Auto-highlight button on changes
 window.addEventListener("load", markLoadButton);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
 document.getElementById("versionFilterToggle").addEventListener("change", markLoadButton);
@@ -256,4 +267,5 @@ document.getElementById("versionFilterValue").addEventListener("input", markLoad
 document.getElementById("globalFilterToggle").addEventListener("change", scheduleFilter);
 document.getElementById("globalFilterValue").addEventListener("input", scheduleFilter);
 
+// Auto-refresh every 5 minutes
 setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
