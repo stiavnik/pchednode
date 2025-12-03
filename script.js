@@ -29,14 +29,20 @@ function clearLoadButtonHighlight() {
 
 function copyPubkey(text, element) {
     navigator.clipboard.writeText(text).then(() => {
-        const original = element.textContent;
-        element.textContent = "Copied!";
+        // Save the exact original HTML (including spans and classes)
+        const originalHTML = element.innerHTML;
+        const originalTitle = element.title || "";
+
+        element.innerHTML = "Copied!";
         element.classList.replace("text-gray-600", "text-green-600");
         element.classList.add("font-bold");
+
         setTimeout(() => {
-            element.textContent = original;
+            // Restore the exact original HTML (keeps <span class="short-key"> and the !)
+            element.innerHTML = originalHTML;
             element.classList.replace("text-green-600", "text-gray-600");
             element.classList.remove("font-bold");
+            // Title stays correct automatically because we didn’t touch it
         }, 1000);
     });
 }
