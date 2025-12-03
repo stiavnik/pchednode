@@ -1,16 +1,18 @@
 /* Base Setup */
 html {
     min-height: 100%;
-    /* Fix mobile "overscroll" bands: match the gradient start colors */
-    background-color: #ecfccb; /* lime-100ish */
+    /* Fix mobile "overscroll" rubber-banding colors */
+    background-color: #ecfccb; /* Matches lime-100 */
 }
+
+/* DARK MODE ROOT FIXES */
 html.dark {
-    background-color: #0f172a; /* slate-900 */
+    background-color: #0f172a; /* Matches slate-900 */
+    color-scheme: dark;        /* Tells browser to use dark scrollbars & system UI */
 }
 
 body { 
     font-family: 'Inter', system-ui, sans-serif; 
-    /* Gradient handles the main visual, but html handles the rubber-band scrolling */
     min-height: 100vh;
 }
 
@@ -31,8 +33,6 @@ body {
     background: #f8fafc; 
     padding: 14px 16px; font-size: 0.8rem; text-transform: uppercase; color: #64748b;
     letter-spacing: 0.05em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    
-    /* FIX: This border was staying bright in dark mode. We remove it here... */
     border-bottom: 1px solid #e2e8f0; 
 }
 
@@ -47,7 +47,6 @@ body {
 .dark #output thead th { 
     background: #1e293b; 
     color: #cbd5e1; 
-    /* ...and explicitly override it with a dark color here */
     border-bottom: 1px solid #374151; 
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
