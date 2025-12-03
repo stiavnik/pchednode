@@ -1,14 +1,15 @@
 /* Base Setup */
 html {
     min-height: 100%;
-    /* Fix mobile "overscroll" rubber-banding colors */
-    background-color: #ecfccb; /* Matches lime-100 */
+    /* Fixes the bright background when scrolling beyond content in LIGHT mode */
+    background-color: #ecfccb; /* Matches the lime-100 gradient start */
 }
 
 /* DARK MODE ROOT FIXES */
 html.dark {
+    /* Fixes the bright background when scrolling beyond content in DARK mode */
     background-color: #0f172a; /* Matches slate-900 */
-    color-scheme: dark;        /* Tells browser to use dark scrollbars & system UI */
+    color-scheme: dark;        /* Helps with scrollbar colors and system UI */
 }
 
 body { 
