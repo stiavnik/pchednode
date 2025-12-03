@@ -264,18 +264,20 @@ document.getElementById("globalFilterValue").addEventListener("input", scheduleF
 
 setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
 
-// ——————— DARK MODE TOGGLE (updated) ———————
+// DARK MODE — FIXED & PERFECT
 const themeToggle = document.getElementById('themeToggle');
 const html = document.documentElement;
 
-// Respect saved preference or system setting
-if (localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+// Load preference
+if (localStorage.getItem('theme') === 'dark' || 
+   (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     html.classList.add('dark');
 } else {
     html.classList.remove('dark');
 }
 
+// Toggle
 themeToggle?.addEventListener('click', () => {
     html.classList.toggle('dark');
-    localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+    localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
 });
