@@ -7,28 +7,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="min-h-screen bg-gradient-to-br from-lime-100 to-green-200 dark:from-slate-900 dark:to-gray-900 transition-colors duration-500">
+<body class="min-h-screen bg-gradient-to-br from-lime-100 to-green-200 dark:from-slate-900 dark:to-gray-900 transition-colors duration-500 text-gray-900 dark:text-gray-100">
     <div class="max-w-7xl mx-auto p-4 md:p-8">
         <header class="mb-6 flex items-center justify-between border-b border-gray-300/50 dark:border-gray-700/50 pb-4">
-            <!-- Logo left -->
             <a href="pchednode.jpg" target="_blank">
                 <img src="pched.jpg" alt="pchednode" class="w-40 h-24 rounded-lg shadow-lg hover:shadow-2xl transition-shadow object-cover">
             </a>
 
-            <!-- Title -->
-            <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 text-center flex-1">
+            <h1 class="text-3xl font-extrabold text-center flex-1">
                 pchednode RPC Viewer <span class="text-indigo-600 dark:text-indigo-400 font-normal text-xl">for Xandeum</span>
             </h1>
 
-            <!-- Dark toggle right -->
-            <button id="themeToggle" class="px-5 py-2.5 rounded-xl bg-white/20 dark:bg-gray-800/50 backdrop-blur hover:bg-white/30 dark:hover:bg-gray-700/70 transition-all font-semibold text-sm shadow-lg">
+            <button id="themeToggle" class="px-5 py-2.5 rounded-xl bg-white/20 dark:bg-gray-800/50 backdrop-blur hover:bg-white/30 dark:hover:bg-gray-700/70 transition-all font-semibold text-sm shadow-lg text-gray-900 dark:text-gray-100">
                 Dark
             </button>
         </header>
 
         <main>
             <div class="flex flex-wrap items-center gap-3 p-5 bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-2xl">
-                <select id="rpcSelector" class="px-4 py-2.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg text-sm font-medium">
+                <select id="rpcSelector" class="px-4 py-2.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg text-sm font-medium text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none">
                     <option value="https://rpc1.pchednode.com/rpc">DevNet 1</option>
                     <option value="https://rpc2.pchednode.com/rpc">DevNet 2</option>
                     <option value="https://rpc3.pchednode.com/rpc">MainNet 1</option>
@@ -40,26 +37,26 @@
                     LOAD
                 </button>
 
-                <div class="font-bold text-gray-700 dark:text-gray-300 text-sm">
+                <div class="font-bold text-sm">
                     Pods: <span id="podCount" class="text-indigo-600 dark:text-indigo-400">0</span>
                 </div>
 
                 <div class="flex items-center gap-2">
                     <label class="flex items-center gap-1 cursor-pointer text-sm">
-                        <input type="checkbox" id="versionFilterToggle" class="w-4 h-4 text-indigo-600 dark:text-indigo-400 rounded">
-                        <span class="text-gray-700 dark:text-gray-300 font-medium">Version</span>
+                        <input type="checkbox" id="versionFilterToggle" class="w-4 h-4 text-indigo-600 dark:text-indigo-400 rounded focus:ring-indigo-500">
+                        <span class="font-medium">Version</span>
                     </label>
                     <input type="text" id="versionFilterValue" value="0.5.1" placeholder="e.g. 0.5.1"
-                           class="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded text-sm">
+                           class="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
 
                 <div class="flex items-center gap-2 flex-1 min-w-0">
                     <label class="flex items-center gap-1 cursor-pointer text-sm">
-                        <input type="checkbox" id="globalFilterToggle" class="w-4 h-4 text-indigo-600 dark:text-indigo-400 rounded">
-                        <span class="text-gray-700 dark:text-gray-300 font-medium">Filter</span>
+                        <input type="checkbox" id="globalFilterToggle" class="w-4 h-4 text-indigo-600 dark:text-indigo-400 rounded focus:ring-indigo-500">
+                        <span class="font-medium">Filter</span>
                     </label>
                     <input type="text" id="globalFilterValue" placeholder="NAME or IP or PUBKEY"
-                           class="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg text-sm">
+                           class="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
             </div>
 
@@ -68,7 +65,6 @@
             </div>
         </main>
 
-        <!-- RESTORED ORIGINAL FOOTER -->
         <footer class="mt-12 text-center text-sm text-gray-600 dark:text-gray-400 border-t border-gray-300/50 dark:border-gray-700/50 pt-6">
             © 2025 <a id="footer-nick" class="cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium" title="Contact Email">Substance242</a> 
             | v0.6 | Data sourced via pchednode RPCs and custom Geo API.
