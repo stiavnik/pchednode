@@ -70,14 +70,14 @@ body { font-family: 'Inter', system-ui, sans-serif; }
     font-weight: 600;
 }
 
-/* === DUPLICATE PUBKEY STYLING === */
+/* Duplicate pubkey styling */
 tr.duplicate-pubkey-row {
-    background-color: #fee2e2 !important; /* red-100 */
-    border-left: 4px solid #dc2626 !important; /* red-600 */
+    background-color: #fee2e2 !important;
+    border-left: 4px solid #dc2626 !important;
 }
 
 tr.duplicate-pubkey-row:hover {
-    background-color: #fecaca !important; /* red-200 */
+    background-color: #fecaca !important;
 }
 
 .pubkey-duplicate .short-key {
@@ -91,4 +91,53 @@ tr.duplicate-pubkey-row:hover {
     font-size: 1.2em;
     margin-left: 4px;
     vertical-align: middle;
+}
+
+/* ——————— DARK MODE OVERRIDES ——————— */
+.dark #output,
+.dark .bg-white\/70,
+.dark .bg-white\/60 {
+    background-color: rgba(30, 30, 46, 0.9) !important;
+    backdrop-filter: blur(12px);
+}
+
+.dark thead th {
+    background: #1e1e2e;
+    color: #e2e8f0;
+}
+
+.dark tbody tr {
+    background-color: #27273a;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.dark tbody tr:hover {
+    background-color: #32324a;
+}
+
+.dark tbody td {
+    color: #cbd5e1;
+}
+
+.dark .text-gray-700 { color: #94a3b8 !important; }
+.dark .text-gray-600 { color: #64748b !important; }
+.dark .text-gray-500 { color: #94a3b8 !important; }
+
+.dark .known-server {
+    background-color: #166534 !important;
+    border-left-color: #22c55e !important;
+}
+
+.dark .duplicate-pubkey-row {
+    background-color: #7f1d1d !important;
+    border-left-color: #ef4444 !important;
+}
+
+.dark .duplicate-pubkey-row:hover {
+    background-color: #991b1b !important;
+}
+
+.dark .pubkey-duplicate .short-key,
+.dark .warning-icon {
+    color: #fca5a5 !important;
 }
