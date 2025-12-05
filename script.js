@@ -220,6 +220,17 @@ function renderTable() {
                 valA = parseFloat(cacheA.balance) || -1;
                 valB = parseFloat(cacheB.balance) || -1;
                 break;
+			case 'version':
+				const vA = a.version || "";
+				const vB = b.version || "";
+
+				// 1. Explicitly push empty versions ("Unknown") to the end.
+				if (vA === "" && vB !== "") return sortAsc ? 1 : -1;
+				if (vA !== "" && vB === "") return sortAsc ? -1 : 1;
+				if (vA === "" && vB === "") return 0; // Keep relative order of unknowns
+
+				// 2. Standard string comparison for non-empty versions
+				return sortAsc ? vA.localeCompare(vB) : vB.localeCompare(vA);
             case 'version':
                 valA = a.version || "";
                 valB = b.version || "";
