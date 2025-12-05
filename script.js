@@ -231,10 +231,6 @@ function renderTable() {
 
 				// 2. Standard string comparison for non-empty versions
 				return sortAsc ? vA.localeCompare(vB) : vB.localeCompare(vA);
-            case 'version':
-                valA = a.version || "";
-                valB = b.version || "";
-                return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
             case 'last_seen':
                 valA = a.last_seen_timestamp || 0;
                 valB = b.last_seen_timestamp || 0;
