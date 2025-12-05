@@ -43,8 +43,11 @@ function copyPubkey(text, element) {
 function updatePingAndBalance(ip) {
     const cached = ipCache[ip];
     if (!cached) return;
+    const nameCell = document.getElementById(`name-${ip}`);
+    const row = nameCell?.parentElement;
+    if (!row) return;
 
-    // Ping Update
+    // --- PING (Cell 3) ---
     let pingHtml;
     if (cached.ping === undefined) {
          pingHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
@@ -57,27 +60,36 @@ function updatePingAndBalance(ip) {
     } else {
         pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
     }
+    if (row.cells[3]) row.cells[3].innerHTML = `<div class="text-right font-mono text-sm">${pingHtml}</div>`;
 
-    const nameCell = document.getElementById(`name-${ip}`);
-    const row = nameCell?.parentElement;
-    if (row && row.cells[3]) {
-        row.cells[3].innerHTML = `<div class="text-right font-mono text-sm">${pingHtml}</div>`;
-    }
-
-    // Balance Update
-    if (row && row.cells[4]) { // Cell 4 is now Balance
-        if (cached.balance !== undefined && cached.balance !== null) {
-             // Format to 3 decimals
-             const val = parseFloat(cached.balance);
-             const fmt = isNaN(val) ? cached.balance : val.toFixed(3);
-             row.cells[4].innerHTML = `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${fmt} ◎</span>`;
-        } else if (cached.balance === null) {
-             row.cells[4].innerHTML = `<span class="text-gray-400 text-xs">-</span>`;
+    // --- CREDITS (Cell 4) ---
+    // Note: Since we added a column, index shifted. Credits is now index 4.
+    let creditsHtml;
+    if (cached.credits !== undefined) {
+        if (cached.credits === null) {
+            creditsHtml = `<span class="text-gray-400 text-xs">-</span>`;
         } else {
-             // Still loading
-             row.cells[4].innerHTML = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
+            // Format number with commas: 10,000
+            const val = new Intl.NumberFormat().format(cached.credits);
+            creditsHtml = `<span class="text-purple-600 dark:text-purple-400 font-bold">${val}</span>`;
         }
+    } else {
+        creditsHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-purple-600 rounded-full animate-spin"></span>';
     }
+    if (row.cells[4]) row.cells[4].innerHTML = `<div class="text-right font-mono text-sm">${creditsHtml}</div>`;
+
+    // --- BALANCE (Cell 5) ---
+    let balanceHtml;
+    if (cached.balance !== undefined && cached.balance !== null) {
+         const val = parseFloat(cached.balance);
+         const fmt = isNaN(val) ? cached.balance : val.toFixed(3);
+         balanceHtml = `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${fmt} ◎</span>`;
+    } else if (cached.balance === null) {
+         balanceHtml = `<span class="text-gray-400 text-xs">-</span>`;
+    } else {
+         balanceHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
+    }
+    if (row.cells[5]) row.cells[5].innerHTML = `<div class="text-right font-mono text-sm">${balanceHtml}</div>`;
 }
 
 function updateRowAfterGeo(ip) {
@@ -198,12 +210,13 @@ async function sendRpcRequest() {
         pubkeyToIpsMap[pk].push(pod.address.split(":")[0]);
     });
 
-    // --- TABLE HEADER UPDATED ---
+    // --- TABLE HEADER UPDATED with CREDITS ---
     let html = `<table class="min-w-full"><thead><tr>
         <th class="rounded-tl-lg cursor-help" title="To have your name listed, click email in footer">Name</th>
         <th>Pubkey</th>
         <th>Country</th>
         <th class="text-right">Ping</th>
+        <th class="text-right">Credits</th>
         <th class="text-right">Balance</th>
         <th>Last Seen</th>
         <th class="rounded-tr-lg">Version</th>
@@ -220,7 +233,13 @@ async function sendRpcRequest() {
         const needsFetch = !existing || existing.country?.includes("loading-spinner") || existing.country === "Geo Error";
         
         // Initialize cache if missing
-        const cached = existing && !needsFetch ? existing : { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined, balance: undefined };
+        const cached = existing && !needsFetch ? existing : { 
+            name: "N/A", 
+            country: '<span class="loading-spinner">Loading</span>', 
+            ping: undefined, 
+            balance: undefined,
+            credits: undefined // NEW
+        };
 
         const isKnown = cached.name && cached.name !== "N/A";
         const rowClass = (isKnown ? "known-server" : "") + (isDuplicated ? " duplicate-pubkey-row" : "");
@@ -229,7 +248,7 @@ async function sendRpcRequest() {
         const pubkeyCellClass = isDuplicated ? "pubkey-duplicate" : "";
         const warningIcon = isDuplicated ? `<span class="warning-icon" title="This pubkey is used on ${pubkeyCountMap[pubkey]} nodes!">!</span>` : "";
 
-        // Ping HTML Generation
+        // --- Ping Placeholder ---
         let pingHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
         if (cached.ping !== undefined) {
              if (cached.ping === null) pingHtml = '<span class="text-red-600 font-medium">offline</span>';
@@ -238,7 +257,18 @@ async function sendRpcRequest() {
              else pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
         }
 
-        // Balance HTML Generation
+        // --- Credits Placeholder ---
+        let creditsHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-purple-600 rounded-full animate-spin"></span>';
+        if (cached.credits !== undefined) {
+            if (cached.credits === null) {
+                creditsHtml = `<span class="text-gray-400 text-xs">-</span>`;
+            } else {
+                const val = new Intl.NumberFormat().format(cached.credits);
+                creditsHtml = `<span class="text-purple-600 dark:text-purple-400 font-bold">${val}</span>`;
+            }
+        }
+
+        // --- Balance Placeholder ---
         let balanceHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
         if (cached.balance !== undefined) {
             if (cached.balance === null) {
@@ -260,15 +290,21 @@ async function sendRpcRequest() {
             </td>
             <td id="country-${ip}">${cached.country}</td>
             <td class="text-right font-mono text-sm">${pingHtml}</td>
+            <td class="text-right font-mono text-sm">${creditsHtml}</td>
             <td class="text-right font-mono text-sm">${balanceHtml}</td>
             <td class="${timeClass}">${timeText}</td>
             <td>${pod.version}</td>
         </tr>`;
 
         if (needsFetch) {
-            ipCache[ip] = { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined, balance: undefined };
+            ipCache[ip] = { 
+                name: "N/A", 
+                country: '<span class="loading-spinner">Loading</span>', 
+                ping: undefined, 
+                balance: undefined,
+                credits: undefined 
+            };
             
-            // Pass pubkey in URL now
             fetch(`${geoBase}?ip=${ip}&pubkey=${pubkey}`)
                 .then(r => { if (!r.ok) throw new Error(); return r.json(); })
                 .then(g => {
@@ -277,7 +313,8 @@ async function sendRpcRequest() {
                     ipCache[ip].name = g.name || "N/A";
                     ipCache[ip].country = `${flag} ${g.country || "Unknown"}`;
                     ipCache[ip].ping = g.ping;
-                    ipCache[ip].balance = g.balance; // Store balance
+                    ipCache[ip].balance = g.balance;
+                    ipCache[ip].credits = g.credits; // Store credits
                     updateRowAfterGeo(ip);
                     refilterAndRestyle();
                 })
@@ -285,6 +322,7 @@ async function sendRpcRequest() {
                     ipCache[ip].country = "Geo Error";
                     ipCache[ip].ping = null;
                     ipCache[ip].balance = null;
+                    ipCache[ip].credits = null;
                     updateRowAfterGeo(ip);
                     refilterAndRestyle();
                 });
@@ -313,7 +351,7 @@ setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
 
 // DARK MODE – persistent via localStorage
 const themeToggle = document.getElementById('themeToggle');
-const htmlEl = document.documentElement; // Renamed to htmlEl to avoid conflict
+const htmlEl = document.documentElement; 
 
 if (localStorage.getItem('theme') === 'dark' || 
    (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
