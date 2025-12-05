@@ -203,11 +203,15 @@ function renderTable() {
         let valA, valB;
 
         switch (sortCol) {
-            case 'ping':
-                // Treat undefined (loading) as -1 so they go to bottom in descending
-                valA = (cacheA.ping === undefined || cacheA.ping === null) ? -1 : cacheA.ping;
-                valB = (cacheB.ping === undefined || cacheB.ping === null) ? -1 : cacheB.ping;
-                break;
+			case 'ping':
+				// Null (offline) should be last, so treat it as Infinity.
+				// Undefined (loading) should be near the bottom, but above offline.
+				valA = (cacheA.ping === null) ? Infinity : (cacheA.ping === undefined ? 99999 : cacheA.ping);
+				valB = (cacheB.ping === null) ? Infinity : (cacheB.ping === undefined ? 99999 : cacheB.ping);
+				
+				// For credits and balance, we can keep the -1 or 0 for missing data, 
+				// but for Ping, Infinity works best to push "offline" last.
+				break;
             case 'credits':
                 valA = (cacheA.credits === undefined || cacheA.credits === null) ? -1 : cacheA.credits;
                 valB = (cacheB.credits === undefined || cacheB.credits === null) ? -1 : cacheB.credits;
