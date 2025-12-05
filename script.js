@@ -224,10 +224,11 @@ function renderTable() {
 				const vA = a.version || "";
 				const vB = b.version || "";
 
-				// 1. Explicitly push empty versions ("Unknown") to the end.
-				if (vA === "" && vB !== "") return sortAsc ? 1 : -1;
-				if (vA !== "" && vB === "") return sortAsc ? -1 : 1;
-				if (vA === "" && vB === "") return 0; // Keep relative order of unknowns
+				// 1. Logic to force "Unknown" versions (empty string) to the end of the list.
+				// The direction (sortAsc) is ignored here, as Unknown should always be last.
+				if (vA === "" && vB !== "") return 1;  // Push A (Unknown) AFTER B (Known)
+				if (vA !== "" && vB === "") return -1; // Push A (Known) BEFORE B (Unknown)
+				if (vA === "" && vB === "") return 0;  // Keep relative order of unknowns
 
 				// 2. Standard string comparison for non-empty versions
 				return sortAsc ? vA.localeCompare(vB) : vB.localeCompare(vA);
