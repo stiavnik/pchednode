@@ -224,14 +224,17 @@ function renderTable() {
 				const vA = a.version || "";
 				const vB = b.version || "";
 
-				// 1. Logic to force "Unknown" versions (empty string) to the end of the list.
-				// The direction (sortAsc) is ignored here, as Unknown should always be last.
-				if (vA === "" && vB !== "") return 1;  // Push A (Unknown) AFTER B (Known)
-				if (vA !== "" && vB === "") return -1; // Push A (Known) BEFORE B (Unknown)
-				if (vA === "" && vB === "") return 0;  // Keep relative order of unknowns
+				// 1. Logic to force "Unknown" versions (empty string) to the end of the list (remains correct).
+				if (vA === "" && vB !== "") return 1;
+				if (vA !== "" && vB === "") return -1;
+				if (vA === "" && vB === "") return 0;
 
-				// 2. Standard string comparison for non-empty versions
-				return sortAsc ? vA.localeCompare(vB) : vB.localeCompare(vA);
+				// 2. Semantic versioning comparison for non-empty versions.
+				// We use { numeric: true } to ensure 0.9.0 < 0.10.0.
+				const comparison = vA.localeCompare(vB, undefined, { numeric: true, sensitivity: 'base' });
+				
+				// Return the comparison result, reversed if sorting descending.
+				return sortAsc ? comparison : -comparison;
             case 'last_seen':
                 valA = a.last_seen_timestamp || 0;
                 valB = b.last_seen_timestamp || 0;
