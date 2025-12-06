@@ -3,10 +3,10 @@ let ipCache = {};
 let pubkeyCountMap = {};
 let pubkeyToIpsMap = {};
 
-// --- NEW: Global State for Data and Sorting ---
-let currentPods = []; // Store the raw pods list here
-let sortCol = 'last_seen'; // Default sort column
-let sortAsc = false;      // Default descending (highest/newest first)
+// --- Global State ---
+let currentPods = [];
+let sortCol = 'last_seen'; 
+let sortAsc = false;      
 
 function formatRelativeTime(ts) {
     const diff = Math.floor(Date.now() / 1000) - ts;
@@ -30,19 +30,46 @@ function clearLoadButtonHighlight() {
     b.classList.add("bg-indigo-600");
 }
 
-// --- NEW: Handle Sort Click ---
+// --- NEW: Semantic Version Comparator ---
+// Returns 1 if vA > vB, -1 if vA < vB, 0 if equal
+// Handles "0.9.0" < "0.10.0" correctly
+function compareVersions(vA, vB) {
+    // Treat empty/null as "unknown" -> send to bottom
+    if (!vA && !vB) return 0;
+    if (!vA) return -1; // vA is empty, so it's "smaller" (we will flip logic later for sort direction)
+    if (!vB) return 1;
+
+    const partsA = vA.split('.').map(Number);
+    const partsB = vB.split('.').map(Number);
+    const len = Math.max(partsA.length, partsB.length);
+
+    for (let i = 0; i < len; i++) {
+        const a = partsA[i] || 0;
+        const b = partsB[i] || 0;
+        if (a > b) return 1;
+        if (a < b) return -1;
+    }
+    return 0;
+}
+
 function handleSort(column) {
+    // --- FREEZE PROTECTION ---
+    // If data hasn't loaded yet, or array is empty, do not attempt to sort/render.
+    if (!currentPods || currentPods.length === 0) return;
+
     if (sortCol === column) {
-        // If clicking the same column, toggle direction
         sortAsc = !sortAsc;
     } else {
-        // If new column, set it and default to descending (usually better for numbers)
         sortCol = column;
         sortAsc = false; 
-        // Exception: For "Name" or "Version", ascending is usually better default
-        if (column === 'version' || column === 'name') sortAsc = true;
+        // Default to Ascending (A-Z) for text-based columns
+        if (['version', 'name', 'country', 'pubkey'].includes(column)) {
+            sortAsc = true;
+        }
     }
-    renderTable(); // Re-draw table with new sort order
+    
+    // Use requestAnimationFrame to prevent UI locking if user clicks spam-fast
+    requestAnimationFrame(() => renderTable());
 }
 
 function copyPubkey(text, element) {
@@ -60,6 +87,7 @@ function copyPubkey(text, element) {
     });
 }
 
+// --- Update UI Helpers ---
 function updatePingAndBalance(ip) {
     const cached = ipCache[ip];
     if (!cached) return;
@@ -67,7 +95,7 @@ function updatePingAndBalance(ip) {
     const row = nameCell?.parentElement;
     if (!row) return;
 
-    // Ping (Cell 3)
+    // Ping
     let pingHtml;
     if (cached.ping === undefined) {
          pingHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
@@ -82,7 +110,7 @@ function updatePingAndBalance(ip) {
     }
     if (row.cells[3]) row.cells[3].innerHTML = `<div class="text-right font-mono text-sm">${pingHtml}</div>`;
 
-    // Credits (Cell 4)
+    // Credits
     let creditsHtml;
     if (cached.credits !== undefined) {
         if (cached.credits === null) {
@@ -96,7 +124,7 @@ function updatePingAndBalance(ip) {
     }
     if (row.cells[4]) row.cells[4].innerHTML = `<div class="text-right font-mono text-sm">${creditsHtml}</div>`;
 
-    // Balance (Cell 5)
+    // Balance
     let balanceHtml;
     if (cached.balance !== undefined && cached.balance !== null) {
          const val = parseFloat(cached.balance);
@@ -138,7 +166,6 @@ function updateRowAfterGeo(ip) {
     updatePingAndBalance(ip);
 }
 
-// Only hides/shows rows, doesn't re-order (rendering does that)
 function refilterAndRestyle() {
     const toggle = document.getElementById("globalFilterToggle").checked;
     const value = document.getElementById("globalFilterValue").value.trim().toLowerCase();
@@ -171,7 +198,6 @@ function scheduleFilter() {
     }, 150);
 }
 
-// --- NEW: Helper to generate sort arrow HTML ---
 function getSortIndicator(col) {
     if (sortCol !== col) return '<span class="text-gray-300 ml-1 opacity-50">↕</span>';
     return sortAsc 
@@ -179,79 +205,111 @@ function getSortIndicator(col) {
         : '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↓</span>';
 }
 
-// --- NEW: Core Render Function (Sorts & Builds HTML) ---
 function renderTable() {
     const output = document.getElementById("output");
-    let podsToRender = [...currentPods]; // Copy array to sort safely
+    
+    // Safety check
+    if (!currentPods) return;
+    let podsToRender = [...currentPods];
 
     // 1. FILTER (Version)
     if (document.getElementById("versionFilterToggle").checked) {
         const v = document.getElementById("versionFilterValue").value.trim();
         if (v) podsToRender = podsToRender.filter(p => p.version === v);
     }
-    
-    // 2. FILTER (Text Search - Optional optimization to filter before sort, but current visual filter is CSS based)
-    // We stick to CSS filtering in refilterAndRestyle() to avoid re-rendering HTML on every keystroke.
 
-    // 3. SORT
+    // 2. SORT
     podsToRender.sort((a, b) => {
         const ipA = a.address.split(":")[0];
         const ipB = b.address.split(":")[0];
-        const cacheA = ipCache[ipA] || {};
-        const cacheB = ipCache[ipB] || {};
+        // Ensure cache objects exist so we don't crash accessing properties
+        const cacheA = ipCache[ipA] || { name: "", country: "" };
+        const cacheB = ipCache[ipB] || { name: "", country: "" };
 
-        let valA, valB;
+        let valA, valB, comparison = 0;
 
         switch (sortCol) {
-			case 'ping':
-				// Null (offline) should be last, so treat it as Infinity.
-				// Undefined (loading) should be near the bottom, but above offline.
-				valA = (cacheA.ping === null) ? Infinity : (cacheA.ping === undefined ? 99999 : cacheA.ping);
-				valB = (cacheB.ping === null) ? Infinity : (cacheB.ping === undefined ? 99999 : cacheB.ping);
-				
-				// For credits and balance, we can keep the -1 or 0 for missing data, 
-				// but for Ping, Infinity works best to push "offline" last.
-				break;
+            case 'name':
+                // Treat "N/A" as empty string for sorting so it goes to bottom/top consistently
+                valA = (cacheA.name === "N/A" ? "" : cacheA.name).toLowerCase();
+                valB = (cacheB.name === "N/A" ? "" : cacheB.name).toLowerCase();
+                // Standard string comparison
+                if (valA < valB) comparison = -1;
+                else if (valA > valB) comparison = 1;
+                break;
+
+            case 'pubkey':
+                valA = (a.pubkey || "").toLowerCase();
+                valB = (b.pubkey || "").toLowerCase();
+                if (valA < valB) comparison = -1;
+                else if (valA > valB) comparison = 1;
+                break;
+
+            case 'country':
+                // Strip HTML tags to sort by text (e.g., remove <img> tags)
+                valA = (cacheA.country || "").replace(/<[^>]*>?/gm, '').trim().toLowerCase();
+                valB = (cacheB.country || "").replace(/<[^>]*>?/gm, '').trim().toLowerCase();
+                
+                // Push "Loading" or "Geo Error" to the bottom usually
+                if (valA.includes("loading") && !valB.includes("loading")) return 1;
+                if (!valA.includes("loading") && valB.includes("loading")) return -1;
+
+                if (valA < valB) comparison = -1;
+                else if (valA > valB) comparison = 1;
+                break;
+
+            case 'ping':
+                valA = (cacheA.ping === null) ? Infinity : (cacheA.ping === undefined ? 99999 : cacheA.ping);
+                valB = (cacheB.ping === null) ? Infinity : (cacheB.ping === undefined ? 99999 : cacheB.ping);
+                if (valA < valB) comparison = -1;
+                else if (valA > valB) comparison = 1;
+                break;
+
             case 'credits':
                 valA = (cacheA.credits === undefined || cacheA.credits === null) ? -1 : cacheA.credits;
                 valB = (cacheB.credits === undefined || cacheB.credits === null) ? -1 : cacheB.credits;
+                if (valA < valB) comparison = -1;
+                else if (valA > valB) comparison = 1;
                 break;
+
             case 'balance':
                 valA = parseFloat(cacheA.balance) || -1;
                 valB = parseFloat(cacheB.balance) || -1;
+                if (valA < valB) comparison = -1;
+                else if (valA > valB) comparison = 1;
                 break;
-			case 'version':
-				const vA = a.version || "";
-				const vB = b.version || "";
 
-				// 1. Explicitly push empty versions ("Unknown") to the end.
-				if (vA === "" && vB !== "") return sortAsc ? 1 : -1;
-				if (vA !== "" && vB === "") return sortAsc ? -1 : 1;
-				if (vA === "" && vB === "") return 0; // Keep relative order of unknowns
+            case 'version':
+                // Use semantic version helper
+                comparison = compareVersions(a.version, b.version);
+                break;
 
-				// 2. Standard string comparison for non-empty versions
-				return sortAsc ? vA.localeCompare(vB) : vB.localeCompare(vA);
             case 'last_seen':
+            default:
                 valA = a.last_seen_timestamp || 0;
                 valB = b.last_seen_timestamp || 0;
+                if (valA < valB) comparison = -1;
+                else if (valA > valB) comparison = 1;
                 break;
-            default: // Default to last_seen
-                valA = a.last_seen_timestamp || 0;
-                valB = b.last_seen_timestamp || 0;
         }
 
-        if (valA < valB) return sortAsc ? -1 : 1;
-        if (valA > valB) return sortAsc ? 1 : -1;
-        return 0;
+        return sortAsc ? comparison : -comparison;
     });
 
     document.getElementById("podCount").textContent = podsToRender.length;
 
-    // 4. BUILD HTML
+    // 3. BUILD HTML
+    // Updated Headers with onclick handlers for ALL columns
     let html = `<table class="min-w-full"><thead><tr>
-        <th class="rounded-tl-lg cursor-help" title="To have your name listed, click email in footer">Name</th>
-        <th>Pubkey</th>
-        <th>Country</th>
+        <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')">
+            Name ${getSortIndicator('name')}
+        </th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('pubkey')">
+            Pubkey ${getSortIndicator('pubkey')}
+        </th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('country')">
+            Country ${getSortIndicator('country')}
+        </th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('ping')">
             Ping ${getSortIndicator('ping')}
         </th>
@@ -276,6 +334,7 @@ function renderTable() {
         const shortKey = pubkey ? pubkey.slice(0,4) + "..." + pubkey.slice(-4) : "N/A";
         const isDuplicated = pubkey && pubkeyCountMap[pubkey] > 1;
 
+        // Check if we need to fetch Geo Data
         const existing = ipCache[ip];
         const needsFetch = !existing || existing.country?.includes("loading-spinner") || existing.country === "Geo Error";
         
@@ -289,7 +348,7 @@ function renderTable() {
         const pubkeyCellClass = isDuplicated ? "pubkey-duplicate" : "";
         const warningIcon = isDuplicated ? `<span class="warning-icon" title="Duplicates found">!</span>` : "";
 
-        // -- Placeholders (Rendering Logic remains same) --
+        // -- Placeholders --
         // Ping
         let pingHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
         if (cached.ping !== undefined) {
@@ -316,7 +375,7 @@ function renderTable() {
         }
 
         html += `<tr class="${rowClass}">
-            <td id="name-${ip}" class="${nameClass} cursor-pointer" title="IP: ${ip}">${cached.name}</td>
+            <td id="name-${ip}" class="${nameClass}" title="IP: ${ip}">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 ${pubkeyCellClass}"
                 data-pubkey="${pubkey}" onclick="copyPubkey('${pubkey}', this)">
                 <span class="short-key">${shortKey}</span>${warningIcon}
@@ -335,7 +394,7 @@ function renderTable() {
             const host = new URL(rpcUrl).hostname;
             const geoBase = `https://${host}/geo`;
             
-            // Initialize empty cache entry to prevent multi-fetch
+            // Init placeholder
             ipCache[ip] = { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined, balance: undefined, credits: undefined };
             
             fetch(`${geoBase}?ip=${ip}&pubkey=${pubkey}`)
@@ -349,7 +408,8 @@ function renderTable() {
                     ipCache[ip].balance = g.balance;
                     ipCache[ip].credits = g.credits;
                     updateRowAfterGeo(ip);
-                    refilterAndRestyle();
+                    // Do NOT call full refilterAndRestyle here immediately to avoid UI jitter
+                    // The updateRowAfterGeo handles the specific row update efficiently
                 })
                 .catch(() => {
                     ipCache[ip].country = "Geo Error";
@@ -357,17 +417,17 @@ function renderTable() {
                     ipCache[ip].balance = null;
                     ipCache[ip].credits = null;
                     updateRowAfterGeo(ip);
-                    refilterAndRestyle();
                 });
         }
     }
 
     html += "</tbody></table>";
     output.innerHTML = html;
+    
+    // Slight delay to allow DOM to settle before applying filter visibility
     setTimeout(refilterAndRestyle, 0);
 }
 
-// --- MAIN FETCH LOOP ---
 async function sendRpcRequest() {
     if (!hasLoadedOnce) hasLoadedOnce = true;
     document.getElementById("loadButton").textContent = "RELOAD";
@@ -390,7 +450,6 @@ async function sendRpcRequest() {
             return;
         }
 
-        // Calculate duplicates once on load
         pubkeyCountMap = {};
         pubkeyToIpsMap = {};
         currentPods.forEach(pod => {
@@ -401,7 +460,6 @@ async function sendRpcRequest() {
             pubkeyToIpsMap[pk].push(pod.address.split(":")[0]);
         });
 
-        // DRAW TABLE
         renderTable();
 
     } catch (e) {
@@ -409,15 +467,13 @@ async function sendRpcRequest() {
     }
 }
 
-// Footer email click
+// Event Listeners
 document.getElementById("footer-nick")?.addEventListener("click", () => {
     location.href = "mailto:hlasenie-pchednode@yahoo.com";
 });
 
-// UI triggers
 window.addEventListener("load", markLoadButton);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
-// Re-render table (resort/refilter) when version toggle changes
 document.getElementById("versionFilterToggle").addEventListener("change", () => { markLoadButton(); renderTable(); });
 document.getElementById("versionFilterValue").addEventListener("input", () => { markLoadButton(); renderTable(); });
 document.getElementById("globalFilterToggle").addEventListener("change", scheduleFilter);
@@ -425,7 +481,6 @@ document.getElementById("globalFilterValue").addEventListener("input", scheduleF
 
 setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
 
-// DARK MODE
 const themeToggle = document.getElementById('themeToggle');
 const htmlEl = document.documentElement; 
 
