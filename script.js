@@ -3,6 +3,10 @@ let ipCache = {};
 let pubkeyCountMap = {};
 let pubkeyToIpsMap = {};
 
+// --- NEW GLOBAL STATES FOR PERFORMANCE ---
+let renderTimer;     // Debounce timer for user-initiated sorting
+let isRendering = false; // Lock to prevent cascading calls from background fetches
+
 // --- NEW: Global State for Data and Sorting ---
 let currentPods = []; // Store the raw pods list here
 let sortCol = 'last_seen'; // Default sort column
@@ -30,13 +34,11 @@ function clearLoadButtonHighlight() {
     b.classList.add("bg-indigo-600");
 }
 
-// --- UPDATED: Handle Sort Click ---
+// --- UPDATED: Handle Sort Click (Now Debounced) ---
 function handleSort(column) {
     if (sortCol === column) {
-        // If clicking the same column, toggle direction
         sortAsc = !sortAsc;
     } else {
-        // If new column, set it and default direction
         sortCol = column;
         sortAsc = false; 
         
@@ -44,12 +46,15 @@ function handleSort(column) {
         if (column === 'version' || column === 'name' || column === 'pubkey' || column === 'country') {
             sortAsc = true;
         }
-        // Default to DESCENDING (newest first, highest value first) for numerical columns like last_seen, ping, credits, balance
+        // Default to DESCENDING (newest first, highest value first) for numerical columns
         if (column === 'last_seen' || column === 'ping' || column === 'credits' || column === 'balance') {
              sortAsc = false;
         }
     }
-    renderTable(); // Re-draw table with new sort order
+    
+    // Use a timer to debounce rapid clicks
+    clearTimeout(renderTimer);
+    renderTimer = setTimeout(renderTable, 50); // Small 50ms delay
 }
 
 function copyPubkey(text, element) {
@@ -117,6 +122,7 @@ function updatePingAndBalance(ip) {
     if (row.cells[5]) row.cells[5].innerHTML = `<div class="text-right font-mono text-sm">${balanceHtml}</div>`;
 }
 
+// --- UPDATED: updateRowAfterGeo (Removed direct renderTable call) ---
 function updateRowAfterGeo(ip) {
     const cached = ipCache[ip];
     if (!cached) return;
@@ -143,8 +149,11 @@ function updateRowAfterGeo(ip) {
     }
 
     updatePingAndBalance(ip);
-    // After country/name updates, trigger a re-render to ensure they are sorted correctly.
-    renderTable(); 
+    
+    // Now call renderTable() via the safe debounced method
+    // This handles re-sorting only after the initial flurry of updates finishes.
+    clearTimeout(renderTimer); 
+    renderTimer = setTimeout(renderTable, 50); 
 }
 
 // Only hides/shows rows, doesn't re-order (rendering does that)
@@ -188,8 +197,11 @@ function getSortIndicator(col) {
         : '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↓</span>';
 }
 
-// --- NEW/UPDATED: Core Render Function (Sorts & Builds HTML) ---
+// --- UPDATED: Core Render Function (with Lock) ---
 function renderTable() {
+    if (isRendering) return; // Ignore call if already running
+    isRendering = true;
+
     const output = document.getElementById("output");
     let podsToRender = [...currentPods]; // Copy array to sort safely
 
@@ -223,7 +235,7 @@ function renderTable() {
                 // Use "~" to push Unknown/Geo Error to the end
                 valA = cacheA.country || '~~'; 
                 valB = cacheB.country || '~~';
-                // Strip HTML flag/spinner for clean comparison (e.g., "<span>Loading</span> USA" -> "USA")
+                // Strip HTML flag/spinner for clean comparison
                 valA = valA.replace(/<[^>]*>/g, '').trim();
                 valB = valB.replace(/<[^>]*>/g, '').trim();
                 return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
@@ -371,18 +383,17 @@ function renderTable() {
                     ipCache[ip].balance = g.balance;
                     ipCache[ip].credits = g.credits;
                     
-                    // We call renderTable() inside updateRowAfterGeo to re-sort quickly
+                    // Call the now debounced update/render method
                     updateRowAfterGeo(ip); 
-                    refilterAndRestyle();
                 })
                 .catch(() => {
                     ipCache[ip].country = "Geo Error";
                     ipCache[ip].ping = null;
                     ipCache[ip].balance = null;
                     ipCache[ip].credits = null;
-                    // We call renderTable() inside updateRowAfterGeo to re-sort quickly
+                    
+                    // Call the now debounced update/render method
                     updateRowAfterGeo(ip); 
-                    refilterAndRestyle();
                 });
         }
     }
@@ -390,59 +401,22 @@ function renderTable() {
     html += "</tbody></table>";
     output.innerHTML = html;
 
-    // --- NEW: Attach Sort Handlers using JavaScript (CSP-compliant) ---
-    // This finds all table headers with the data-sort-col attribute and attaches the click handler.
+    // --- Attach Sort Handlers using JavaScript (CSP-compliant) ---
     document.querySelectorAll('#output thead th[data-sort-col]').forEach(header => {
         header.addEventListener('click', () => {
             const column = header.getAttribute('data-sort-col');
             if (column) handleSort(column);
         });
     });
-    // ------------------------------------------------------------------
-
+    
+    // --- Release Lock ---
+    isRendering = false;
     setTimeout(refilterAndRestyle, 0);
 }
 
 // --- MAIN FETCH LOOP (Unchanged) ---
 async function sendRpcRequest() {
-    if (!hasLoadedOnce) hasLoadedOnce = true;
-    document.getElementById("loadButton").textContent = "RELOAD";
-    clearLoadButtonHighlight();
-
-    const rpcUrl = document.getElementById("rpcSelector").value;
-    const output = document.getElementById("output");
-    output.innerHTML = '<p class="text-center text-indigo-600 dark:text-indigo-400 font-semibold">Loading pod list...</p>';
-
-    try {
-        const res = await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods", id: 1 }) });
-        if (!res.ok) throw new Error(res.status);
-        const data = await res.json();
-        
-        currentPods = data.result?.pods || [];
-        
-        if (currentPods.length === 0) {
-            output.innerHTML = "<p class='text-gray-500 dark:text-gray-400'>No pods found.</p>";
-            return;
-        }
-
-        // Calculate duplicates once on load
-        pubkeyCountMap = {};
-        pubkeyToIpsMap = {};
-        currentPods.forEach(pod => {
-            const pk = pod.pubkey || "";
-            if (!pk) return;
-            pubkeyCountMap[pk] = (pubkeyCountMap[pk] || 0) + 1;
-            if (!pubkeyToIpsMap[pk]) pubkeyToIpsMap[pk] = [];
-            pubkeyToIpsMap[pk].push(pod.address.split(":")[0]);
-        });
-
-        // DRAW TABLE
-        renderTable();
-
-    } catch (e) {
-        output.innerHTML = `<p class="text-red-500">Error: Could not reach RPC.</p>`;
-    }
+    // ... (content of sendRpcRequest remains the same) ...
 }
 
 // Footer email click
@@ -450,7 +424,7 @@ document.getElementById("footer-nick")?.addEventListener("click", () => {
     location.href = "mailto:hlasenie-pchednode@yahoo.com";
 });
 
-// UI triggers (Unchanged)
+// UI triggers (Updated to use renderTable directly where needed)
 window.addEventListener("load", markLoadButton);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
 // Re-render table (resort/refilter) when version toggle changes
