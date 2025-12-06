@@ -253,20 +253,21 @@ function renderTable() {
         <th class="rounded-tl-lg cursor-help" title="To have your name listed, click email in footer">Name</th>
         <th>Pubkey</th>
         <th>Country</th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('ping')">
-            Ping ${getSortIndicator('ping')}
-        </th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('credits')">
-            Credits ${getSortIndicator('credits')}
-        </th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('balance')">
-            Balance ${getSortIndicator('balance')}
-        </th>
-        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('last_seen')">
-            Last Seen ${getSortIndicator('last_seen')}
-        </th>
-        <th class="rounded-tr-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('version')">
-            Version ${getSortIndicator('version')}
+		// New CSP-compliant HTML generation (No inline onclick)
+		<th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="ping">
+			Ping ${getSortIndicator('ping')}
+		</th>
+		<th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="credits">
+			Credits ${getSortIndicator('credits')}
+		</th>
+		<th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="balance">
+			Balance ${getSortIndicator('balance')}
+		</th>
+		<th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="last_seen">
+			Last Seen ${getSortIndicator('last_seen')}
+		</th>
+		<th class="rounded-tr-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="version">
+			Version ${getSortIndicator('version')}
         </th>
     </tr></thead><tbody>`;
 
@@ -364,7 +365,17 @@ function renderTable() {
     }
 
     html += "</tbody></table>";
-    output.innerHTML = html;
+	output.innerHTML = html;
+
+    // --- NEW: Attach Sort Handlers using JavaScript (CSP-compliant) ---
+    document.querySelectorAll('#output thead th[data-sort-col]').forEach(header => {
+        header.addEventListener('click', () => {
+            const column = header.getAttribute('data-sort-col');
+            if (column) handleSort(column);
+        });
+    });
+    // ------------------------------------------------------------------
+
     setTimeout(refilterAndRestyle, 0);
 }
 
