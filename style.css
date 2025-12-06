@@ -1,15 +1,11 @@
-/* Base Setup */
 html {
     min-height: 100%;
-    /* Fixes the bright background when scrolling beyond content in LIGHT mode */
-    background-color: #ecfccb; /* Matches the lime-100 gradient start */
+    background-color: #ecfccb;
 }
 
-/* DARK MODE ROOT FIXES */
 html.dark {
-    /* Fixes the bright background when scrolling beyond content in DARK mode */
-    background-color: #0f172a; /* Matches slate-900 */
-    color-scheme: dark;        /* Helps with scrollbar colors and system UI */
+    background-color: #0f172a;
+    color-scheme: dark;
 }
 
 body { 
@@ -17,7 +13,6 @@ body {
     min-height: 100vh;
 }
 
-/* Spinner */
 .loading-spinner::after {
     content: ""; display: inline-block; width: 12px; height: 12px; margin-left: 6px;
     border: 2px solid #e5e7eb; border-top-color: #6366f1; border-radius: 50%;
@@ -25,22 +20,18 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Table Overflow Fix for Mobile */
 #output {
-    overflow-x: auto; /* Allows horizontal scrolling */
-    -webkit-overflow-scrolling: touch; /* Better scrolling performance on iOS */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
-/* Table */
 #output table { 
-    /* The table itself should now have enough space for all columns */
     width: 100%; 
-    min-width: 800px; /* Optional: Sets a minimum width to ensure all columns fit, forcing scroll */
+    min-width: 800px;
     border-collapse: separate; 
     border-spacing: 0 10px; 
 }
 
-/* Header Styling */
 #output thead th {
     position: sticky; top: 0; 
     background: #f8fafc; 
@@ -56,7 +47,6 @@ body {
 #output tbody tr:hover { transform: translateY(-2px); box-shadow: 0 12px 20px rgba(0,0,0,0.12); }
 #output tbody td { padding: 16px; color: #1f2937; }
 
-/* Dark mode overrides */
 .dark #output thead th { 
     background: #1e293b; 
     color: #cbd5e1; 
@@ -68,7 +58,6 @@ body {
 .dark #output tbody tr:hover { background: #334155; }
 .dark #output tbody td { color: #e2e8f0; }
 
-/* Known & duplicate styling */
 .known-server {
     background-color: #dcfce7 !important; border-left: 6px solid #16a34a !important;
 }
@@ -85,7 +74,6 @@ tr.duplicate-pubkey-row {
 .warning-icon { color: #dc2626; font-weight: bold; font-size: 1.3em; margin-left: 5px; }
 .dark .warning-icon { color: #fca5a5 !important; }
 
-/* Time colors */
 .fresh { color: #10b981; font-weight: 600; }
 .recent { color: #3b82f6; }
 .stale { color: #f59e0b; }
