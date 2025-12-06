@@ -424,9 +424,15 @@ document.getElementById("footer-nick")?.addEventListener("click", () => {
     location.href = "mailto:hlasenie-pchednode@yahoo.com";
 });
 
+
 // UI triggers (Updated to use renderTable directly where needed)
 window.addEventListener("load", markLoadButton);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
+
+// --- MISSING LINE ADDED HERE ---
+document.getElementById("loadButton").addEventListener("click", sendRpcRequest);
+// ---------------------------------
+
 // Re-render table (resort/refilter) when version toggle changes
 document.getElementById("versionFilterToggle").addEventListener("change", () => { markLoadButton(); renderTable(); });
 document.getElementById("versionFilterValue").addEventListener("input", () => { markLoadButton(); renderTable(); });
