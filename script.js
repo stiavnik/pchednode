@@ -253,7 +253,6 @@ function renderTable() {
         <th class="rounded-tl-lg cursor-help" title="To have your name listed, click email in footer">Name</th>
         <th>Pubkey</th>
         <th>Country</th>
-		// New CSP-compliant HTML generation (No inline onclick)
 		<th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="ping">
 			Ping ${getSortIndicator('ping')}
 		</th>
