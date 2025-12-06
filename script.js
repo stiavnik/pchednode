@@ -30,17 +30,24 @@ function clearLoadButtonHighlight() {
     b.classList.add("bg-indigo-600");
 }
 
-// --- NEW: Handle Sort Click ---
+// --- UPDATED: Handle Sort Click ---
 function handleSort(column) {
     if (sortCol === column) {
         // If clicking the same column, toggle direction
         sortAsc = !sortAsc;
     } else {
-        // If new column, set it and default to descending (usually better for numbers)
+        // If new column, set it and default direction
         sortCol = column;
         sortAsc = false; 
-        // Exception: For "Name" or "Version", ascending is usually better default
-        if (column === 'version' || column === 'name') sortAsc = true;
+        
+        // Default to ASCENDING (A-Z, oldest first) for alphabetical/time columns
+        if (column === 'version' || column === 'name' || column === 'pubkey' || column === 'country') {
+            sortAsc = true;
+        }
+        // Default to DESCENDING (newest first, highest value first) for numerical columns like last_seen, ping, credits, balance
+        if (column === 'last_seen' || column === 'ping' || column === 'credits' || column === 'balance') {
+             sortAsc = false;
+        }
     }
     renderTable(); // Re-draw table with new sort order
 }
@@ -136,6 +143,8 @@ function updateRowAfterGeo(ip) {
     }
 
     updatePingAndBalance(ip);
+    // After country/name updates, trigger a re-render to ensure they are sorted correctly.
+    renderTable(); 
 }
 
 // Only hides/shows rows, doesn't re-order (rendering does that)
@@ -171,7 +180,7 @@ function scheduleFilter() {
     }, 150);
 }
 
-// --- NEW: Helper to generate sort arrow HTML ---
+// --- Helper to generate sort arrow HTML ---
 function getSortIndicator(col) {
     if (sortCol !== col) return '<span class="text-gray-300 ml-1 opacity-50">↕</span>';
     return sortAsc 
@@ -179,7 +188,7 @@ function getSortIndicator(col) {
         : '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↓</span>';
 }
 
-// --- NEW: Core Render Function (Sorts & Builds HTML) ---
+// --- NEW/UPDATED: Core Render Function (Sorts & Builds HTML) ---
 function renderTable() {
     const output = document.getElementById("output");
     let podsToRender = [...currentPods]; // Copy array to sort safely
@@ -190,10 +199,7 @@ function renderTable() {
         if (v) podsToRender = podsToRender.filter(p => p.version === v);
     }
     
-    // 2. FILTER (Text Search - Optional optimization to filter before sort, but current visual filter is CSS based)
-    // We stick to CSS filtering in refilterAndRestyle() to avoid re-rendering HTML on every keystroke.
-
-    // 3. SORT
+    // 2. SORT
     podsToRender.sort((a, b) => {
         const ipA = a.address.split(":")[0];
         const ipB = b.address.split(":")[0];
@@ -203,15 +209,29 @@ function renderTable() {
         let valA, valB;
 
         switch (sortCol) {
-			case 'ping':
-				// Null (offline) should be last, so treat it as Infinity.
-				// Undefined (loading) should be near the bottom, but above offline.
-				valA = (cacheA.ping === null) ? Infinity : (cacheA.ping === undefined ? 99999 : cacheA.ping);
-				valB = (cacheB.ping === null) ? Infinity : (cacheB.ping === undefined ? 99999 : cacheB.ping);
-				
-				// For credits and balance, we can keep the -1 or 0 for missing data, 
-				// but for Ping, Infinity works best to push "offline" last.
-				break;
+            case 'name':
+                // Use "~" to push Unknown/N/A to the end alphabetically
+                valA = cacheA.name || '~~'; 
+                valB = cacheB.name || '~~';
+                return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            case 'pubkey':
+                // Use "~" to push empty pubkeys to the end
+                valA = a.pubkey || '~~'; 
+                valB = b.pubkey || '~~';
+                return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            case 'country':
+                // Use "~" to push Unknown/Geo Error to the end
+                valA = cacheA.country || '~~'; 
+                valB = cacheB.country || '~~';
+                // Strip HTML flag/spinner for clean comparison (e.g., "<span>Loading</span> USA" -> "USA")
+                valA = valA.replace(/<[^>]*>/g, '').trim();
+                valB = valB.replace(/<[^>]*>/g, '').trim();
+                return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            case 'ping':
+                // Null (offline) gets Infinity; Undefined (loading) gets a high number (99999)
+                valA = (cacheA.ping === null) ? Infinity : (cacheA.ping === undefined ? 99999 : cacheA.ping);
+                valB = (cacheB.ping === null) ? Infinity : (cacheB.ping === undefined ? 99999 : cacheB.ping);
+                break;
             case 'credits':
                 valA = (cacheA.credits === undefined || cacheA.credits === null) ? -1 : cacheA.credits;
                 valB = (cacheB.credits === undefined || cacheB.credits === null) ? -1 : cacheB.credits;
@@ -220,18 +240,18 @@ function renderTable() {
                 valA = parseFloat(cacheA.balance) || -1;
                 valB = parseFloat(cacheB.balance) || -1;
                 break;
-			case 'version':
-				const vA = a.version || "~"; // Use "~" to force Unknown last
-				const vB = b.version || "~"; // Use "~" to force Unknown last
-				// Semantic versioning comparison for non-empty versions.
-				const comparison = vA.localeCompare(vB, undefined, { numeric: true, sensitivity: 'base' });
-				// Return the comparison result, reversed if sorting descending.
-				return sortAsc ? comparison : -comparison;
             case 'last_seen':
                 valA = a.last_seen_timestamp || 0;
                 valB = b.last_seen_timestamp || 0;
                 break;
-            default: // Default to last_seen
+            case 'version':
+                const vA = a.version || "~";
+                const vB = b.version || "~";
+                // Semantic versioning comparison using { numeric: true }
+                const comparison = vA.localeCompare(vB, undefined, { numeric: true, sensitivity: 'base' });
+                return sortAsc ? comparison : -comparison;
+            default: 
+                // Default to last_seen if an unknown column is somehow clicked
                 valA = a.last_seen_timestamp || 0;
                 valB = b.last_seen_timestamp || 0;
         }
@@ -243,25 +263,31 @@ function renderTable() {
 
     document.getElementById("podCount").textContent = podsToRender.length;
 
-    // 4. BUILD HTML
+    // 3. BUILD HTML (UPDATED HEADERS)
     let html = `<table class="min-w-full"><thead><tr>
-        <th class="rounded-tl-lg cursor-help" title="To have your name listed, click email in footer">Name</th>
-        <th>Pubkey</th>
-        <th>Country</th>
-		<th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="ping">
-			Ping ${getSortIndicator('ping')}
-		</th>
-		<th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="credits">
-			Credits ${getSortIndicator('credits')}
-		</th>
-		<th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="balance">
-			Balance ${getSortIndicator('balance')}
-		</th>
-		<th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="last_seen">
-			Last Seen ${getSortIndicator('last_seen')}
-		</th>
-		<th class="rounded-tr-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="version">
-			Version ${getSortIndicator('version')}
+        <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="name" title="To have your name listed, click email in footer">
+            Name ${getSortIndicator('name')}
+        </th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="pubkey">
+            Pubkey ${getSortIndicator('pubkey')}
+        </th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="country">
+            Country ${getSortIndicator('country')}
+        </th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="ping">
+            Ping ${getSortIndicator('ping')}
+        </th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="credits">
+            Credits ${getSortIndicator('credits')}
+        </th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="balance">
+            Balance ${getSortIndicator('balance')}
+        </th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="last_seen">
+            Last Seen ${getSortIndicator('last_seen')}
+        </th>
+        <th class="rounded-tr-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="version">
+            Version ${getSortIndicator('version')}
         </th>
     </tr></thead><tbody>`;
 
@@ -344,7 +370,9 @@ function renderTable() {
                     ipCache[ip].ping = g.ping;
                     ipCache[ip].balance = g.balance;
                     ipCache[ip].credits = g.credits;
-                    updateRowAfterGeo(ip);
+                    
+                    // We call renderTable() inside updateRowAfterGeo to re-sort quickly
+                    updateRowAfterGeo(ip); 
                     refilterAndRestyle();
                 })
                 .catch(() => {
@@ -352,16 +380,18 @@ function renderTable() {
                     ipCache[ip].ping = null;
                     ipCache[ip].balance = null;
                     ipCache[ip].credits = null;
-                    updateRowAfterGeo(ip);
+                    // We call renderTable() inside updateRowAfterGeo to re-sort quickly
+                    updateRowAfterGeo(ip); 
                     refilterAndRestyle();
                 });
         }
     }
 
     html += "</tbody></table>";
-	output.innerHTML = html;
+    output.innerHTML = html;
 
     // --- NEW: Attach Sort Handlers using JavaScript (CSP-compliant) ---
+    // This finds all table headers with the data-sort-col attribute and attaches the click handler.
     document.querySelectorAll('#output thead th[data-sort-col]').forEach(header => {
         header.addEventListener('click', () => {
             const column = header.getAttribute('data-sort-col');
@@ -373,7 +403,7 @@ function renderTable() {
     setTimeout(refilterAndRestyle, 0);
 }
 
-// --- MAIN FETCH LOOP ---
+// --- MAIN FETCH LOOP (Unchanged) ---
 async function sendRpcRequest() {
     if (!hasLoadedOnce) hasLoadedOnce = true;
     document.getElementById("loadButton").textContent = "RELOAD";
@@ -420,7 +450,7 @@ document.getElementById("footer-nick")?.addEventListener("click", () => {
     location.href = "mailto:hlasenie-pchednode@yahoo.com";
 });
 
-// UI triggers
+// UI triggers (Unchanged)
 window.addEventListener("load", markLoadButton);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
 // Re-render table (resort/refilter) when version toggle changes
@@ -431,7 +461,7 @@ document.getElementById("globalFilterValue").addEventListener("input", scheduleF
 
 setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
 
-// DARK MODE
+// DARK MODE (Unchanged)
 const themeToggle = document.getElementById('themeToggle');
 const htmlEl = document.documentElement; 
 
