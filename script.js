@@ -221,18 +221,10 @@ function renderTable() {
                 valB = parseFloat(cacheB.balance) || -1;
                 break;
 			case 'version':
-				const vA = a.version || "";
-				const vB = b.version || "";
-
-				// 1. Logic to force "Unknown" versions (empty string) to the end of the list (remains correct).
-				if (vA === "" && vB !== "") return 1;
-				if (vA !== "" && vB === "") return -1;
-				if (vA === "" && vB === "") return 0;
-
-				// 2. Semantic versioning comparison for non-empty versions.
-				// We use { numeric: true } to ensure 0.9.0 < 0.10.0.
+				const vA = a.version || "~"; // Use "~" to force Unknown last
+				const vB = b.version || "~"; // Use "~" to force Unknown last
+				// Semantic versioning comparison for non-empty versions.
 				const comparison = vA.localeCompare(vB, undefined, { numeric: true, sensitivity: 'base' });
-				
 				// Return the comparison result, reversed if sorting descending.
 				return sortAsc ? comparison : -comparison;
             case 'last_seen':
