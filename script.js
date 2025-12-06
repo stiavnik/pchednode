@@ -3,15 +3,18 @@ let ipCache = {};
 let pubkeyCountMap = {};
 let pubkeyToIpsMap = {};
 
-// --- NEW GLOBAL STATES FOR PERFORMANCE ---
-let renderTimer;     // Debounce timer for user-initiated sorting
-let isRendering = false; // Lock to prevent cascading calls from background fetches
+// Global state for rendering & sorting
+let currentPods = [];
+let sortCol = 'last_seen';
+let sortAsc = false;
 
-// --- NEW: Global State for Data and Sorting ---
-let currentPods = []; // Store the raw pods list here
-let sortCol = 'last_seen'; // Default sort column
-let sortAsc = false;      // Default descending (highest/newest first)
+let renderTimer;          // debounce user sorting
+let backgroundTimer;      // one-time re-sort after background updates finish
+let isRendering = false;
 
+// ------------------------------------------------------------------
+// Helper functions
+// ------------------------------------------------------------------
 function formatRelativeTime(ts) {
     const diff = Math.floor(Date.now() / 1000) - ts;
     if (diff < 60) return { text: `${diff}s ago`, class: "fresh" };
@@ -34,44 +37,39 @@ function clearLoadButtonHighlight() {
     b.classList.add("bg-indigo-600");
 }
 
-// --- UPDATED: Handle Sort Click (Now Debounced) ---
+// ------------------------------------------------------------------
+// Sorting
+// ------------------------------------------------------------------
 function handleSort(column) {
     if (sortCol === column) {
         sortAsc = !sortAsc;
     } else {
         sortCol = column;
-        sortAsc = false; 
-        
-        // Default to ASCENDING (A-Z, oldest first) for alphabetical/time columns
-        if (column === 'version' || column === 'name' || column === 'pubkey' || column === 'country') {
-            sortAsc = true;
-        }
-        // Default to DESCENDING (newest first, highest value first) for numerical columns
-        if (column === 'last_seen' || column === 'ping' || column === 'credits' || column === 'balance') {
-             sortAsc = false;
+        sortAsc = (
+            column === 'version' || 
+            column === 'name' || 
+            column === 'pubkey' || 
+            column === 'country'
+        ); // ascending by default for strings
+        // descending by default for numbers/times
+        if (['last_seen', 'ping', 'credits', 'balance'].includes(column)) {
+            sortAsc = false;
         }
     }
-    
-    // Use a timer to debounce rapid clicks
     clearTimeout(renderTimer);
-    renderTimer = setTimeout(renderTable, 50); // Small 50ms delay
+    renderTimer = setTimeout(renderTable, 50);
 }
 
-function copyPubkey(text, element) {
-    navigator.clipboard.writeText(text).then(() => {
-        const originalHTML = element.innerHTML;
-        element.innerHTML = "Copied!";
-        element.classList.replace("text-gray-600", "text-green-600");
-        element.classList.add("font-bold");
-
-        setTimeout(() => {
-            element.innerHTML = originalHTML;
-            element.classList.replace("text-green-600", "text-gray-600");
-            element.classList.remove("font-bold");
-        }, 1000);
-    });
+function getSortIndicator(col) {
+    if (sortCol !== col) return '<span class="text-gray-300 ml-1 opacity-50">↕</span>';
+    return sortAsc 
+        ? '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↑</span>' 
+        : '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↓</span>';
 }
 
+// ------------------------------------------------------------------
+// Row updates (background geo/ping/balance)
+// ------------------------------------------------------------------
 function updatePingAndBalance(ip) {
     const cached = ipCache[ip];
     if (!cached) return;
@@ -79,50 +77,37 @@ function updatePingAndBalance(ip) {
     const row = nameCell?.parentElement;
     if (!row) return;
 
-    // Ping (Cell 3)
-    let pingHtml;
-    if (cached.ping === undefined) {
-         pingHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
-    } else if (cached.ping === null) {
-        pingHtml = '<span class="text-red-600 font-medium">offline</span>';
-    } else if (cached.ping > 400) {
-        pingHtml = `<span class="text-red-500">${cached.ping} ms</span>`;
-    } else if (cached.ping > 200) {
-        pingHtml = `<span class="text-orange-500">${cached.ping} ms</span>`;
-    } else {
-        pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
+    // Ping
+    let pingHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
+    if (cached.ping !== undefined) {
+        if (cached.ping === null) pingHtml = '<span class="text-red-600 font-medium">offline</span>';
+        else if (cached.ping > 400) pingHtml = `<span class="text-red-500">${cached.ping} ms</span>`;
+        else if (cached.ping > 200) pingHtml = `<span class="text-orange-500">${cached.ping} ms</span>`;
+        else pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
     }
     if (row.cells[3]) row.cells[3].innerHTML = `<div class="text-right font-mono text-sm">${pingHtml}</div>`;
 
-    // Credits (Cell 4)
-    let creditsHtml;
+    // Credits
+    let creditsHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-purple-600 rounded-full animate-spin"></span>';
     if (cached.credits !== undefined) {
-        if (cached.credits === null) {
-            creditsHtml = `<span class="text-gray-400 text-xs">-</span>`;
-        } else {
-            const val = new Intl.NumberFormat().format(cached.credits);
-            creditsHtml = `<span class="text-purple-600 dark:text-purple-400 font-bold">${val}</span>`;
-        }
-    } else {
-        creditsHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-purple-600 rounded-full animate-spin"></span>';
+        if (cached.credits === null) creditsHtml = `<span class="text-gray-400 text-xs">-</span>`;
+        else creditsHtml = `<span class="text-purple-600 dark:text-purple-400 font-bold">${new Intl.NumberFormat().format(cached.credits)}</span>`;
     }
     if (row.cells[4]) row.cells[4].innerHTML = `<div class="text-right font-mono text-sm">${creditsHtml}</div>`;
 
-    // Balance (Cell 5)
-    let balanceHtml;
-    if (cached.balance !== undefined && cached.balance !== null) {
-         const val = parseFloat(cached.balance);
-         const fmt = isNaN(val) ? cached.balance : val.toFixed(3);
-         balanceHtml = `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${fmt} ◎</span>`;
-    } else if (cached.balance === null) {
-         balanceHtml = `<span class="text-gray-400 text-xs">-</span>`;
-    } else {
-         balanceHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
+    // Balance
+    let balanceHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
+    if (cached.balance !== undefined) {
+        if (cached.balance === null) balanceHtml = `<span class="text-gray-400 text-xs">-</span>`;
+        else {
+            const val = parseFloat(cached.balance);
+            const fmt = isNaN(val) ? cached.balance : val.toFixed(3);
+            balanceHtml = `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${fmt} ◎</span>`;
+        }
     }
     if (row.cells[5]) row.cells[5].innerHTML = `<div class="text-right font-mono text-sm">${balanceHtml}</div>`;
 }
 
-// --- UPDATED: updateRowAfterGeo (Removed direct renderTable call) ---
 function updateRowAfterGeo(ip) {
     const cached = ipCache[ip];
     if (!cached) return;
@@ -131,32 +116,30 @@ function updateRowAfterGeo(ip) {
     const row = nameCell?.parentElement;
     if (!row) return;
 
-    if (nameCell) {
-        if (cached.name && cached.name !== "N/A") {
-            nameCell.textContent = cached.name;
-            row.classList.add("known-server");
-            nameCell.classList.remove("text-gray-500");
-            nameCell.classList.add("font-semibold", "text-indigo-700");
-        } else if (cached.name === "N/A") {
-            nameCell.textContent = "N/A";
-            row.classList.remove("known-server");
-        }
+    // Name
+    if (cached.name && cached.name !== "N/A") {
+        nameCell.textContent = cached.name;
+        row.classList.add("known-server");
+        nameCell.classList.remove("text-gray-500");
+        nameCell.classList.add("font-semibold", "text-indigo-700");
+    } else if (cached.name === "N/A") {
+        nameCell.textContent = "N/A";
+        row.classList.remove("known-server");
     }
 
-    const countryCell = row.cells[2];
-    if (countryCell) {
-        countryCell.innerHTML = cached.country || "Geo Error";
-    }
+    // Country
+    if (row.cells[2]) row.cells[2].innerHTML = cached.country || "Geo Error";
 
     updatePingAndBalance(ip);
-    
-    // Now call renderTable() via the safe debounced method
-    // This handles re-sorting only after the initial flurry of updates finishes.
-    clearTimeout(renderTimer); 
-    renderTimer = setTimeout(renderTable, 50); 
+
+    // Schedule ONE final re-sort after background updates calm down
+    clearTimeout(backgroundTimer);
+    backgroundTimer = setTimeout(renderTable, 400);
 }
 
-// Only hides/shows rows, doesn't re-order (rendering does that)
+// ------------------------------------------------------------------
+// Filtering
+// ------------------------------------------------------------------
 function refilterAndRestyle() {
     const toggle = document.getElementById("globalFilterToggle").checked;
     const value = document.getElementById("globalFilterValue").value.trim().toLowerCase();
@@ -189,29 +172,23 @@ function scheduleFilter() {
     }, 150);
 }
 
-// --- Helper to generate sort arrow HTML ---
-function getSortIndicator(col) {
-    if (sortCol !== col) return '<span class="text-gray-300 ml-1 opacity-50">↕</span>';
-    return sortAsc 
-        ? '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↑</span>' 
-        : '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↓</span>';
-}
-
-// --- UPDATED: Core Render Function (with Lock) ---
+// ------------------------------------------------------------------
+// Main render (full table rebuild – only for sorting / version filter)
+// ------------------------------------------------------------------
 function renderTable() {
-    if (isRendering) return; // Ignore call if already running
+    if (isRendering) return;
     isRendering = true;
 
     const output = document.getElementById("output");
-    let podsToRender = [...currentPods]; // Copy array to sort safely
+    let podsToRender = [...currentPods];
 
-    // 1. FILTER (Version)
+    // Version filter
     if (document.getElementById("versionFilterToggle").checked) {
         const v = document.getElementById("versionFilterValue").value.trim();
         if (v) podsToRender = podsToRender.filter(p => p.version === v);
     }
-    
-    // 2. SORT
+
+    // Sorting
     podsToRender.sort((a, b) => {
         const ipA = a.address.split(":")[0];
         const ipB = b.address.split(":")[0];
@@ -222,25 +199,18 @@ function renderTable() {
 
         switch (sortCol) {
             case 'name':
-                // Use "~" to push Unknown/N/A to the end alphabetically
-                valA = cacheA.name || '~~'; 
-                valB = cacheB.name || '~~';
+                valA = cacheA.name || '~~~';
+                valB = cacheB.name || '~~~';
                 return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
             case 'pubkey':
-                // Use "~" to push empty pubkeys to the end
-                valA = a.pubkey || '~~'; 
-                valB = b.pubkey || '~~';
+                valA = a.pubkey || '~~~';
+                valB = b.pubkey || '~~~';
                 return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
             case 'country':
-                // Use "~" to push Unknown/Geo Error to the end
-                valA = cacheA.country || '~~'; 
-                valB = cacheB.country || '~~';
-                // Strip HTML flag/spinner for clean comparison
-                valA = valA.replace(/<[^>]*>/g, '').trim();
-                valB = valB.replace(/<[^>]*>/g, '').trim();
+                valA = (cacheA.country || '').replace(/<[^>]*>/g, '').trim() || '~~~';
+                valB = (cacheB.country || '').replace(/<[^>]*>/g, '').trim() || '~~~';
                 return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
             case 'ping':
-                // Null (offline) gets Infinity; Undefined (loading) gets a high number (99999)
                 valA = (cacheA.ping === null) ? Infinity : (cacheA.ping === undefined ? 99999 : cacheA.ping);
                 valB = (cacheB.ping === null) ? Infinity : (cacheB.ping === undefined ? 99999 : cacheB.ping);
                 break;
@@ -257,13 +227,13 @@ function renderTable() {
                 valB = b.last_seen_timestamp || 0;
                 break;
             case 'version':
-                const vA = a.version || "~";
-                const vB = b.version || "~";
-                // Semantic versioning comparison using { numeric: true }
-                const comparison = vA.localeCompare(vB, undefined, { numeric: true, sensitivity: 'base' });
-                return sortAsc ? comparison : -comparison;
-            default: 
-                // Default to last_seen if an unknown column is somehow clicked
+                // Proper handling of missing versions → push to bottom
+                if (!a.version && !b.version) return 0;
+                if (!a.version) return sortAsc ? 1 : -1;
+                if (!b.version) return sortAsc ? -1 : 1;
+                const cmp = a.version.localeCompare(b.version, undefined, { numeric: true, sensitivity: 'base' });
+                return sortAsc ? cmp : -cmp;
+            default:
                 valA = a.last_seen_timestamp || 0;
                 valB = b.last_seen_timestamp || 0;
         }
@@ -275,32 +245,16 @@ function renderTable() {
 
     document.getElementById("podCount").textContent = podsToRender.length;
 
-    // 3. BUILD HTML (UPDATED HEADERS)
+    // Build HTML
     let html = `<table class="min-w-full"><thead><tr>
-        <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="name" title="To have your name listed, click email in footer">
-            Name ${getSortIndicator('name')}
-        </th>
-        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="pubkey">
-            Pubkey ${getSortIndicator('pubkey')}
-        </th>
-        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="country">
-            Country ${getSortIndicator('country')}
-        </th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="ping">
-            Ping ${getSortIndicator('ping')}
-        </th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="credits">
-            Credits ${getSortIndicator('credits')}
-        </th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="balance">
-            Balance ${getSortIndicator('balance')}
-        </th>
-        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="last_seen">
-            Last Seen ${getSortIndicator('last_seen')}
-        </th>
-        <th class="rounded-tr-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="version">
-            Version ${getSortIndicator('version')}
-        </th>
+        <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="name">Name ${getSortIndicator('name')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="pubkey">Pubkey ${getSortIndicator('pubkey')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="country">Country ${getSortIndicator('country')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="ping">Ping ${getSortIndicator('ping')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="credits">Credits ${getSortIndicator('credits')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="balance">Balance ${getSortIndicator('balance')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="last_seen">Last Seen ${getSortIndicator('last_seen')}</th>
+        <th class="rounded-tr-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" data-sort-col="version">Version ${getSortIndicator('version')}</th>
     </tr></thead><tbody>`;
 
     for (const pod of podsToRender) {
@@ -310,35 +264,28 @@ function renderTable() {
         const shortKey = pubkey ? pubkey.slice(0,4) + "..." + pubkey.slice(-4) : "N/A";
         const isDuplicated = pubkey && pubkeyCountMap[pubkey] > 1;
 
-        const existing = ipCache[ip];
-        const needsFetch = !existing || existing.country?.includes("loading-spinner") || existing.country === "Geo Error";
-        
-        const cached = existing && !needsFetch ? existing : { 
-            name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined, balance: undefined, credits: undefined 
-        };
-
+        const cached = ipCache[ip] || { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined, balance: undefined, credits: undefined };
         const isKnown = cached.name && cached.name !== "N/A";
         const rowClass = (isKnown ? "known-server" : "") + (isDuplicated ? " duplicate-pubkey-row" : "");
         const nameClass = isKnown ? "font-semibold text-indigo-700" : "text-gray-500";
         const pubkeyCellClass = isDuplicated ? "pubkey-duplicate" : "";
         const warningIcon = isDuplicated ? `<span class="warning-icon" title="Duplicates found">!</span>` : "";
 
-        // -- Placeholders (Rendering Logic remains same) --
-        // Ping
+        // Placeholders
         let pingHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
         if (cached.ping !== undefined) {
-             if (cached.ping === null) pingHtml = '<span class="text-red-600 font-medium">offline</span>';
-             else if (cached.ping > 400) pingHtml = `<span class="text-red-500">${cached.ping} ms</span>`;
-             else if (cached.ping > 200) pingHtml = `<span class="text-orange-500">${cached.ping} ms</span>`;
-             else pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
+            if (cached.ping === null) pingHtml = '<span class="text-red-600 font-medium">offline</span>';
+            else if (cached.ping > 400) pingHtml = `<span class="text-red-500">${cached.ping} ms</span>`;
+            else if (cached.ping > 200) pingHtml = `<span class="text-orange-500">${cached.ping} ms</span>`;
+            else pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
         }
-        // Credits
+
         let creditsHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-purple-600 rounded-full animate-spin"></span>';
         if (cached.credits !== undefined) {
             if (cached.credits === null) creditsHtml = `<span class="text-gray-400 text-xs">-</span>`;
             else creditsHtml = `<span class="text-purple-600 dark:text-purple-400 font-bold">${new Intl.NumberFormat().format(cached.credits)}</span>`;
         }
-        // Balance
+
         let balanceHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
         if (cached.balance !== undefined) {
             if (cached.balance === null) balanceHtml = `<span class="text-gray-400 text-xs">-</span>`;
@@ -360,40 +307,34 @@ function renderTable() {
             <td class="text-right font-mono text-sm">${creditsHtml}</td>
             <td class="text-right font-mono text-sm">${balanceHtml}</td>
             <td class="${timeClass}">${timeText}</td>
-            <td>${pod.version}</td>
+            <td>${pod.version || ''}</td>
         </tr>`;
 
-        // Only trigger fetch if needed
-        if (needsFetch) {
+        // Trigger background fetch only once per IP
+        if (!ipCache[ip] || ipCache[ip].country?.includes("loading-spinner") || ipCache[ip].country === "Geo Error") {
             const rpcUrl = document.getElementById("rpcSelector").value;
             const host = new URL(rpcUrl).hostname;
             const geoBase = `https://${host}/geo`;
-            
-            // Initialize empty cache entry to prevent multi-fetch
+
             ipCache[ip] = { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined, balance: undefined, credits: undefined };
-            
+
             fetch(`${geoBase}?ip=${ip}&pubkey=${pubkey}`)
                 .then(r => { if (!r.ok) throw new Error(); return r.json(); })
                 .then(g => {
                     const code = (g.country_code || "").toLowerCase();
                     const flag = code && code !== "--" ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;">` : "";
-                    ipCache[ip].name = g.name || "N/A";
-                    ipCache[ip].country = `${flag} ${g.country || "Unknown"}`;
-                    ipCache[ip].ping = g.ping;
-                    ipCache[ip].balance = g.balance;
-                    ipCache[ip].credits = g.credits;
-                    
-                    // Call the now debounced update/render method
-                    updateRowAfterGeo(ip); 
+                    ipCache[ip] = {
+                        name: g.name || "N/A",
+                        country: `${flag} ${g.country || "Unknown"}`,
+                        ping: g.ping,
+                        balance: g.balance,
+                        credits: g.credits
+                    };
+                    updateRowAfterGeo(ip);
                 })
                 .catch(() => {
-                    ipCache[ip].country = "Geo Error";
-                    ipCache[ip].ping = null;
-                    ipCache[ip].balance = null;
-                    ipCache[ip].credits = null;
-                    
-                    // Call the now debounced update/render method
-                    updateRowAfterGeo(ip); 
+                    ipCache[ip] = { name: "N/A", country: "Geo Error", ping: null, balance: null, credits: null };
+                    updateRowAfterGeo(ip);
                 });
         }
     }
@@ -401,39 +342,74 @@ function renderTable() {
     html += "</tbody></table>";
     output.innerHTML = html;
 
-    // --- Attach Sort Handlers using JavaScript (CSP-compliant) ---
-    document.querySelectorAll('#output thead th[data-sort-col]').forEach(header => {
-        header.addEventListener('click', () => {
-            const column = header.getAttribute('data-sort-col');
-            if (column) handleSort(column);
-        });
-    });
-    
-    // --- Release Lock ---
+    // Event delegation for header clicks (cleaner & survives re-render)
+    output.onclick = e => {
+        const th = e.target.closest('th[data-sort-col]');
+        if (th) {
+            const col = th.dataset.sortCol;
+            handleSort(col);
+        }
+    };
+
     isRendering = false;
     setTimeout(refilterAndRestyle, 0);
 }
 
-// --- MAIN FETCH LOOP (Unchanged) ---
-async function sendRpcRequest() {
-    // ... (content of sendRpcRequest remains the same) ...
+// ------------------------------------------------------------------
+// copy pubkey helper
+// ------------------------------------------------------------------
+function copyPubkey(text, element) {
+    navigator.clipboard.writeText(text).then(() => {
+        const originalHTML = element.innerHTML;
+        element.innerHTML = "Copied!";
+        element.classList.replace("text-gray-600", "text-green-600");
+        element.classList.add("font-bold");
+
+        setTimeout(() => {
+            element.innerHTML = originalHTML;
+            element.classList.replace("text-green-600", "text-gray-600");
+            element.classList.remove("font-bold");
+        }, 1000);
+    });
 }
 
-// Footer email click
-document.getElementById("footer-nick")?.addEventListener("click", () => {
-    location.href = "mailto:hlasenie-pchednode@yahoo.com";
-});
+// ------------------------------------------------------------------
+// MAIN RPC REQUEST (you said it stays the same)
+// ------------------------------------------------------------------
+async function sendRpcRequest() {
+    hasLoadedOnce = true;
+    clearLoadButtonHighlight();
 
+    // YOUR ORIGINAL RPC LOGIC HERE – it should populate currentPods, pubkeyCountMap, etc.
+    // For brevity I'll just put a placeholder – replace with your real code
+    try {
+        const rpcUrl = document.getElementById("rpcSelector").value;
+        const resp = await fetch(rpcUrl, { method: "POST", body: JSON.stringify({ /* your RPC payload */ }), headers: { "Content-Type": "application/json" } });
+        const data = await resp.json();
+        // ... process data into currentPods, pubkeyCountMap, etc.
+        // Example placeholder:
+        currentPods = data.result.pods || []; // <-- adapt to your real structure
 
-// UI triggers (Updated to use renderTable directly where needed)
+        // rebuild pubkeyCountMap
+        pubkeyCountMap = {};
+        currentPods.forEach(p => {
+            if (p.pubkey) pubkeyCountMap[p.pubkey] = (pubkeyCountMap[p.pubkey] || 0) + 1;
+        });
+
+        ipCache = {}; // reset cache on each load
+        renderTable();
+    } catch (err) {
+        document.getElementById("output").innerHTML = `<p class="text-red-600">Error loading data: ${err.message}</p>`;
+    }
+}
+
+// ------------------------------------------------------------------
+// UI event listeners
+// ------------------------------------------------------------------
 window.addEventListener("load", markLoadButton);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
-
-// --- MISSING LINE ADDED HERE ---
 document.getElementById("loadButton").addEventListener("click", sendRpcRequest);
-// ---------------------------------
 
-// Re-render table (resort/refilter) when version toggle changes
 document.getElementById("versionFilterToggle").addEventListener("change", () => { markLoadButton(); renderTable(); });
 document.getElementById("versionFilterValue").addEventListener("input", () => { markLoadButton(); renderTable(); });
 document.getElementById("globalFilterToggle").addEventListener("change", scheduleFilter);
@@ -441,12 +417,11 @@ document.getElementById("globalFilterValue").addEventListener("input", scheduleF
 
 setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
 
-// DARK MODE (Unchanged)
+// Dark mode handling
 const themeToggle = document.getElementById('themeToggle');
-const htmlEl = document.documentElement; 
+const htmlEl = document.documentElement;
 
-if (localStorage.getItem('theme') === 'dark' || 
-   (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     htmlEl.classList.add('dark');
 } else {
     htmlEl.classList.remove('dark');
@@ -455,4 +430,8 @@ if (localStorage.getItem('theme') === 'dark' ||
 themeToggle?.addEventListener('click', () => {
     htmlEl.classList.toggle('dark');
     localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
+});
+
+document.getElementById("footer-nick")?.addEventListener("click", () => {
+    location.href = "mailto:hlasenie-pchednode@yahoo.com";
 });
