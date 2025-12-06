@@ -443,7 +443,30 @@ async function sendRpcRequest() {
         if (!res.ok) throw new Error(res.status);
         const data = await res.json();
         
-        currentPods = data.result?.pods || [];
+        // --- MODIFICATION: Deduplicate Data Here ---
+        const rawPods = data.result?.pods || [];
+        const uniqueMap = new Map();
+
+        // Filter duplicates, keep freshest
+        rawPods.forEach(p => {
+             // 1. Get IP only
+             const ip = p.address ? p.address.split(':')[0] : 'unknown';
+             if (ip === 'unknown') return;
+
+             // 2. Compare timestamps
+             if (!uniqueMap.has(ip)) {
+                 uniqueMap.set(ip, p);
+             } else {
+                 const existing = uniqueMap.get(ip);
+                 if ((p.last_seen_timestamp || 0) > (existing.last_seen_timestamp || 0)) {
+                     uniqueMap.set(ip, p);
+                 }
+             }
+        });
+        
+        // Convert map back to array
+        currentPods = Array.from(uniqueMap.values());
+        // ---------------------------------------------
         
         if (currentPods.length === 0) {
             output.innerHTML = "<p class='text-gray-500 dark:text-gray-400'>No pods found.</p>";
