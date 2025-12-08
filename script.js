@@ -9,12 +9,43 @@ let sortCol = 'last_seen';
 let sortAsc = false;      
 
 function formatRelativeTime(ts) {
+    if (!ts) return { text: "-", class: "text-gray-400" };
     const diff = Math.floor(Date.now() / 1000) - ts;
     if (diff < 60) return { text: `${diff}s ago`, class: "fresh" };
     if (diff < 3600) return { text: `${Math.floor(diff/60)}m ago`, class: "recent" };
     if (diff < 86400) return { text: `${Math.floor(diff/3600)}h ago`, class: "stale" };
     if (diff < 604800) return { text: `${Math.floor(diff/86400)}d ago`, class: "very-stale" };
     return { text: `${Math.floor(diff/604800)}w ago`, class: "very-stale" };
+}
+
+// --- NEW: Uptime Formatter ---
+function formatUptime(seconds) {
+    if (seconds === null || seconds === undefined) return "-";
+    if (seconds < 60) return `${seconds}s`;
+    if (seconds < 3600) return `${Math.floor(seconds/60)}m`;
+    if (seconds < 86400) return `${Math.floor(seconds/3600)}h`;
+    return `${Math.floor(seconds/86400)}d`;
+}
+
+// --- NEW: Storage Formatter ---
+function formatStorage(bytes) {
+    if (bytes === null || bytes === undefined) return "-";
+    const gb = bytes / (1024 * 1024 * 1024);
+    if (gb >= 1000) return `${(gb / 1024).toFixed(1)} TB`;
+    return `${gb.toFixed(1)} GB`;
+}
+
+// --- NEW: Percent Formatter ---
+function formatPercent(val) {
+    if (val === null || val === undefined) return "-";
+    // val is 0.0248 -> 2.48%
+    return `${(val * 100).toFixed(2)}%`;
+}
+
+// --- NEW: Clean Version (Strip dash) ---
+function cleanVersion(v) {
+    if (!v || v === "unknown") return "unknown";
+    return v.split('-')[0];
 }
 
 function markLoadButton() {
@@ -30,17 +61,15 @@ function clearLoadButtonHighlight() {
     b.classList.add("bg-indigo-600");
 }
 
-// --- NEW: Semantic Version Comparator ---
-// Returns 1 if vA > vB, -1 if vA < vB, 0 if equal
-// Handles "0.9.0" < "0.10.0" correctly
 function compareVersions(vA, vB) {
-    // Treat empty/null as "unknown" -> send to bottom
-    if (!vA && !vB) return 0;
-    if (!vA) return -1; // vA is empty, so it's "smaller" (we will flip logic later for sort direction)
-    if (!vB) return 1;
+    const cleanA = cleanVersion(vA);
+    const cleanB = cleanVersion(vB);
+    if (!cleanA && !cleanB) return 0;
+    if (!cleanA) return -1;
+    if (!cleanB) return 1;
 
-    const partsA = vA.split('.').map(Number);
-    const partsB = vB.split('.').map(Number);
+    const partsA = cleanA.split('.').map(Number);
+    const partsB = cleanB.split('.').map(Number);
     const len = Math.max(partsA.length, partsB.length);
 
     for (let i = 0; i < len; i++) {
@@ -53,8 +82,6 @@ function compareVersions(vA, vB) {
 }
 
 function handleSort(column) {
-    // --- FREEZE PROTECTION ---
-    // If data hasn't loaded yet, or array is empty, do not attempt to sort/render.
     if (!currentPods || currentPods.length === 0) return;
 
     if (sortCol === column) {
@@ -62,13 +89,10 @@ function handleSort(column) {
     } else {
         sortCol = column;
         sortAsc = false; 
-        // Default to Ascending (A-Z) for text-based columns
-        if (['version', 'name', 'country', 'pubkey'].includes(column)) {
+        if (['version', 'name', 'country', 'pubkey', 'is_public'].includes(column)) {
             sortAsc = true;
         }
     }
-    
-    // Use requestAnimationFrame to prevent UI locking if user clicks spam-fast
     requestAnimationFrame(() => renderTable());
 }
 
@@ -87,7 +111,6 @@ function copyPubkey(text, element) {
     });
 }
 
-// --- Update UI Helpers ---
 function updatePingAndBalance(ip) {
     const cached = ipCache[ip];
     if (!cached) return;
@@ -95,7 +118,13 @@ function updatePingAndBalance(ip) {
     const row = nameCell?.parentElement;
     if (!row) return;
 
-    // Ping
+    // Ping (Column index shifted due to new columns)
+    // We will use ID or strict query selectors to find cells safely, 
+    // but here we just update innerHTML of specific cell indexes.
+    // Let's verify indexes:
+    // 0:Name, 1:Pubkey, 2:Public, 3:Country, 4:Storage, 5:Used, 6:Uptime, 7:Ping, 8:Credits, 9:Balance, 10:LastSeen, 11:Version
+    
+    // Ping is at index 7
     let pingHtml;
     if (cached.ping === undefined) {
          pingHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
@@ -108,9 +137,9 @@ function updatePingAndBalance(ip) {
     } else {
         pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
     }
-    if (row.cells[3]) row.cells[3].innerHTML = `<div class="text-right font-mono text-sm">${pingHtml}</div>`;
+    if (row.cells[7]) row.cells[7].innerHTML = `<div class="text-right font-mono text-sm">${pingHtml}</div>`;
 
-    // Credits
+    // Credits (index 8)
     let creditsHtml;
     if (cached.credits !== undefined) {
         if (cached.credits === null) {
@@ -122,9 +151,9 @@ function updatePingAndBalance(ip) {
     } else {
         creditsHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-purple-600 rounded-full animate-spin"></span>';
     }
-    if (row.cells[4]) row.cells[4].innerHTML = `<div class="text-right font-mono text-sm">${creditsHtml}</div>`;
+    if (row.cells[8]) row.cells[8].innerHTML = `<div class="text-right font-mono text-sm">${creditsHtml}</div>`;
 
-    // Balance
+    // Balance (index 9)
     let balanceHtml;
     if (cached.balance !== undefined && cached.balance !== null) {
          const val = parseFloat(cached.balance);
@@ -135,7 +164,7 @@ function updatePingAndBalance(ip) {
     } else {
          balanceHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
     }
-    if (row.cells[5]) row.cells[5].innerHTML = `<div class="text-right font-mono text-sm">${balanceHtml}</div>`;
+    if (row.cells[9]) row.cells[9].innerHTML = `<div class="text-right font-mono text-sm">${balanceHtml}</div>`;
 }
 
 function updateRowAfterGeo(ip) {
@@ -158,7 +187,7 @@ function updateRowAfterGeo(ip) {
         }
     }
 
-    const countryCell = row.cells[2];
+    const countryCell = row.cells[3]; // Country is index 3
     if (countryCell) {
         countryCell.innerHTML = cached.country || "Geo Error";
     }
@@ -208,21 +237,19 @@ function getSortIndicator(col) {
 function renderTable() {
     const output = document.getElementById("output");
     
-    // Safety check
     if (!currentPods) return;
     let podsToRender = [...currentPods];
 
-    // 1. FILTER (Version)
+    // 1. FILTER (Version) - Clean version before check
     if (document.getElementById("versionFilterToggle").checked) {
         const v = document.getElementById("versionFilterValue").value.trim();
-        if (v) podsToRender = podsToRender.filter(p => p.version === v);
+        if (v) podsToRender = podsToRender.filter(p => cleanVersion(p.version) === v);
     }
 
     // 2. SORT
     podsToRender.sort((a, b) => {
         const ipA = a.address.split(":")[0];
         const ipB = b.address.split(":")[0];
-        // Ensure cache objects exist so we don't crash accessing properties
         const cacheA = ipCache[ipA] || { name: "", country: "" };
         const cacheB = ipCache[ipB] || { name: "", country: "" };
 
@@ -230,10 +257,8 @@ function renderTable() {
 
         switch (sortCol) {
             case 'name':
-                // Treat "N/A" as empty string for sorting so it goes to bottom/top consistently
                 valA = (cacheA.name === "N/A" ? "" : cacheA.name).toLowerCase();
                 valB = (cacheB.name === "N/A" ? "" : cacheB.name).toLowerCase();
-                // Standard string comparison
                 if (valA < valB) comparison = -1;
                 else if (valA > valB) comparison = 1;
                 break;
@@ -244,19 +269,33 @@ function renderTable() {
                 if (valA < valB) comparison = -1;
                 else if (valA > valB) comparison = 1;
                 break;
+            
+            case 'is_public':
+                valA = a.is_public ? 1 : 0;
+                valB = b.is_public ? 1 : 0;
+                comparison = valA - valB;
+                break;
 
             case 'country':
-                // Strip HTML tags to sort by text (e.g., remove <img> tags)
                 valA = (cacheA.country || "").replace(/<[^>]*>?/gm, '').trim().toLowerCase();
                 valB = (cacheB.country || "").replace(/<[^>]*>?/gm, '').trim().toLowerCase();
-                
-                // Push "Loading" or "Geo Error" to the bottom usually
                 if (valA.includes("loading") && !valB.includes("loading")) return 1;
                 if (!valA.includes("loading") && valB.includes("loading")) return -1;
-
                 if (valA < valB) comparison = -1;
                 else if (valA > valB) comparison = 1;
                 break;
+            
+            case 'storage':
+                 valA = a.storage_committed || -1;
+                 valB = b.storage_committed || -1;
+                 comparison = valA - valB;
+                 break;
+
+            case 'usage':
+                 valA = a.storage_usage_percent || -1;
+                 valB = b.storage_usage_percent || -1;
+                 comparison = valA - valB;
+                 break;
 
             case 'ping':
                 valA = (cacheA.ping === null) ? Infinity : (cacheA.ping === undefined ? 99999 : cacheA.ping);
@@ -278,9 +317,14 @@ function renderTable() {
                 if (valA < valB) comparison = -1;
                 else if (valA > valB) comparison = 1;
                 break;
+            
+            case 'uptime':
+                valA = a.uptime || -1;
+                valB = b.uptime || -1;
+                comparison = valA - valB;
+                break;
 
             case 'version':
-                // Use semantic version helper
                 comparison = compareVersions(a.version, b.version);
                 break;
 
@@ -298,8 +342,7 @@ function renderTable() {
 
     document.getElementById("podCount").textContent = podsToRender.length;
 
-    // 3. BUILD HTML
-    // Updated Headers with onclick handlers for ALL columns
+    // 3. BUILD HTML (12 columns total)
     let html = `<table class="min-w-full"><thead><tr>
         <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')">
             Name ${getSortIndicator('name')}
@@ -307,8 +350,20 @@ function renderTable() {
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('pubkey')">
             Pubkey ${getSortIndicator('pubkey')}
         </th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('is_public')">
+            Public ${getSortIndicator('is_public')}
+        </th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('country')">
             Country ${getSortIndicator('country')}
+        </th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('storage')">
+            Storage ${getSortIndicator('storage')}
+        </th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('usage')">
+            % Used ${getSortIndicator('usage')}
+        </th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('uptime')">
+            Uptime ${getSortIndicator('uptime')}
         </th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('ping')">
             Ping ${getSortIndicator('ping')}
@@ -334,7 +389,7 @@ function renderTable() {
         const shortKey = pubkey ? pubkey.slice(0,4) + "..." + pubkey.slice(-4) : "N/A";
         const isDuplicated = pubkey && pubkeyCountMap[pubkey] > 1;
 
-        // Check if we need to fetch Geo Data
+        // Check cache
         const existing = ipCache[ip];
         const needsFetch = !existing || existing.country?.includes("loading-spinner") || existing.country === "Geo Error";
         
@@ -348,8 +403,7 @@ function renderTable() {
         const pubkeyCellClass = isDuplicated ? "pubkey-duplicate" : "";
         const warningIcon = isDuplicated ? `<span class="warning-icon" title="Duplicates found">!</span>` : "";
 
-        // -- Placeholders --
-        // Ping
+        // -- Placeholders for Ping/Credits/Balance --
         let pingHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
         if (cached.ping !== undefined) {
              if (cached.ping === null) pingHtml = '<span class="text-red-600 font-medium">offline</span>';
@@ -357,13 +411,13 @@ function renderTable() {
              else if (cached.ping > 200) pingHtml = `<span class="text-orange-500">${cached.ping} ms</span>`;
              else pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
         }
-        // Credits
+
         let creditsHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-purple-600 rounded-full animate-spin"></span>';
         if (cached.credits !== undefined) {
             if (cached.credits === null) creditsHtml = `<span class="text-gray-400 text-xs">-</span>`;
             else creditsHtml = `<span class="text-purple-600 dark:text-purple-400 font-bold">${new Intl.NumberFormat().format(cached.credits)}</span>`;
         }
-        // Balance
+
         let balanceHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
         if (cached.balance !== undefined) {
             if (cached.balance === null) balanceHtml = `<span class="text-gray-400 text-xs">-</span>`;
@@ -374,27 +428,37 @@ function renderTable() {
             }
         }
 
+        // -- NEW COLUMNS FORMATTING --
+        const publicStr = (pod.is_public === true) ? "Yes" : (pod.is_public === false ? "No" : "-");
+        const storageStr = formatStorage(pod.storage_committed);
+        const usageStr = formatPercent(pod.storage_usage_percent);
+        const uptimeStr = formatUptime(pod.uptime);
+        const versionStr = cleanVersion(pod.version);
+
         html += `<tr class="${rowClass}">
             <td id="name-${ip}" class="${nameClass}" title="IP: ${ip}">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 ${pubkeyCellClass}"
                 data-pubkey="${pubkey}" onclick="copyPubkey('${pubkey}', this)">
                 <span class="short-key">${shortKey}</span>${warningIcon}
             </td>
+            <td>${publicStr}</td>
             <td id="country-${ip}">${cached.country}</td>
+            <td class="text-right font-mono text-sm">${storageStr}</td>
+            <td class="text-right font-mono text-sm">${usageStr}</td>
+            <td class="text-right font-mono text-sm">${uptimeStr}</td>
             <td class="text-right font-mono text-sm">${pingHtml}</td>
             <td class="text-right font-mono text-sm">${creditsHtml}</td>
             <td class="text-right font-mono text-sm">${balanceHtml}</td>
             <td class="${timeClass}">${timeText}</td>
-            <td>${pod.version}</td>
+            <td>${versionStr}</td>
         </tr>`;
 
-        // Only trigger fetch if needed
+        // Fetch Geo if needed
         if (needsFetch) {
             const rpcUrl = document.getElementById("rpcSelector").value;
             const host = new URL(rpcUrl).hostname;
             const geoBase = `https://${host}/geo`;
             
-            // Init placeholder
             ipCache[ip] = { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined, balance: undefined, credits: undefined };
             
             fetch(`${geoBase}?ip=${ip}&pubkey=${pubkey}`)
@@ -408,8 +472,6 @@ function renderTable() {
                     ipCache[ip].balance = g.balance;
                     ipCache[ip].credits = g.credits;
                     updateRowAfterGeo(ip);
-                    // Do NOT call full refilterAndRestyle here immediately to avoid UI jitter
-                    // The updateRowAfterGeo handles the specific row update efficiently
                 })
                 .catch(() => {
                     ipCache[ip].country = "Geo Error";
@@ -424,7 +486,6 @@ function renderTable() {
     html += "</tbody></table>";
     output.innerHTML = html;
     
-    // Slight delay to allow DOM to settle before applying filter visibility
     setTimeout(refilterAndRestyle, 0);
 }
 
@@ -438,35 +499,34 @@ async function sendRpcRequest() {
     output.innerHTML = '<p class="text-center text-indigo-600 dark:text-indigo-400 font-semibold">Loading pod list...</p>';
 
     try {
+        // --- CHANGED to get-pods-with-stats ---
         const res = await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods", id: 1 }) });
+            body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods-with-stats", id: 1 }) });
+        
         if (!res.ok) throw new Error(res.status);
         const data = await res.json();
         
-        // --- MODIFICATION: Deduplicate Data Here ---
         const rawPods = data.result?.pods || [];
         const uniqueMap = new Map();
 
         // Filter duplicates, keep freshest
         rawPods.forEach(p => {
-             // 1. Get IP only
              const ip = p.address ? p.address.split(':')[0] : 'unknown';
              if (ip === 'unknown') return;
 
-             // 2. Compare timestamps
              if (!uniqueMap.has(ip)) {
                  uniqueMap.set(ip, p);
              } else {
                  const existing = uniqueMap.get(ip);
+                 // Preserve stats if new pod (e.g. from gossip) lacks them
+                 const merged = { ...existing, ...p };
                  if ((p.last_seen_timestamp || 0) > (existing.last_seen_timestamp || 0)) {
-                     uniqueMap.set(ip, p);
+                     uniqueMap.set(ip, merged);
                  }
              }
         });
         
-        // Convert map back to array
         currentPods = Array.from(uniqueMap.values());
-        // ---------------------------------------------
         
         if (currentPods.length === 0) {
             output.innerHTML = "<p class='text-gray-500 dark:text-gray-400'>No pods found.</p>";
