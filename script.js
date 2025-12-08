@@ -46,6 +46,7 @@ function cleanVersion(v) {
     return v.split('-')[0];
 }
 
+// --- HTML Formatters for Stats ---
 function formatPingHtml(ping) {
     // 1. Loading state (undefined)
     if (ping === undefined) {
@@ -135,8 +136,8 @@ function handleSort(column) {
 }
 
 function copyPubkey(text, element) {
-    // Stop row click event
-    if (event) event.stopPropagation();
+    // Stop the row click from firing (so we don't open history page)
+    if (window.event) window.event.stopPropagation();
 
     navigator.clipboard.writeText(text).then(() => {
         const originalHTML = element.innerHTML;
@@ -279,6 +280,7 @@ function renderTable() {
                  comparison = valA - valB;
                  break;
             case 'ping':
+                // Treat null (offline) as Infinity for sorting so it drops to bottom/top appropriately
                 valA = (cacheA.ping === null) ? Infinity : (cacheA.ping === undefined ? 99999 : cacheA.ping);
                 valB = (cacheB.ping === null) ? Infinity : (cacheB.ping === undefined ? 99999 : cacheB.ping);
                 if (valA < valB) comparison = -1;
@@ -334,6 +336,10 @@ function renderTable() {
     </tr></thead><tbody>`;
 
     const batchQueue = []; // Items to fetch
+    
+    // Get the current RPC Host (e.g. rpc1.pchednode.com)
+    const rpcSelector = document.getElementById("rpcSelector");
+    const rpcHost = rpcSelector ? new URL(rpcSelector.value).hostname : window.location.hostname;
 
     for (const pod of podsToRender) {
         const ip = pod.address.split(":")[0];
@@ -371,10 +377,8 @@ function renderTable() {
         const uptimeStr = formatUptime(pod.uptime);
         const versionStr = cleanVersion(pod.version);
 
-		// Get the current active RPC host (e.g., rpc1.pchednode.com)
-		const currentRpcHost = new URL(document.getElementById("rpcSelector").value).hostname;
-
-		html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}&host=${currentRpcHost}'" style="cursor:pointer;">
+        // ONCLICK: Pass both IP and current RPC Host to history page
+        html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}&host=${rpcHost}'" style="cursor:pointer;">
             <td id="name-${ip}" class="${nameClass}" title="IP: ${ip}">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 ${pubkeyCellClass}"
                 data-pubkey="${pubkey}" 
