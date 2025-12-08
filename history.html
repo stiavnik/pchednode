@@ -116,10 +116,12 @@
     </div>
 
 <script>
-    const GEO_HISTORY_URL = `https://${window.location.hostname}/geo/history`; 
-    const urlParams = new URLSearchParams(window.location.search);
-    const TARGET_IP = urlParams.get('ip');
-    const GRAPH_SAMPLES = 60; 
+	const urlParams = new URLSearchParams(window.location.search);
+	const TARGET_IP = urlParams.get('ip');
+	// Default to rpc1 if no host param is found
+	const TARGET_HOST = urlParams.get('host') || 'rpc1.pchednode.com';
+	const GEO_HISTORY_URL = `https://${TARGET_HOST}/geo/history`;
+	const GRAPH_SAMPLES = 60; 
 
     // Dark Mode
     const htmlEl = document.documentElement;
