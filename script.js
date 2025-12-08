@@ -240,7 +240,7 @@ function renderTable() {
     if (!currentPods) return;
     let podsToRender = [...currentPods];
 
-    // 1. FILTER (Version) - Clean version before check
+    // 1. FILTER
     if (document.getElementById("versionFilterToggle").checked) {
         const v = document.getElementById("versionFilterValue").value.trim();
         if (v) podsToRender = podsToRender.filter(p => cleanVersion(p.version) === v);
@@ -262,20 +262,17 @@ function renderTable() {
                 if (valA < valB) comparison = -1;
                 else if (valA > valB) comparison = 1;
                 break;
-
             case 'pubkey':
                 valA = (a.pubkey || "").toLowerCase();
                 valB = (b.pubkey || "").toLowerCase();
                 if (valA < valB) comparison = -1;
                 else if (valA > valB) comparison = 1;
                 break;
-            
             case 'is_public':
                 valA = a.is_public ? 1 : 0;
                 valB = b.is_public ? 1 : 0;
                 comparison = valA - valB;
                 break;
-
             case 'country':
                 valA = (cacheA.country || "").replace(/<[^>]*>?/gm, '').trim().toLowerCase();
                 valB = (cacheB.country || "").replace(/<[^>]*>?/gm, '').trim().toLowerCase();
@@ -284,50 +281,42 @@ function renderTable() {
                 if (valA < valB) comparison = -1;
                 else if (valA > valB) comparison = 1;
                 break;
-            
             case 'storage':
                  valA = a.storage_committed || -1;
                  valB = b.storage_committed || -1;
                  comparison = valA - valB;
                  break;
-
             case 'usage':
                  valA = a.storage_usage_percent || -1;
                  valB = b.storage_usage_percent || -1;
                  comparison = valA - valB;
                  break;
-
             case 'ping':
                 valA = (cacheA.ping === null) ? Infinity : (cacheA.ping === undefined ? 99999 : cacheA.ping);
                 valB = (cacheB.ping === null) ? Infinity : (cacheB.ping === undefined ? 99999 : cacheB.ping);
                 if (valA < valB) comparison = -1;
                 else if (valA > valB) comparison = 1;
                 break;
-
             case 'credits':
                 valA = (cacheA.credits === undefined || cacheA.credits === null) ? -1 : cacheA.credits;
                 valB = (cacheB.credits === undefined || cacheB.credits === null) ? -1 : cacheB.credits;
                 if (valA < valB) comparison = -1;
                 else if (valA > valB) comparison = 1;
                 break;
-
             case 'balance':
                 valA = parseFloat(cacheA.balance) || -1;
                 valB = parseFloat(cacheB.balance) || -1;
                 if (valA < valB) comparison = -1;
                 else if (valA > valB) comparison = 1;
                 break;
-            
             case 'uptime':
                 valA = a.uptime || -1;
                 valB = b.uptime || -1;
                 comparison = valA - valB;
                 break;
-
             case 'version':
                 comparison = compareVersions(a.version, b.version);
                 break;
-
             case 'last_seen':
             default:
                 valA = a.last_seen_timestamp || 0;
@@ -336,34 +325,33 @@ function renderTable() {
                 else if (valA > valB) comparison = 1;
                 break;
         }
-
         return sortAsc ? comparison : -comparison;
     });
 
     document.getElementById("podCount").textContent = podsToRender.length;
 
-    // 3. BUILD HTML (12 columns total)
+    // 3. BUILD HTML - Shortened Headers to save space
     let html = `<table class="min-w-full"><thead><tr>
         <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')">
             Name ${getSortIndicator('name')}
         </th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('pubkey')">
-            Pubkey ${getSortIndicator('pubkey')}
+            Pub ${getSortIndicator('pubkey')}
         </th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('is_public')">
-            Public ${getSortIndicator('is_public')}
+            Pub? ${getSortIndicator('is_public')}
         </th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('country')">
             Country ${getSortIndicator('country')}
         </th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('storage')">
-            Storage ${getSortIndicator('storage')}
+            Stg ${getSortIndicator('storage')}
         </th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('usage')">
-            % Used ${getSortIndicator('usage')}
+            Use ${getSortIndicator('usage')}
         </th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('uptime')">
-            Uptime ${getSortIndicator('uptime')}
+            Up ${getSortIndicator('uptime')}
         </th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('ping')">
             Ping ${getSortIndicator('ping')}
@@ -372,13 +360,13 @@ function renderTable() {
             Credits ${getSortIndicator('credits')}
         </th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('balance')">
-            Balance ${getSortIndicator('balance')}
+            Bal ${getSortIndicator('balance')}
         </th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('last_seen')">
-            Last Seen ${getSortIndicator('last_seen')}
+            Seen ${getSortIndicator('last_seen')}
         </th>
         <th class="rounded-tr-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('version')">
-            Version ${getSortIndicator('version')}
+            Ver ${getSortIndicator('version')}
         </th>
     </tr></thead><tbody>`;
 
@@ -428,24 +416,28 @@ function renderTable() {
             }
         }
 
-        // -- NEW COLUMNS FORMATTING --
+        // -- Formatting --
         const publicStr = (pod.is_public === true) ? "Yes" : (pod.is_public === false ? "No" : "-");
         const storageStr = formatStorage(pod.storage_committed);
         const usageStr = formatPercent(pod.storage_usage_percent);
         const uptimeStr = formatUptime(pod.uptime);
         const versionStr = cleanVersion(pod.version);
 
+        // --- FIXED: Added title attribute back to Pubkey cell ---
+        // --- CHANGED: Used text-xs for Storage/Usage/Uptime to save space ---
         html += `<tr class="${rowClass}">
             <td id="name-${ip}" class="${nameClass}" title="IP: ${ip}">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 ${pubkeyCellClass}"
-                data-pubkey="${pubkey}" onclick="copyPubkey('${pubkey}', this)">
+                data-pubkey="${pubkey}" 
+                title="Click to copy: ${pubkey}" 
+                onclick="copyPubkey('${pubkey}', this)">
                 <span class="short-key">${shortKey}</span>${warningIcon}
             </td>
-            <td>${publicStr}</td>
+            <td class="text-xs">${publicStr}</td>
             <td id="country-${ip}">${cached.country}</td>
-            <td class="text-right font-mono text-sm">${storageStr}</td>
-            <td class="text-right font-mono text-sm">${usageStr}</td>
-            <td class="text-right font-mono text-sm">${uptimeStr}</td>
+            <td class="text-right font-mono text-xs">${storageStr}</td>
+            <td class="text-right font-mono text-xs">${usageStr}</td>
+            <td class="text-right font-mono text-xs">${uptimeStr}</td>
             <td class="text-right font-mono text-sm">${pingHtml}</td>
             <td class="text-right font-mono text-sm">${creditsHtml}</td>
             <td class="text-right font-mono text-sm">${balanceHtml}</td>
@@ -453,7 +445,7 @@ function renderTable() {
             <td>${versionStr}</td>
         </tr>`;
 
-        // Fetch Geo if needed
+        // Fetch Geo Logic
         if (needsFetch) {
             const rpcUrl = document.getElementById("rpcSelector").value;
             const host = new URL(rpcUrl).hostname;
