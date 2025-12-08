@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pod History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .ascii-graph {
+            white-space: pre;
+            line-height: 1.1;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            overflow-x: hidden;
+        }
+        .stat-card {
+            transition: all 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-lime-100 to-green-200 dark:from-slate-900 dark:to-gray-900 transition-colors duration-500 text-gray-900 dark:text-gray-100">
+    <div class="max-w-7xl mx-auto p-4 md:p-8">
+        
+        <header class="mb-8 flex flex-col md:flex-row items-center justify-between border-b border-gray-300/50 dark:border-gray-700/50 pb-6 gap-4">
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <a href="/" class="px-4 py-2 bg-white/50 dark:bg-gray-800/50 hover:bg-white/80 dark:hover:bg-gray-700/80 rounded-lg font-semibold transition shadow-sm backdrop-blur">
+                    ← Back
+                </a>
+                <h1 class="text-2xl md:text-3xl font-extrabold flex items-center gap-2">
+                    <span id="display-ip" class="font-mono text-indigo-700 dark:text-indigo-400">Loading...</span>
+                </h1>
+            </div>
+
+            <div class="flex bg-white/40 dark:bg-gray-800/40 rounded-lg p-1 backdrop-blur shadow-sm">
+                <button onclick="setTimeframe(24)" id="btn-24h" class="px-3 py-1.5 rounded-md text-sm font-bold transition bg-indigo-600 text-white shadow-md">24H</button>
+                <button onclick="setTimeframe(168)" id="btn-7d" class="px-3 py-1.5 rounded-md text-sm font-medium transition text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50">7D</button>
+                <button onclick="setTimeframe(720)" id="btn-30d" class="px-3 py-1.5 rounded-md text-sm font-medium transition text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50">30D</button>
+                <button onclick="setTimeframe(0)" id="btn-all" class="px-3 py-1.5 rounded-md text-sm font-medium transition text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50">ALL</button>
+            </div>
+        </header>
+
+        <main id="main-content" class="space-y-6">
+            <div id="loading" class="text-center py-20 text-gray-500 dark:text-gray-400 animate-pulse">
+                Fetching history data...
+            </div>
+
+            <div id="error-msg" class="hidden p-6 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-center text-red-600 dark:text-red-400">
+                Data not available for this IP.
+            </div>
+
+            <div id="dashboard" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur rounded-xl shadow-xl p-5 border-t-4 border-indigo-500">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Network Latency (Ping)</h3>
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-3xl font-mono font-bold text-gray-800 dark:text-white" id="val-ping">0</span>
+                        <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-1">ms</span>
+                    </div>
+                    <div class="ascii-graph text-indigo-600 dark:text-indigo-400 text-xs tracking-tighter h-12 flex items-end overflow-hidden" id="graph-ping"></div>
+                </div>
+
+                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur rounded-xl shadow-xl p-5 border-t-4 border-purple-500">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Pod Credits</h3>
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-3xl font-mono font-bold text-gray-800 dark:text-white" id="val-credits">0</span>
+                        <span class="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">Total</span>
+                    </div>
+                    <div class="ascii-graph text-purple-600 dark:text-purple-400 text-xs tracking-tighter h-12 flex items-end overflow-hidden" id="graph-credits"></div>
+                </div>
+
+                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur rounded-xl shadow-xl p-5 border-t-4 border-blue-500">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">SOL Balance</h3>
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-3xl font-mono font-bold text-gray-800 dark:text-white" id="val-balance">0</span>
+                        <span class="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">SOL</span>
+                    </div>
+                    <div class="ascii-graph text-blue-600 dark:text-blue-400 text-xs tracking-tighter h-12 flex items-end overflow-hidden" id="graph-balance"></div>
+                </div>
+
+                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur rounded-xl shadow-xl p-5 border-t-4 border-emerald-500">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Process Uptime</h3>
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-2xl font-mono font-bold text-gray-800 dark:text-white" id="val-uptime">-</span>
+                        <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1">Time</span>
+                    </div>
+                    <div class="ascii-graph text-emerald-600 dark:text-emerald-400 text-xs tracking-tighter h-12 flex items-end overflow-hidden" id="graph-uptime"></div>
+                </div>
+
+                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur rounded-xl shadow-xl p-5 border-t-4 border-orange-500">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Storage Committed</h3>
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-3xl font-mono font-bold text-gray-800 dark:text-white" id="val-storage">0</span>
+                        <span class="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-1">Size</span>
+                    </div>
+                    <div class="ascii-graph text-orange-600 dark:text-orange-400 text-xs tracking-tighter h-12 flex items-end overflow-hidden" id="graph-storage"></div>
+                </div>
+
+                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur rounded-xl shadow-xl p-5 border-t-4 border-rose-500">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Disk Usage</h3>
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-3xl font-mono font-bold text-gray-800 dark:text-white" id="val-usage">0%</span>
+                        <span class="text-xs font-semibold text-rose-600 dark:text-rose-400 mb-1">Filled</span>
+                    </div>
+                    <div class="ascii-graph text-rose-600 dark:text-rose-400 text-xs tracking-tighter h-12 flex items-end overflow-hidden" id="graph-usage"></div>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="mt-12 text-center text-sm text-gray-600 dark:text-gray-400 pt-6 border-t border-gray-300/50 dark:border-gray-700/50">
+            History data sourced via local CSV logs.
+        </footer>
+    </div>
+
+<script>
+    const GEO_HISTORY_URL = `https://${window.location.hostname}/geo/history`; 
+    const urlParams = new URLSearchParams(window.location.search);
+    const TARGET_IP = urlParams.get('ip');
+    const GRAPH_SAMPLES = 60; 
+
+    // Dark Mode
+    const htmlEl = document.documentElement;
+    if (localStorage.getItem('theme') === 'dark' || 
+       (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        htmlEl.classList.add('dark');
+    }
+
+    let fullData = []; 
+    let currentTimeframe = 24; 
+
+    function parseCSV(text) {
+        const lines = text.trim().split('\n');
+        const rows = [];
+        lines.forEach(line => {
+            if (!line) return;
+            const parts = line.split(',');
+            // CSV: ts, ping, credits, balance, storage, uptime, usage_pct
+            if (parts.length >= 7 && !isNaN(parts[0])) {
+                rows.push({
+                    ts: parseInt(parts[0]),
+                    ping: parseFloat(parts[1]) || 0,
+                    credits: parseInt(parts[2]) || 0,
+                    balance: parseFloat(parts[3]) || 0,
+                    storage: parseFloat(parts[4]) || 0,
+                    uptime: parseInt(parts[5]) || 0,
+                    usage: parseFloat(parts[6]) || 0  // New Column
+                });
+            }
+        });
+        return rows.sort((a,b) => a.ts - b.ts);
+    }
+
+    function renderAsciiGraph(values) {
+        if (!values || values.length === 0) return "No Data";
+        const blocks = [" ", " ", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        let range = max - min;
+        if (range === 0) range = 1; 
+        
+        return values.map(val => {
+            const normalized = (val - min) / range;
+            const index = Math.floor(normalized * (blocks.length - 1));
+            return blocks[index];
+        }).join("");
+    }
+
+    function processDataForGraph(data, key) {
+        const now = Math.floor(Date.now() / 1000);
+        const cutoff = currentTimeframe === 0 ? 0 : now - (currentTimeframe * 3600);
+        const filtered = data.filter(row => row.ts >= cutoff);
+        if (filtered.length === 0) return [];
+
+        const result = [];
+        const step = Math.max(1, Math.floor(filtered.length / GRAPH_SAMPLES));
+        
+        for (let i = 0; i < filtered.length; i += step) {
+            const chunk = filtered.slice(i, i + step);
+            const sum = chunk.reduce((acc, row) => acc + row[key], 0);
+            result.push(sum / chunk.length);
+        }
+        return result;
+    }
+
+    function formatStorage(bytes) {
+        const gb = bytes / (1024 * 1024 * 1024);
+        if (gb >= 1000) return `${(gb / 1024).toFixed(1)} TB`;
+        return `${gb.toFixed(1)} GB`;
+    }
+    
+    function formatUptime(seconds) {
+        if (seconds < 3600) return `${Math.floor(seconds/60)}m`;
+        if (seconds < 86400) return `${Math.floor(seconds/3600)}h`;
+        return `${Math.floor(seconds/86400)}d`;
+    }
+
+    function formatPercent(val) {
+        // Value is 0.0002 -> 0.02%
+        // We multiply by 100
+        const pct = val * 100;
+        if (pct < 0.01 && pct > 0) return "< 0.01%";
+        return `${pct.toFixed(2)}%`;
+    }
+
+    function updateDashboard() {
+        if (!fullData || fullData.length === 0) return;
+        const latest = fullData[fullData.length - 1];
+
+        // Values
+        document.getElementById('val-ping').innerText = latest.ping.toFixed(1);
+        document.getElementById('val-credits').innerText = new Intl.NumberFormat().format(latest.credits);
+        document.getElementById('val-balance').innerText = latest.balance.toFixed(3);
+        document.getElementById('val-storage').innerText = formatStorage(latest.storage);
+        document.getElementById('val-uptime').innerText = formatUptime(latest.uptime);
+        document.getElementById('val-usage').innerText = formatPercent(latest.usage);
+
+        // Graphs
+        document.getElementById('graph-ping').innerText = renderAsciiGraph(processDataForGraph(fullData, 'ping'));
+        document.getElementById('graph-credits').innerText = renderAsciiGraph(processDataForGraph(fullData, 'credits'));
+        document.getElementById('graph-balance').innerText = renderAsciiGraph(processDataForGraph(fullData, 'balance'));
+        document.getElementById('graph-storage').innerText = renderAsciiGraph(processDataForGraph(fullData, 'storage'));
+        document.getElementById('graph-uptime').innerText = renderAsciiGraph(processDataForGraph(fullData, 'uptime'));
+        document.getElementById('graph-usage').innerText = renderAsciiGraph(processDataForGraph(fullData, 'usage'));
+    }
+
+    function setTimeframe(hours) {
+        currentTimeframe = hours;
+        ['24h', '7d', '30d', 'all'].forEach(id => {
+            const btn = document.getElementById(`btn-${id}`);
+            if ((hours === 24 && id === '24h') || 
+                (hours === 168 && id === '7d') || 
+                (hours === 720 && id === '30d') || 
+                (hours === 0 && id === 'all')) {
+                btn.className = "px-3 py-1.5 rounded-md text-sm font-bold transition bg-indigo-600 text-white shadow-md";
+            } else {
+                btn.className = "px-3 py-1.5 rounded-md text-sm font-medium transition text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50";
+            }
+        });
+        updateDashboard();
+    }
+
+    if (!TARGET_IP) {
+        document.getElementById('loading').innerText = "No IP specified.";
+    } else {
+        document.getElementById('display-ip').innerText = TARGET_IP;
+        fetch(`${GEO_HISTORY_URL}?ip=${TARGET_IP}`)
+            .then(res => { if (!res.ok) throw new Error("Not Found"); return res.text(); })
+            .then(text => {
+                fullData = parseCSV(text);
+                if (fullData.length === 0) throw new Error("Empty Data");
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                updateDashboard();
+            })
+            .catch(err => {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error-msg').classList.remove('hidden');
+                console.error(err);
+            });
+    }
+</script>
+</body>
+</html>
