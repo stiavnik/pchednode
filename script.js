@@ -8,6 +8,9 @@ let currentPods = [];
 let sortCol = 'last_seen'; 
 let sortAsc = false;      
 
+// --- Batch Fetch State ---
+let isBatchFetching = false;
+
 function formatRelativeTime(ts) {
     if (!ts) return { text: "-", class: "text-gray-400" };
     const diff = Math.floor(Date.now() / 1000) - ts;
@@ -18,7 +21,6 @@ function formatRelativeTime(ts) {
     return { text: `${Math.floor(diff/604800)}w ago`, class: "very-stale" };
 }
 
-// --- NEW: Uptime Formatter ---
 function formatUptime(seconds) {
     if (seconds === null || seconds === undefined) return "-";
     if (seconds < 60) return `${seconds}s`;
@@ -27,7 +29,6 @@ function formatUptime(seconds) {
     return `${Math.floor(seconds/86400)}d`;
 }
 
-// --- NEW: Storage Formatter ---
 function formatStorage(bytes) {
     if (bytes === null || bytes === undefined) return "-";
     const gb = bytes / (1024 * 1024 * 1024);
@@ -35,17 +36,38 @@ function formatStorage(bytes) {
     return `${gb.toFixed(1)} GB`;
 }
 
-// --- NEW: Percent Formatter ---
 function formatPercent(val) {
     if (val === null || val === undefined) return "-";
-    // val is 0.0248 -> 2.48%
     return `${(val * 100).toFixed(2)}%`;
 }
 
-// --- NEW: Clean Version (Strip dash) ---
 function cleanVersion(v) {
     if (!v || v === "unknown") return "unknown";
     return v.split('-')[0];
+}
+
+// --- HTML Formatters for Stats ---
+function formatPingHtml(ping) {
+    if (ping === undefined) return '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
+    if (ping === null) return '<span class="text-gray-400 text-xs">-</span>'; // Silent dash if no ping in batch
+    if (ping > 400) return `<span class="text-red-500">${ping} ms</span>`;
+    if (ping > 200) return `<span class="text-orange-500">${ping} ms</span>`;
+    return `<span class="text-green-600">${ping} ms</span>`;
+}
+
+function formatCreditsHtml(credits) {
+    if (credits === undefined) return '<span class="inline-block w-3 h-3 border border-gray-400 border-t-purple-600 rounded-full animate-spin"></span>';
+    if (credits === null) return `<span class="text-gray-400 text-xs">-</span>`;
+    const val = new Intl.NumberFormat().format(credits);
+    return `<span class="text-purple-600 dark:text-purple-400 font-bold">${val}</span>`;
+}
+
+function formatBalanceHtml(balance) {
+    if (balance === undefined) return '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
+    if (balance === null) return `<span class="text-gray-400 text-xs">-</span>`;
+    const val = parseFloat(balance);
+    const fmt = isNaN(val) ? balance : val.toFixed(3);
+    return `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${fmt} ◎</span>`;
 }
 
 function markLoadButton() {
@@ -97,6 +119,9 @@ function handleSort(column) {
 }
 
 function copyPubkey(text, element) {
+    // Stop row click event
+    if (event) event.stopPropagation();
+
     navigator.clipboard.writeText(text).then(() => {
         const originalHTML = element.innerHTML;
         element.innerHTML = "Copied!";
@@ -111,62 +136,6 @@ function copyPubkey(text, element) {
     });
 }
 
-function updatePingAndBalance(ip) {
-    const cached = ipCache[ip];
-    if (!cached) return;
-    const nameCell = document.getElementById(`name-${ip}`);
-    const row = nameCell?.parentElement;
-    if (!row) return;
-
-    // Ping (Column index shifted due to new columns)
-    // We will use ID or strict query selectors to find cells safely, 
-    // but here we just update innerHTML of specific cell indexes.
-    // Let's verify indexes:
-    // 0:Name, 1:Pubkey, 2:Public, 3:Country, 4:Storage, 5:Used, 6:Uptime, 7:Ping, 8:Credits, 9:Balance, 10:LastSeen, 11:Version
-    
-    // Ping is at index 7
-    let pingHtml;
-    if (cached.ping === undefined) {
-         pingHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
-    } else if (cached.ping === null) {
-        pingHtml = '<span class="text-red-600 font-medium">offline</span>';
-    } else if (cached.ping > 400) {
-        pingHtml = `<span class="text-red-500">${cached.ping} ms</span>`;
-    } else if (cached.ping > 200) {
-        pingHtml = `<span class="text-orange-500">${cached.ping} ms</span>`;
-    } else {
-        pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
-    }
-    if (row.cells[7]) row.cells[7].innerHTML = `<div class="text-right font-mono text-sm">${pingHtml}</div>`;
-
-    // Credits (index 8)
-    let creditsHtml;
-    if (cached.credits !== undefined) {
-        if (cached.credits === null) {
-            creditsHtml = `<span class="text-gray-400 text-xs">-</span>`;
-        } else {
-            const val = new Intl.NumberFormat().format(cached.credits);
-            creditsHtml = `<span class="text-purple-600 dark:text-purple-400 font-bold">${val}</span>`;
-        }
-    } else {
-        creditsHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-purple-600 rounded-full animate-spin"></span>';
-    }
-    if (row.cells[8]) row.cells[8].innerHTML = `<div class="text-right font-mono text-sm">${creditsHtml}</div>`;
-
-    // Balance (index 9)
-    let balanceHtml;
-    if (cached.balance !== undefined && cached.balance !== null) {
-         const val = parseFloat(cached.balance);
-         const fmt = isNaN(val) ? cached.balance : val.toFixed(3);
-         balanceHtml = `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${fmt} ◎</span>`;
-    } else if (cached.balance === null) {
-         balanceHtml = `<span class="text-gray-400 text-xs">-</span>`;
-    } else {
-         balanceHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
-    }
-    if (row.cells[9]) row.cells[9].innerHTML = `<div class="text-right font-mono text-sm">${balanceHtml}</div>`;
-}
-
 function updateRowAfterGeo(ip) {
     const cached = ipCache[ip];
     if (!cached) return;
@@ -175,6 +144,7 @@ function updateRowAfterGeo(ip) {
     const row = nameCell?.parentElement;
     if (!row) return;
 
+    // Update Name
     if (nameCell) {
         if (cached.name && cached.name !== "N/A") {
             nameCell.textContent = cached.name;
@@ -187,12 +157,13 @@ function updateRowAfterGeo(ip) {
         }
     }
 
-    const countryCell = row.cells[3]; // Country is index 3
-    if (countryCell) {
-        countryCell.innerHTML = cached.country || "Geo Error";
-    }
+    // Update Country (Index 3)
+    if (row.cells[3]) row.cells[3].innerHTML = cached.country || "Geo Error";
 
-    updatePingAndBalance(ip);
+    // Update Stats (Indices: 7=Ping, 8=Credits, 9=Balance)
+    if (row.cells[7]) row.cells[7].innerHTML = `<div class="text-right font-mono text-sm">${formatPingHtml(cached.ping)}</div>`;
+    if (row.cells[8]) row.cells[8].innerHTML = `<div class="text-right font-mono text-sm">${formatCreditsHtml(cached.credits)}</div>`;
+    if (row.cells[9]) row.cells[9].innerHTML = `<div class="text-right font-mono text-sm">${formatBalanceHtml(cached.balance)}</div>`;
 }
 
 function refilterAndRestyle() {
@@ -330,45 +301,23 @@ function renderTable() {
 
     document.getElementById("podCount").textContent = podsToRender.length;
 
-    // 3. BUILD HTML - Shortened Headers to save space
+    // 3. BUILD HTML
     let html = `<table class="min-w-full"><thead><tr>
-        <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')">
-            Name ${getSortIndicator('name')}
-        </th>
-        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('pubkey')">
-            Pub ${getSortIndicator('pubkey')}
-        </th>
-        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('is_public')">
-            Pub? ${getSortIndicator('is_public')}
-        </th>
-        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('country')">
-            Country ${getSortIndicator('country')}
-        </th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('storage')">
-            Stg ${getSortIndicator('storage')}
-        </th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('usage')">
-            Use ${getSortIndicator('usage')}
-        </th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('uptime')">
-            Up ${getSortIndicator('uptime')}
-        </th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('ping')">
-            Ping ${getSortIndicator('ping')}
-        </th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('credits')">
-            Credits ${getSortIndicator('credits')}
-        </th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('balance')">
-            Bal ${getSortIndicator('balance')}
-        </th>
-        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('last_seen')">
-            Seen ${getSortIndicator('last_seen')}
-        </th>
-        <th class="rounded-tr-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('version')">
-            Ver ${getSortIndicator('version')}
-        </th>
+        <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')">Name ${getSortIndicator('name')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('pubkey')">Pub ${getSortIndicator('pubkey')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('is_public')">Pub? ${getSortIndicator('is_public')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('country')">Country ${getSortIndicator('country')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('storage')">Stg ${getSortIndicator('storage')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('usage')">Use ${getSortIndicator('usage')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('uptime')">Up ${getSortIndicator('uptime')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('ping')">Ping ${getSortIndicator('ping')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('credits')">Credits ${getSortIndicator('credits')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('balance')">Bal ${getSortIndicator('balance')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('last_seen')">Seen ${getSortIndicator('last_seen')}</th>
+        <th class="rounded-tr-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('version')">Ver ${getSortIndicator('version')}</th>
     </tr></thead><tbody>`;
+
+    const batchQueue = []; // Items to fetch
 
     for (const pod of podsToRender) {
         const ip = pod.address.split(":")[0];
@@ -381,6 +330,10 @@ function renderTable() {
         const existing = ipCache[ip];
         const needsFetch = !existing || existing.country?.includes("loading-spinner") || existing.country === "Geo Error";
         
+        if (needsFetch) {
+            batchQueue.push({ ip: ip, pubkey: pubkey });
+        }
+        
         const cached = existing && !needsFetch ? existing : { 
             name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined, balance: undefined, credits: undefined 
         };
@@ -391,41 +344,18 @@ function renderTable() {
         const pubkeyCellClass = isDuplicated ? "pubkey-duplicate" : "";
         const warningIcon = isDuplicated ? `<span class="warning-icon" title="Duplicates found">!</span>` : "";
 
-        // -- Placeholders for Ping/Credits/Balance --
-        let pingHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
-        if (cached.ping !== undefined) {
-             if (cached.ping === null) pingHtml = '<span class="text-red-600 font-medium">offline</span>';
-             else if (cached.ping > 400) pingHtml = `<span class="text-red-500">${cached.ping} ms</span>`;
-             else if (cached.ping > 200) pingHtml = `<span class="text-orange-500">${cached.ping} ms</span>`;
-             else pingHtml = `<span class="text-green-600">${cached.ping} ms</span>`;
-        }
+        // -- Stats --
+        let pingHtml = formatPingHtml(cached.ping);
+        let creditsHtml = formatCreditsHtml(cached.credits);
+        let balanceHtml = formatBalanceHtml(cached.balance);
 
-        let creditsHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-purple-600 rounded-full animate-spin"></span>';
-        if (cached.credits !== undefined) {
-            if (cached.credits === null) creditsHtml = `<span class="text-gray-400 text-xs">-</span>`;
-            else creditsHtml = `<span class="text-purple-600 dark:text-purple-400 font-bold">${new Intl.NumberFormat().format(cached.credits)}</span>`;
-        }
-
-        let balanceHtml = '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
-        if (cached.balance !== undefined) {
-            if (cached.balance === null) balanceHtml = `<span class="text-gray-400 text-xs">-</span>`;
-            else {
-                const val = parseFloat(cached.balance);
-                const fmt = isNaN(val) ? cached.balance : val.toFixed(3);
-                balanceHtml = `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${fmt} ◎</span>`;
-            }
-        }
-
-        // -- Formatting --
         const publicStr = (pod.is_public === true) ? "Yes" : (pod.is_public === false ? "No" : "-");
         const storageStr = formatStorage(pod.storage_committed);
         const usageStr = formatPercent(pod.storage_usage_percent);
         const uptimeStr = formatUptime(pod.uptime);
         const versionStr = cleanVersion(pod.version);
 
-        // --- FIXED: Added title attribute back to Pubkey cell ---
-        // --- CHANGED: Used text-xs for Storage/Usage/Uptime to save space ---
-        html += `<tr class="${rowClass}">
+        html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}'" style="cursor:pointer;">
             <td id="name-${ip}" class="${nameClass}" title="IP: ${ip}">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 ${pubkeyCellClass}"
                 data-pubkey="${pubkey}" 
@@ -444,40 +374,46 @@ function renderTable() {
             <td class="${timeClass}">${timeText}</td>
             <td>${versionStr}</td>
         </tr>`;
-
-        // Fetch Geo Logic
-        if (needsFetch) {
-            const rpcUrl = document.getElementById("rpcSelector").value;
-            const host = new URL(rpcUrl).hostname;
-            const geoBase = `https://${host}/geo`;
-            
-            ipCache[ip] = { name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined, balance: undefined, credits: undefined };
-            
-            fetch(`${geoBase}?ip=${ip}&pubkey=${pubkey}`)
-                .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-                .then(g => {
-                    const code = (g.country_code || "").toLowerCase();
-                    const flag = code && code !== "--" ? `<img src="${geoBase}/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;">` : "";
-                    ipCache[ip].name = g.name || "N/A";
-                    ipCache[ip].country = `${flag} ${g.country || "Unknown"}`;
-                    ipCache[ip].ping = g.ping;
-                    ipCache[ip].balance = g.balance;
-                    ipCache[ip].credits = g.credits;
-                    updateRowAfterGeo(ip);
-                })
-                .catch(() => {
-                    ipCache[ip].country = "Geo Error";
-                    ipCache[ip].ping = null;
-                    ipCache[ip].balance = null;
-                    ipCache[ip].credits = null;
-                    updateRowAfterGeo(ip);
-                });
-        }
     }
 
     html += "</tbody></table>";
     output.innerHTML = html;
     
+    // 4. FIRE THE BATCH FETCH
+    if (batchQueue.length > 0 && !isBatchFetching) {
+        isBatchFetching = true;
+        const rpcUrl = document.getElementById("rpcSelector").value;
+        const host = new URL(rpcUrl).hostname;
+        const geoBatchUrl = `https://${host}/geo/batch`;
+
+        fetch(geoBatchUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ items: batchQueue })
+        })
+        .then(r => r.json())
+        .then(results => {
+            for (const ip in results) {
+                const g = results[ip];
+                const code = (g.country_code || "").toLowerCase();
+                const flag = code && code !== "--" ? `<img src="https://${host}/geo/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;">` : "";
+                
+                ipCache[ip] = {
+                    name: g.name || "N/A",
+                    country: `${flag} ${g.country || "Unknown"}`,
+                    ping: g.ping,
+                    balance: g.balance,
+                    credits: g.credits
+                };
+                updateRowAfterGeo(ip);
+            }
+        })
+        .catch(e => console.error("Batch geo error", e))
+        .finally(() => {
+            isBatchFetching = false;
+        });
+    }
+
     setTimeout(refilterAndRestyle, 0);
 }
 
@@ -491,7 +427,6 @@ async function sendRpcRequest() {
     output.innerHTML = '<p class="text-center text-indigo-600 dark:text-indigo-400 font-semibold">Loading pod list...</p>';
 
     try {
-        // --- CHANGED to get-pods-with-stats ---
         const res = await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods-with-stats", id: 1 }) });
         
@@ -501,7 +436,6 @@ async function sendRpcRequest() {
         const rawPods = data.result?.pods || [];
         const uniqueMap = new Map();
 
-        // Filter duplicates, keep freshest
         rawPods.forEach(p => {
              const ip = p.address ? p.address.split(':')[0] : 'unknown';
              if (ip === 'unknown') return;
@@ -510,7 +444,6 @@ async function sendRpcRequest() {
                  uniqueMap.set(ip, p);
              } else {
                  const existing = uniqueMap.get(ip);
-                 // Preserve stats if new pod (e.g. from gossip) lacks them
                  const merged = { ...existing, ...p };
                  if ((p.last_seen_timestamp || 0) > (existing.last_seen_timestamp || 0)) {
                      uniqueMap.set(ip, merged);
