@@ -46,12 +46,28 @@ function cleanVersion(v) {
     return v.split('-')[0];
 }
 
-// --- HTML Formatters for Stats ---
 function formatPingHtml(ping) {
-    if (ping === undefined) return '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
-    if (ping === null) return '<span class="text-gray-400 text-xs">-</span>'; // Silent dash if no ping in batch
-    if (ping > 400) return `<span class="text-red-500">${ping} ms</span>`;
-    if (ping > 200) return `<span class="text-orange-500">${ping} ms</span>`;
+    // 1. Loading state (undefined)
+    if (ping === undefined) {
+        return '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
+    }
+    
+    // 2. Offline / Blocked / Unknown (null) -> CHANGED TO DASH
+    if (ping === null) {
+        return '<span class="text-gray-400 text-xs font-mono">-</span>';
+    }
+
+    // 3. High Latency (> 400ms)
+    if (ping > 400) {
+        return `<span class="text-red-500">${ping} ms</span>`;
+    }
+    
+    // 4. Medium Latency (> 200ms)
+    if (ping > 200) {
+        return `<span class="text-orange-500">${ping} ms</span>`;
+    }
+    
+    // 5. Good Latency
     return `<span class="text-green-600">${ping} ms</span>`;
 }
 
