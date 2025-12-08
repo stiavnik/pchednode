@@ -371,7 +371,10 @@ function renderTable() {
         const uptimeStr = formatUptime(pod.uptime);
         const versionStr = cleanVersion(pod.version);
 
-        html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}'" style="cursor:pointer;">
+		// Get the current active RPC host (e.g., rpc1.pchednode.com)
+		const currentRpcHost = new URL(document.getElementById("rpcSelector").value).hostname;
+
+		html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}&host=${currentRpcHost}'" style="cursor:pointer;">
             <td id="name-${ip}" class="${nameClass}" title="IP: ${ip}">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 ${pubkeyCellClass}"
                 data-pubkey="${pubkey}" 
