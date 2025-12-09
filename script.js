@@ -487,10 +487,6 @@ async function sendRpcRequest() {
         output.innerHTML = `<p class="text-red-500">Error: Could not reach RPC.</p>`;
     }
 }
-
-// Event Listeners
-document.getElementById("footer-nick")?.addEventListener("click", () => {
-    location.href = "mailto:hlasenie-pchednode@yahoo.com";
 });
 
 window.addEventListener("load", markLoadButton);
