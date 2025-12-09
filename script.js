@@ -48,27 +48,18 @@ function cleanVersion(v) {
 
 // --- HTML Formatters for Stats ---
 function formatPingHtml(ping) {
-    // 1. Loading state (undefined)
     if (ping === undefined) {
         return '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
     }
-    
-    // 2. Offline / Blocked / Unknown (null) -> CHANGED TO DASH
     if (ping === null) {
         return '<span class="text-gray-400 text-xs font-mono">-</span>';
     }
-
-    // 3. High Latency (> 400ms)
     if (ping > 400) {
         return `<span class="text-red-500">${ping} ms</span>`;
     }
-    
-    // 4. Medium Latency (> 200ms)
     if (ping > 200) {
         return `<span class="text-orange-500">${ping} ms</span>`;
     }
-    
-    // 5. Good Latency
     return `<span class="text-green-600">${ping} ms</span>`;
 }
 
@@ -280,7 +271,6 @@ function renderTable() {
                  comparison = valA - valB;
                  break;
             case 'ping':
-                // Treat null (offline) as Infinity for sorting so it drops to bottom/top appropriately
                 valA = (cacheA.ping === null) ? Infinity : (cacheA.ping === undefined ? 99999 : cacheA.ping);
                 valB = (cacheB.ping === null) ? Infinity : (cacheB.ping === undefined ? 99999 : cacheB.ping);
                 if (valA < valB) comparison = -1;
@@ -321,7 +311,7 @@ function renderTable() {
 
     // 3. BUILD HTML
     let html = `<table class="min-w-full"><thead><tr>
-        <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')">Name ${getSortIndicator('name')}</th>
+        <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')" title="Click footer to register your name">Name ${getSortIndicator('name')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('pubkey')">Pub ${getSortIndicator('pubkey')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('is_public')">Pub? ${getSortIndicator('is_public')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('country')">Country ${getSortIndicator('country')}</th>
@@ -379,7 +369,7 @@ function renderTable() {
 
         // ONCLICK: Pass both IP and current RPC Host to history page
         html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}&host=${rpcHost}'" style="cursor:pointer;">
-            <td id="name-${ip}" class="${nameClass}" title="IP: ${ip}">${cached.name}</td>
+            <td id="name-${ip}" class="${nameClass}" title="Click footer to register your name">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 ${pubkeyCellClass}"
                 data-pubkey="${pubkey}" 
                 title="Click to copy: ${pubkey}" 
