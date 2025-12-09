@@ -487,7 +487,6 @@ async function sendRpcRequest() {
         output.innerHTML = `<p class="text-red-500">Error: Could not reach RPC.</p>`;
     }
 }
-});
 
 window.addEventListener("load", markLoadButton);
 document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
