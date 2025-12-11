@@ -1,4 +1,4 @@
-// --- Theme Logic (Matches index.html) ---
+// --- Theme Logic ---
 const themeToggle = document.getElementById('themeToggle');
 const htmlEl = document.documentElement;
 
@@ -23,72 +23,75 @@ const stopBtn = document.getElementById('stop-btn');
 
 let controller = null; // AbortController for stopping requests
 
-chatForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const text = userInput.value.trim();
-    if (!text) return;
+if (chatForm) {
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); // STOP PAGE RELOAD
+        const text = userInput.value.trim();
+        if (!text) return;
 
-    // 1. Add User Message
-    addMessage(text, 'user');
-    userInput.value = '';
-    userInput.style.height = 'auto'; // Reset height
+        // 1. Add User Message
+        addMessage(text, 'user');
+        userInput.value = '';
+        userInput.style.height = 'auto'; // Reset height
 
-    // 2. Set Loading State
-    setLoading(true);
+        // 2. Set Loading State
+        setLoading(true);
 
-    // 3. Prepare Fetch with AbortController
-    controller = new AbortController();
-    const signal = controller.signal;
+        // 3. Prepare Fetch with AbortController
+        controller = new AbortController();
+        const signal = controller.signal;
 
-    try {
-        // Add a temporary loading bubble
-        const loadingId = addLoadingBubble();
+        try {
+            // Add a temporary loading bubble
+            const loadingId = addLoadingBubble();
 
-        const response = await fetch("https://pchedai.pchednode.com/ask", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "question": text }),
-            signal: signal
-        });
+            const response = await fetch("https://pchedai.pchednode.com/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ "question": text }),
+                signal: signal
+            });
 
-        if (!response.ok) throw new Error(`Server Error: ${response.status}`);
+            if (!response.ok) throw new Error(`Server Error: ${response.status}`);
 
-        const data = await response.json();
+            const data = await response.json();
 
-        // Remove loading bubble
-        removeMessage(loadingId);
+            // Remove loading bubble
+            removeMessage(loadingId);
 
-        // 4. Display AI Response
-        if (data.answer) {
-            await typeWriterEffect(data.answer, data.sources || []);
-        } else {
-            addMessage("Received empty response from server.", 'error');
+            // 4. Display AI Response
+            if (data.answer) {
+                await typeWriterEffect(data.answer, data.sources || []);
+            } else {
+                addMessage("Received empty response from server.", 'error');
+            }
+
+        } catch (error) {
+            removeLoadingBubbleIfAny();
+            if (error.name === 'AbortError') {
+                addMessage("Generation stopped by user.", 'system');
+            } else {
+                addMessage("Error connecting to AI: " + error.message, 'error');
+            }
+        } finally {
+            setLoading(false);
+            controller = null;
         }
+    });
 
-    } catch (error) {
-        removeLoadingBubbleIfAny();
-        if (error.name === 'AbortError') {
-            addMessage("Generation stopped by user.", 'system');
-        } else {
-            addMessage("Error connecting to AI: " + error.message, 'error');
+    // Handle Enter key to submit (Shift+Enter for new line)
+    userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            // Dispatch a cancelable submit event
+            chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
         }
-    } finally {
-        setLoading(false);
-        controller = null;
-    }
-});
+    });
+}
 
 stopBtn.addEventListener('click', () => {
     if (controller) {
         controller.abort();
-    }
-});
-
-// Handle Enter key to submit (Shift+Enter for new line)
-userInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        chatForm.dispatchEvent(new Event('submit'));
     }
 });
 
@@ -130,12 +133,9 @@ async function typeWriterEffect(fullText, sources) {
     scrollToBottom();
 
     // Parse Markdown safely
+    // Note: marked.parse is correct for v4+
     const rawHtml = DOMPurify.sanitize(marked.parse(fullText));
     
-    // Simple "Typewriter" simulation:
-    // Since we receive the whole JSON at once, we can just dump the HTML.
-    // If you want it to look like it's typing, we have to do complex HTML parsing.
-    // For now, let's render the HTML immediately but fade it in.
     bubble.innerHTML = rawHtml;
 
     // Append Sources if available
