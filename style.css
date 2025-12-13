@@ -26,13 +26,13 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Table Overflow Fix for Mobile */
-#output {
+#pched-live-view {
     overflow-x: auto; /* Allows horizontal scrolling */
     -webkit-overflow-scrolling: touch; /* Better scrolling performance on iOS */
 }
 
 /* Table */
-#output table { 
+#pched-live-view table { 
     /* The table itself should now have enough space for all columns */
     width: 100%; 
     min-width: 800px; /* Optional: Sets a minimum width to ensure all columns fit, forcing scroll */
@@ -41,7 +41,7 @@ body {
 }
 
 /* Header Styling */
-#output thead th {
+#pched-live-view thead th {
     position: sticky; top: 0; 
     background: #f8fafc; 
     padding: 14px 16px; font-size: 0.8rem; text-transform: uppercase; color: #64748b;
@@ -49,24 +49,24 @@ body {
     border-bottom: 1px solid #e2e8f0; 
 }
 
-#output tbody tr {
+#pched-live-view tbody tr {
     background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.07);
     transition: all 0.2s;
 }
-#output tbody tr:hover { transform: translateY(-2px); box-shadow: 0 12px 20px rgba(0,0,0,0.12); }
-#output tbody td { padding: 16px; color: #1f2937; }
+#pched-live-view tbody tr:hover { transform: translateY(-2px); box-shadow: 0 12px 20px rgba(0,0,0,0.12); }
+#pched-live-view tbody td { padding: 16px; color: #1f2937; }
 
 /* Dark mode overrides */
-.dark #output thead th { 
+.dark #pched-live-view thead th { 
     background: #1e293b; 
     color: #cbd5e1; 
     border-bottom: 1px solid #374151; 
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.dark #output tbody tr { background: #1e293b; }
-.dark #output tbody tr:hover { background: #334155; }
-.dark #output tbody td { color: #e2e8f0; }
+.dark #pched-live-view tbody tr { background: #1e293b; }
+.dark #pched-live-view tbody tr:hover { background: #334155; }
+.dark #pched-live-view tbody td { color: #e2e8f0; }
 
 /* Known & duplicate styling */
 .known-server {
