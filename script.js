@@ -178,7 +178,8 @@ function refilterAndRestyle() {
     const toggle = document.getElementById("globalFilterToggle").checked;
     const value = document.getElementById("globalFilterValue").value.trim().toLowerCase();
 
-    document.querySelectorAll("#output tbody tr").forEach(row => {
+    // FIXED: Selector changed from "#output" to "#pched-live-view"
+    document.querySelectorAll("#pched-live-view tbody tr").forEach(row => {
         const nameCell = row.querySelector("td[id^='name-']");
         if (!nameCell) return;
         
@@ -186,6 +187,7 @@ function refilterAndRestyle() {
         const cache = ipCache[ip] || {};
         const name = (cache.name || "N/A").toLowerCase();
         const ipText = ip.toLowerCase();
+        // dataset.pubkey is on the second cell (index 1)
         const pubkey = row.cells[1]?.dataset.pubkey?.toLowerCase() || "";
 
         if (!toggle || value === "") {
