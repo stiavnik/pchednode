@@ -196,7 +196,7 @@
         }).join("");
     }
 
-    function processDataForGraph(data, key) {
+	function processDataForGraph(data, key) {
         const now = Math.floor(Date.now() / 1000);
         const cutoff = currentTimeframe === 0 ? 0 : now - (currentTimeframe * 3600);
         const filtered = data.filter(row => row.ts >= cutoff);
@@ -207,8 +207,18 @@
         
         for (let i = 0; i < filtered.length; i += step) {
             const chunk = filtered.slice(i, i + step);
-            const sum = chunk.reduce((acc, row) => acc + row[key], 0);
-            result.push(sum / chunk.length);
+            
+            let val;
+            if (key === 'uptime') {
+                // FORCE FIX: Use Minimum to clearly visualize restarts/crashes
+                val = Math.min(...chunk.map(r => r[key]));
+            } else {
+                // Default: Use Average for everything else (Ping, Balance, etc.)
+                const sum = chunk.reduce((acc, row) => acc + row[key], 0);
+                val = sum / chunk.length;
+            }
+            
+            result.push(val);
         }
         return result;
     }
