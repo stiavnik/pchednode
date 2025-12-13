@@ -181,18 +181,27 @@
         return rows.sort((a,b) => a.ts - b.ts);
     }
 
-    function renderAsciiGraph(values) {
+    // UPDATED: Added forceZeroStart parameter
+    function renderAsciiGraph(values, forceZeroStart = false) {
         if (!values || values.length === 0) return "No Data";
-        // REMOVED EXTRA SPACE: This ensures even slightly positive values show a small bar
+        
+        // CHANGED: Use a visible 'floor' character (U+2581) instead of space
         const blocks = [" ", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
-        const min = Math.min(...values);
+        
+        let min = Math.min(...values);
         const max = Math.max(...values);
+        
+        // FORCE FIX: If this is uptime (or forceZeroStart is true), anchor min to 0
+        if (forceZeroStart) min = 0;
+
         let range = max - min;
         if (range === 0) range = 1; 
         
         return values.map(val => {
             const normalized = (val - min) / range;
-            const index = Math.floor(normalized * (blocks.length - 1));
+            // Clamp value between 0 and 1 just in case
+            const clamped = Math.max(0, Math.min(1, normalized));
+            const index = Math.floor(clamped * (blocks.length - 1));
             return blocks[index];
         }).join("");
     }
@@ -211,11 +220,9 @@
             
             let val;
             if (key === 'uptime') {
-                // FORCE FIX: Use Minimum to clearly visualize restarts/crashes
-                // Even if 99% of the chunk is 'High', a single '0' will pull this block down.
+                // Keep the Minimum Logic for Uptime
                 val = Math.min(...chunk.map(r => r[key]));
             } else {
-                // Default: Use Average for everything else (Ping, Balance, etc.)
                 const sum = chunk.reduce((acc, row) => acc + row[key], 0);
                 val = sum / chunk.length;
             }
@@ -258,7 +265,10 @@
         document.getElementById('graph-credits').innerText = renderAsciiGraph(processDataForGraph(fullData, 'credits'));
         document.getElementById('graph-balance').innerText = renderAsciiGraph(processDataForGraph(fullData, 'balance'));
         document.getElementById('graph-storage').innerText = renderAsciiGraph(processDataForGraph(fullData, 'storage'));
-        document.getElementById('graph-uptime').innerText = renderAsciiGraph(processDataForGraph(fullData, 'uptime'));
+        
+        // PASS TRUE to force Uptime to scale from 0
+        document.getElementById('graph-uptime').innerText = renderAsciiGraph(processDataForGraph(fullData, 'uptime'), true);
+        
         document.getElementById('graph-usage').innerText = renderAsciiGraph(processDataForGraph(fullData, 'usage'));
     }
 
@@ -302,12 +312,11 @@
                 return res.json(); 
             })
             .then(data => {
-                // 1. Handle Metadata (The Piggyback)
+                // 1. Handle Metadata
                 const meta = data.meta || {};
                 document.getElementById('display-name').innerText = meta.name || "N/A";
                 
                 fullPubkey = meta.pubkey || "N/A";
-                // Display short key
                 if (fullPubkey && fullPubkey.length > 10) {
                     document.getElementById('display-pubkey').innerText = fullPubkey.slice(0, 6) + "..." + fullPubkey.slice(-6);
                 } else {
