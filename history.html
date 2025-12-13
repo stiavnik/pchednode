@@ -181,26 +181,28 @@
         return rows.sort((a,b) => a.ts - b.ts);
     }
 
-    // UPDATED: Added forceZeroStart parameter
-    function renderAsciiGraph(values, forceZeroStart = false) {
+    function renderAsciiGraph(values, isUptime = false) {
         if (!values || values.length === 0) return "No Data";
         
-        // FIXED: Using \u2581 (Lower 1/8 Block) instead of Space for the lowest level
-        // to ensure low values (like recent restarts) are visible.
+        // Use more granular blocks for better resolution
         const blocks = ["\u2581", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
         
         let min = Math.min(...values);
-        const max = Math.max(...values);
-        
-        // FORCE FIX: If this is uptime (or forceZeroStart is true), anchor min to 0
-        if (forceZeroStart) min = 0;
+        let max = Math.max(...values);
+
+        // For uptime, always anchor 0 to the bottom
+        if (isUptime) min = 0;
 
         let range = max - min;
-        if (range === 0) range = 1; 
-        
+        if (range === 0) range = 1;
+
         return values.map(val => {
+            // Special visualization for Restart (Uptime drops near zero)
+            if (isUptime && val < 600) { // If uptime < 10 mins
+                 return "."; // Show a tiny dot to visually indicate a hard reset
+            }
+
             const normalized = (val - min) / range;
-            // Clamp value between 0 and 1 just in case
             const clamped = Math.max(0, Math.min(1, normalized));
             const index = Math.floor(clamped * (blocks.length - 1));
             return blocks[index];
@@ -208,26 +210,36 @@
     }
 
     function processDataForGraph(data, key) {
-        const now = Math.floor(Date.now() / 1000);
-        const cutoff = currentTimeframe === 0 ? 0 : now - (currentTimeframe * 3600);
+        // ROBUST TIME FIX: Anchor 'Now' to the last entry in the log
+        // This ensures 24h/7d works relative to the data, not the viewer's wall clock.
+        if (data.length === 0) return [];
+        const lastTs = data[data.length - 1].ts; 
+        const cutoff = currentTimeframe === 0 ? 0 : lastTs - (currentTimeframe * 3600);
+        
         const filtered = data.filter(row => row.ts >= cutoff);
         if (filtered.length === 0) return [];
 
         const result = [];
-        const step = Math.max(1, Math.floor(filtered.length / GRAPH_SAMPLES));
+        // Ensure we don't have more samples than pixels/columns available
+        const step = Math.max(1, filtered.length / GRAPH_SAMPLES);
         
         for (let i = 0; i < filtered.length; i += step) {
-            const chunk = filtered.slice(i, i + step);
+            // Use Math.floor to ensure we get integer indices
+            const start = Math.floor(i);
+            const end = Math.floor(i + step);
+            const chunk = filtered.slice(start, end);
             
+            if (chunk.length === 0) continue;
+
             let val;
             if (key === 'uptime') {
-                // Keep the Minimum Logic for Uptime
+                // MINIMUM works best for uptime to catch drops/restarts
                 val = Math.min(...chunk.map(r => r[key]));
             } else {
+                // AVERAGE for everything else
                 const sum = chunk.reduce((acc, row) => acc + row[key], 0);
                 val = sum / chunk.length;
             }
-            
             result.push(val);
         }
         return result;
@@ -267,7 +279,7 @@
         document.getElementById('graph-balance').innerText = renderAsciiGraph(processDataForGraph(fullData, 'balance'));
         document.getElementById('graph-storage').innerText = renderAsciiGraph(processDataForGraph(fullData, 'storage'));
         
-        // PASS TRUE to force Uptime to scale from 0
+        // Pass 'true' for isUptime to enable the special "dot" rendering for drops
         document.getElementById('graph-uptime').innerText = renderAsciiGraph(processDataForGraph(fullData, 'uptime'), true);
         
         document.getElementById('graph-usage').innerText = renderAsciiGraph(processDataForGraph(fullData, 'usage'));
@@ -289,13 +301,11 @@
         updateDashboard();
     }
 
-    // --- NEW: Copy Function ---
     function copyHeaderPubkey() {
         if (!fullPubkey || fullPubkey === "N/A" || fullPubkey === "Unknown") return;
         navigator.clipboard.writeText(fullPubkey).then(() => {
             const el = document.getElementById('copy-msg');
             el.classList.remove('opacity-0', 'copy-feedback');
-            // Trigger reflow
             void el.offsetWidth;
             el.classList.add('copy-feedback');
         });
@@ -303,17 +313,16 @@
 
     // --- INITIALIZATION ---
     if (!TARGET_IP) {
-        document.getElementById('loading').innerText = "No IP specified.";
+        document.getElementById('loading').innerText = "No IP specified in URL (?ip=...)";
     } else {
         document.getElementById('display-ip').innerText = TARGET_IP;
         
         fetch(`${GEO_HISTORY_URL}?ip=${TARGET_IP}`)
             .then(res => {
-                if (!res.ok) throw new Error("Not Found");
+                if (!res.ok) throw new Error("API Fetch Failed (Check CORS or IP)");
                 return res.json(); 
             })
             .then(data => {
-                // 1. Handle Metadata
                 const meta = data.meta || {};
                 document.getElementById('display-name').innerText = meta.name || "N/A";
                 
@@ -324,12 +333,11 @@
                     document.getElementById('display-pubkey').innerText = fullPubkey;
                 }
 
-                // 2. Handle CSV Data
                 const csvText = data.csv_data;
                 fullData = parseCSV(csvText);
                 
                 if (fullData.length === 0) {
-                    throw new Error("Empty Data");
+                    throw new Error("CSV Data Empty");
                 }
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('dashboard').classList.remove('hidden');
@@ -337,6 +345,7 @@
             })
             .catch(err => {
                 document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error-msg').innerText = err.message;
                 document.getElementById('error-msg').classList.remove('hidden');
                 console.error(err);
             });
