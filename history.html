@@ -183,7 +183,8 @@
 
     function renderAsciiGraph(values) {
         if (!values || values.length === 0) return "No Data";
-        const blocks = [" ", " ", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
+        // REMOVED EXTRA SPACE: This ensures even slightly positive values show a small bar
+        const blocks = [" ", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
         const min = Math.min(...values);
         const max = Math.max(...values);
         let range = max - min;
@@ -196,7 +197,7 @@
         }).join("");
     }
 
-	function processDataForGraph(data, key) {
+    function processDataForGraph(data, key) {
         const now = Math.floor(Date.now() / 1000);
         const cutoff = currentTimeframe === 0 ? 0 : now - (currentTimeframe * 3600);
         const filtered = data.filter(row => row.ts >= cutoff);
@@ -211,6 +212,7 @@
             let val;
             if (key === 'uptime') {
                 // FORCE FIX: Use Minimum to clearly visualize restarts/crashes
+                // Even if 99% of the chunk is 'High', a single '0' will pull this block down.
                 val = Math.min(...chunk.map(r => r[key]));
             } else {
                 // Default: Use Average for everything else (Ping, Balance, etc.)
@@ -297,7 +299,6 @@
         fetch(`${GEO_HISTORY_URL}?ip=${TARGET_IP}`)
             .then(res => {
                 if (!res.ok) throw new Error("Not Found");
-                // [CHANGED] We now expect JSON, not Text
                 return res.json(); 
             })
             .then(data => {
