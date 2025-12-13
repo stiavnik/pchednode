@@ -126,9 +126,14 @@ function handleSort(column) {
     requestAnimationFrame(() => renderTable());
 }
 
-function copyPubkey(text, element) {
+// UPDATED: Now accepts 'event' to work across all browsers including Firefox
+function copyPubkey(text, element, event) {
     // Stop the row click from firing (so we don't open history page)
-    if (window.event) window.event.stopPropagation();
+    if (event) {
+        event.stopPropagation();
+    } else if (window.event) {
+        window.event.cancelBubble = true;
+    }
 
     navigator.clipboard.writeText(text).then(() => {
         const originalHTML = element.innerHTML;
@@ -141,6 +146,8 @@ function copyPubkey(text, element) {
             element.classList.replace("text-green-600", "text-gray-600");
             element.classList.remove("font-bold");
         }, 1000);
+    }).catch(err => {
+        console.error("Clipboard write failed", err);
     });
 }
 
@@ -168,10 +175,10 @@ function updateRowAfterGeo(ip) {
     // Update Country (Index 3)
     if (row.cells[3]) row.cells[3].innerHTML = cached.country || "Geo Error";
 
-    // Update Stats (Indices: 7=Ping, 8=Credits, 9=Balance)
-    if (row.cells[7]) row.cells[7].innerHTML = `<div class="text-right font-mono text-sm">${formatPingHtml(cached.ping)}</div>`;
-    if (row.cells[8]) row.cells[8].innerHTML = `<div class="text-right font-mono text-sm">${formatCreditsHtml(cached.credits)}</div>`;
-    if (row.cells[9]) row.cells[9].innerHTML = `<div class="text-right font-mono text-sm">${formatBalanceHtml(cached.balance)}</div>`;
+    // UPDATED: Removed extra <div> wrappers to match renderTable structure
+    if (row.cells[7]) row.cells[7].innerHTML = formatPingHtml(cached.ping);
+    if (row.cells[8]) row.cells[8].innerHTML = formatCreditsHtml(cached.credits);
+    if (row.cells[9]) row.cells[9].innerHTML = formatBalanceHtml(cached.balance);
 }
 
 function refilterAndRestyle() {
@@ -369,13 +376,13 @@ function renderTable() {
         const uptimeStr = formatUptime(pod.uptime);
         const versionStr = cleanVersion(pod.version);
 
-        // ONCLICK: Pass both IP and current RPC Host to history page
+        // UPDATED: Added 'event' argument to copyPubkey
         html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}&host=${rpcHost}'" style="cursor:pointer;">
             <td id="name-${ip}" class="${nameClass}" title="Click footer to register your name">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 ${pubkeyCellClass}"
                 data-pubkey="${pubkey}" 
                 title="Click to copy: ${pubkey}" 
-                onclick="copyPubkey('${pubkey}', this)">
+                onclick="copyPubkey('${pubkey}', this, event)">
                 <span class="short-key">${shortKey}</span>${warningIcon}
             </td>
             <td class="text-xs">${publicStr}</td>
@@ -413,12 +420,13 @@ function renderTable() {
                 const code = (g.country_code || "").toLowerCase();
                 const flag = code && code !== "--" ? `<img src="https://${host}/geo/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;">` : "";
                 
+                // UPDATED: Ensure undefined stats become null to stop infinite spinners
                 ipCache[ip] = {
                     name: g.name || "N/A",
                     country: `${flag} ${g.country || "Unknown"}`,
-                    ping: g.ping,
-                    balance: g.balance,
-                    credits: g.credits
+                    ping: g.ping !== undefined ? g.ping : null,
+                    balance: g.balance !== undefined ? g.balance : null,
+                    credits: g.credits !== undefined ? g.credits : null
                 };
                 updateRowAfterGeo(ip);
             }
