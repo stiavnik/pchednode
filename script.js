@@ -214,7 +214,7 @@ function getSortIndicator(col) {
 }
 
 function renderTable() {
-    const output = document.getElementById("output");
+    const output = document.getElementById("pched-live-view");
     
     if (!currentPods) return;
     let podsToRender = [...currentPods];
@@ -436,7 +436,7 @@ async function sendRpcRequest() {
     clearLoadButtonHighlight();
 
     const rpcUrl = document.getElementById("rpcSelector").value;
-    const output = document.getElementById("output");
+    const output = document.getElementById("pched-live-view");
     output.innerHTML = '<p class="text-center text-indigo-600 dark:text-indigo-400 font-semibold">Loading pod list...</p>';
 
     try {
