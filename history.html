@@ -185,8 +185,9 @@
     function renderAsciiGraph(values, forceZeroStart = false) {
         if (!values || values.length === 0) return "No Data";
         
-        // CHANGED: Use a visible 'floor' character (U+2581) instead of space
-        const blocks = [" ", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
+        // FIXED: Using \u2581 (Lower 1/8 Block) instead of Space for the lowest level
+        // to ensure low values (like recent restarts) are visible.
+        const blocks = ["\u2581", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
         
         let min = Math.min(...values);
         const max = Math.max(...values);
