@@ -181,42 +181,27 @@
         return rows.sort((a,b) => a.ts - b.ts);
     }
 
-	function renderAsciiGraph(values, isUptime = false) {
+    function renderAsciiGraph(values, isUptime = false) {
         if (!values || values.length === 0) return "No Data";
         
+        // Use more granular blocks for better resolution
         const blocks = ["\u2581", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
         
-        // 1. Determine Min/Max
         let min = Math.min(...values);
         let max = Math.max(...values);
-        
-        // 2. Logarithmic Scaling for Uptime
-        // We transform the values using Math.log() so massive differences 
-        // (like 4 days vs 4 hours) don't flatten the graph.
-        if (isUptime) {
-            min = 0; // Anchor to 0
-            // We use max+1 to avoid log(0) issues if max is 0
-            const logMax = Math.log(max + 1); 
-            
-            return values.map(val => {
-                // VISUAL FIX: Hard dot for resets (val < 10 mins)
-                if (val < 600) return "."; 
-                
-                // Log math
-                const logVal = Math.log(val + 1);
-                const normalized = logVal / logMax;
-                
-                const clamped = Math.max(0, Math.min(1, normalized));
-                const index = Math.floor(clamped * (blocks.length - 1));
-                return blocks[index];
-            }).join("");
-        }
 
-        // 3. Standard Linear Scaling for everything else (Ping, Storage, etc)
+        // For uptime, always anchor 0 to the bottom
+        if (isUptime) min = 0;
+
         let range = max - min;
         if (range === 0) range = 1;
 
         return values.map(val => {
+            // Special visualization for Restart (Uptime drops near zero)
+            if (isUptime && val < 600) { // If uptime < 10 mins
+                 return "."; // Show a tiny dot to visually indicate a hard reset
+            }
+
             const normalized = (val - min) / range;
             const clamped = Math.max(0, Math.min(1, normalized));
             const index = Math.floor(clamped * (blocks.length - 1));
