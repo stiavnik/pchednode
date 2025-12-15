@@ -347,6 +347,14 @@ function renderTable() {
         const shortKey = pubkey ? pubkey.slice(0,4) + "..." + pubkey.slice(-4) : "N/A";
         const isDuplicated = pubkey && pubkeyCountMap[pubkey] > 1;
 
+        // --- NEW HOVER TOOLTIP LOGIC START ---
+        let hoverTitle = `Click to copy: ${pubkey}`;
+        if (isDuplicated) {
+            const sharedIps = pubkeyToIpsMap[pubkey] || [];
+            hoverTitle = `⚠️ DUPLICATE PUBKEY!\nShared by nodes: ${sharedIps.join(', ')}\n\nClick to copy: ${pubkey}`;
+        }
+        // --- NEW HOVER TOOLTIP LOGIC END ---
+
         // Check cache
         const existing = ipCache[ip];
         const needsFetch = !existing || existing.country?.includes("loading-spinner") || existing.country === "Geo Error";
@@ -376,12 +384,12 @@ function renderTable() {
         const uptimeStr = formatUptime(pod.uptime);
         const versionStr = cleanVersion(pod.version);
 
-        // UPDATED: Added 'event' argument to copyPubkey
+        // UPDATED: Added hoverTitle to title attribute
         html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}&host=${rpcHost}'" style="cursor:pointer;">
             <td id="name-${ip}" class="${nameClass}" title="Click footer to register your name">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 ${pubkeyCellClass}"
                 data-pubkey="${pubkey}" 
-                title="Click to copy: ${pubkey}" 
+                title="${hoverTitle}" 
                 onclick="copyPubkey('${pubkey}', this, event)">
                 <span class="short-key">${shortKey}</span>${warningIcon}
             </td>
