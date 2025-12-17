@@ -126,9 +126,7 @@ function handleSort(column) {
     requestAnimationFrame(() => renderTable());
 }
 
-// UPDATED: Now accepts 'event' to work across all browsers including Firefox
 function copyPubkey(text, element, event) {
-    // Stop the row click from firing (so we don't open history page)
     if (event) {
         event.stopPropagation();
     } else if (window.event) {
@@ -151,6 +149,7 @@ function copyPubkey(text, element, event) {
     });
 }
 
+// --- CORE UI UPDATE FUNCTION ---
 function updateRowAfterGeo(ip) {
     const cached = ipCache[ip];
     if (!cached) return;
@@ -159,7 +158,7 @@ function updateRowAfterGeo(ip) {
     const row = nameCell?.parentElement;
     if (!row) return;
 
-    // Update Name
+    // 1. Update Name
     if (nameCell) {
         if (cached.name && cached.name !== "N/A") {
             nameCell.textContent = cached.name;
@@ -172,10 +171,21 @@ function updateRowAfterGeo(ip) {
         }
     }
 
-    // Update Country (Index 3)
-    if (row.cells[3]) row.cells[3].innerHTML = cached.country || "Geo Error";
+    // 2. Update Country + Provider (Flag + Small Text)
+    if (row.cells[3]) {
+        // Only show flag if code is valid and not "--"
+        const flag = cached.country_code && cached.country_code !== "--" 
+            ? `<img src="https://${window.location.hostname}/geo/flag/${cached.country_code}" class="inline-block mr-2 w-4 h-auto shadow-sm">` 
+            : "";
+        
+        // Short provider name in small text
+        const providerHtml = `<span class="text-[10px] uppercase tracking-tighter opacity-80">${cached.provider || ""}</span>`;
+        
+        row.cells[3].innerHTML = `${flag}${providerHtml}`;
+        row.cells[3].title = cached.geo_sort || "Unknown"; // Tooltip shows "Germany Contabo"
+    }
 
-    // UPDATED: Removed extra <div> wrappers to match renderTable structure
+    // 3. Update Stats
     if (row.cells[7]) row.cells[7].innerHTML = formatPingHtml(cached.ping);
     if (row.cells[8]) row.cells[8].innerHTML = formatCreditsHtml(cached.credits);
     if (row.cells[9]) row.cells[9].innerHTML = formatBalanceHtml(cached.balance);
@@ -185,7 +195,6 @@ function refilterAndRestyle() {
     const toggle = document.getElementById("globalFilterToggle").checked;
     const value = document.getElementById("globalFilterValue").value.trim().toLowerCase();
 
-    // FIXED: Selector changed from "#output" to "#pched-live-view"
     document.querySelectorAll("#pched-live-view tbody tr").forEach(row => {
         const nameCell = row.querySelector("td[id^='name-']");
         if (!nameCell) return;
@@ -194,7 +203,6 @@ function refilterAndRestyle() {
         const cache = ipCache[ip] || {};
         const name = (cache.name || "N/A").toLowerCase();
         const ipText = ip.toLowerCase();
-        // dataset.pubkey is on the second cell (index 1)
         const pubkey = row.cells[1]?.dataset.pubkey?.toLowerCase() || "";
 
         if (!toggle || value === "") {
@@ -238,8 +246,8 @@ function renderTable() {
     podsToRender.sort((a, b) => {
         const ipA = a.address.split(":")[0];
         const ipB = b.address.split(":")[0];
-        const cacheA = ipCache[ipA] || { name: "", country: "" };
-        const cacheB = ipCache[ipB] || { name: "", country: "" };
+        const cacheA = ipCache[ipA] || { name: "", geo_sort: "zzzz" };
+        const cacheB = ipCache[ipB] || { name: "", geo_sort: "zzzz" };
 
         let valA, valB, comparison = 0;
 
@@ -262,10 +270,14 @@ function renderTable() {
                 comparison = valA - valB;
                 break;
             case 'country':
-                valA = (cacheA.country || "").replace(/<[^>]*>?/gm, '').trim().toLowerCase();
-                valB = (cacheB.country || "").replace(/<[^>]*>?/gm, '').trim().toLowerCase();
+                // --- CRITICAL SORT LOGIC ---
+                valA = (cacheA.geo_sort || "").toLowerCase();
+                valB = (cacheB.geo_sort || "").toLowerCase();
+                
+                // Keep loading rows at the bottom during initial fetch
                 if (valA.includes("loading") && !valB.includes("loading")) return 1;
                 if (!valA.includes("loading") && valB.includes("loading")) return -1;
+                
                 if (valA < valB) comparison = -1;
                 else if (valA > valB) comparison = 1;
                 break;
@@ -334,9 +346,7 @@ function renderTable() {
         <th class="rounded-tr-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('version')">Ver ${getSortIndicator('version')}</th>
     </tr></thead><tbody>`;
 
-    const batchQueue = []; // Items to fetch
-    
-    // Get the current RPC Host (e.g. rpc1.pchednode.com)
+    const batchQueue = [];
     const rpcSelector = document.getElementById("rpcSelector");
     const rpcHost = rpcSelector ? new URL(rpcSelector.value).hostname : window.location.hostname;
 
@@ -347,24 +357,29 @@ function renderTable() {
         const shortKey = pubkey ? pubkey.slice(0,4) + "..." + pubkey.slice(-4) : "N/A";
         const isDuplicated = pubkey && pubkeyCountMap[pubkey] > 1;
 
-        // --- NEW HOVER TOOLTIP LOGIC START ---
         let hoverTitle = `Click to copy: ${pubkey}`;
         if (isDuplicated) {
             const sharedIps = pubkeyToIpsMap[pubkey] || [];
             hoverTitle = `⚠️ DUPLICATE PUBKEY!\nShared by nodes: ${sharedIps.join(', ')}\n\nClick to copy: ${pubkey}`;
         }
-        // --- NEW HOVER TOOLTIP LOGIC END ---
 
-        // Check cache
         const existing = ipCache[ip];
-        const needsFetch = !existing || existing.country?.includes("loading-spinner") || existing.country === "Geo Error";
+        // If we don't have a provider yet (or it's an error state), re-fetch
+        const needsFetch = !existing || existing.country?.includes("loading-spinner") || existing.country === "Geo Error" || !existing.provider;
         
         if (needsFetch) {
             batchQueue.push({ ip: ip, pubkey: pubkey });
         }
         
+        // Default placeholder while loading
         const cached = existing && !needsFetch ? existing : { 
-            name: "N/A", country: '<span class="loading-spinner">Loading</span>', ping: undefined, balance: undefined, credits: undefined 
+            name: "N/A", 
+            country: '<span class="loading-spinner">Loading</span>', 
+            provider: "",
+            geo_sort: "loading",
+            ping: undefined, 
+            balance: undefined, 
+            credits: undefined 
         };
 
         const isKnown = cached.name && cached.name !== "N/A";
@@ -373,7 +388,6 @@ function renderTable() {
         const pubkeyCellClass = isDuplicated ? "pubkey-duplicate" : "";
         const warningIcon = isDuplicated ? `<span class="warning-icon" title="Duplicates found">!</span>` : "";
 
-        // -- Stats --
         let pingHtml = formatPingHtml(cached.ping);
         let creditsHtml = formatCreditsHtml(cached.credits);
         let balanceHtml = formatBalanceHtml(cached.balance);
@@ -384,7 +398,6 @@ function renderTable() {
         const uptimeStr = formatUptime(pod.uptime);
         const versionStr = cleanVersion(pod.version);
 
-        // UPDATED: Added hoverTitle to title attribute
         html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}&host=${rpcHost}'" style="cursor:pointer;">
             <td id="name-${ip}" class="${nameClass}" title="Click footer to register your name">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 ${pubkeyCellClass}"
@@ -425,17 +438,19 @@ function renderTable() {
         .then(results => {
             for (const ip in results) {
                 const g = results[ip];
-                const code = (g.country_code || "").toLowerCase();
-                const flag = code && code !== "--" ? `<img src="https://${host}/geo/flag/${code}" alt="${code}" class="inline-block mr-2" style="width:16px;height:auto;">` : "";
                 
-                // UPDATED: Ensure undefined stats become null to stop infinite spinners
+                // Update Cache
                 ipCache[ip] = {
                     name: g.name || "N/A",
-                    country: `${flag} ${g.country || "Unknown"}`,
+                    country: g.country,          // Full name (e.g. "Germany")
+                    country_code: g.country_code,// "de"
+                    provider: g.provider,        // "Contabo"
+                    geo_sort: g.geo_sort,        // "Germany Contabo"
                     ping: g.ping !== undefined ? g.ping : null,
                     balance: g.balance !== undefined ? g.balance : null,
                     credits: g.credits !== undefined ? g.credits : null
                 };
+                
                 updateRowAfterGeo(ip);
             }
         })
