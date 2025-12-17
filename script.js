@@ -38,7 +38,7 @@ function formatStorage(bytes) {
 
 function formatPercent(val) {
     if (val === null || val === undefined) return "-";
-    return `${(val * 100).toFixed(2)}%`;
+    return `${val.toFixed(2)}%`; 
 }
 
 function cleanVersion(v) {
