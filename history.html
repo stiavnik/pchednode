@@ -3,353 +3,408 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pod History</title>
-    
+    <title>Node History</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      tailwind.config = {
-        darkMode: 'class',
-      }
+      tailwind.config = { darkMode: 'class' }
     </script>
-    
-    <link rel="stylesheet" href="style.css">
     <style>
-        .ascii-graph {
-            white-space: pre;
-            line-height: 1.1;
-            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-            overflow-x: hidden;
-        }
-        .stat-card {
-            transition: all 0.2s;
-        }
-        .stat-card:hover {
-            transform: translateY(-2px);
-        }
-        .copy-feedback {
-            animation: fadeOut 1.5s forwards;
-        }
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            70% { opacity: 1; }
-            100% { opacity: 0; }
-        }
+        .stat-card { transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-lime-100 to-green-200 dark:from-slate-900 dark:to-gray-900 transition-colors duration-500 text-gray-900 dark:text-gray-100">
-    <div class="max-w-7xl mx-auto p-4 md:p-8">
-        
-        <header class="mb-8 flex flex-col xl:flex-row items-start xl:items-center justify-between border-b border-gray-300/50 dark:border-gray-700/50 pb-6 gap-6">
-            <div class="flex flex-col md:flex-row items-start md:items-center gap-4 w-full xl:w-auto">
-                <a href="/" class="px-4 py-2 bg-white/50 dark:bg-gray-800/50 hover:bg-white/80 dark:hover:bg-gray-700/80 rounded-lg font-semibold transition shadow-sm backdrop-blur shrink-0">
-                    ← Back
-                </a>
-                
-                <div class="flex flex-col">
-                    <h1 class="text-2xl md:text-3xl font-extrabold flex items-center gap-3">
-                        <span id="display-name" class="text-gray-900 dark:text-white">Loading...</span>
-                    </h1>
-                    
-                    <div class="flex flex-col md:flex-row md:items-center gap-x-6 gap-y-1 mt-1 text-sm md:text-base">
-                        <div class="font-mono text-indigo-700 dark:text-indigo-400 font-bold" id="display-ip">...</div>
-                        
-                        <div class="flex items-center gap-2 group cursor-pointer" onclick="copyHeaderPubkey()" title="Click to copy Pubkey">
-                            <span class="font-mono text-gray-500 dark:text-gray-400">Pub:</span>
-                            <span id="display-pubkey" class="font-mono text-gray-600 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">...</span>
-                            <span id="copy-msg" class="text-xs font-bold text-green-600 opacity-0 transition-opacity">Copied!</span>
-                        </div>
-                    </div>
-                </div>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen p-4 transition-colors duration-500">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4 w-full md:w-auto justify-between">
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <a href="index.html" class="text-indigo-600 dark:text-indigo-400 hover:underline">← Back</a>
+                    <span class="text-gray-400">|</span>
+                    Node History
+                </h1>
             </div>
 
-            <div class="flex bg-white/40 dark:bg-gray-800/40 rounded-lg p-1 backdrop-blur shadow-sm self-start xl:self-center">
-                <button onclick="setTimeframe(24)" id="btn-24h" class="px-3 py-1.5 rounded-md text-sm font-bold transition bg-indigo-600 text-white shadow-md">24H</button>
-                <button onclick="setTimeframe(168)" id="btn-7d" class="px-3 py-1.5 rounded-md text-sm font-medium transition text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50">7D</button>
-                <button onclick="setTimeframe(720)" id="btn-30d" class="px-3 py-1.5 rounded-md text-sm font-medium transition text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50">30D</button>
-                <button onclick="setTimeframe(0)" id="btn-all" class="px-3 py-1.5 rounded-md text-sm font-medium transition text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50">ALL</button>
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm border border-gray-200 dark:border-gray-700">
+                    <button onclick="setTimeframe(24)" id="btn-24" class="px-3 py-1 text-sm font-medium rounded-md transition hover:bg-gray-100 dark:hover:bg-gray-700">24H</button>
+                    <button onclick="setTimeframe(168)" id="btn-168" class="px-3 py-1 text-sm font-medium rounded-md transition hover:bg-gray-100 dark:hover:bg-gray-700">7D</button>
+                    <button onclick="setTimeframe(720)" id="btn-720" class="px-3 py-1 text-sm font-medium rounded-md transition hover:bg-gray-100 dark:hover:bg-gray-700">30D</button>
+                    <button onclick="setTimeframe(0)" id="btn-0" class="px-3 py-1 text-sm font-medium rounded-md transition hover:bg-gray-100 dark:hover:bg-gray-700">ALL</button>
+                </div>
+
+                <button id="themeToggle" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition text-sm font-semibold">
+                    Dark Mode
+                </button>
             </div>
         </header>
 
-        <main id="main-content" class="space-y-6">
-            <div id="loading" class="text-center py-20 text-gray-500 dark:text-gray-400 animate-pulse">
-                Fetching history data...
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm">
+            <div class="bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
+                <span class="text-xs font-bold text-gray-500 uppercase">Node Name</span>
+                <span id="node-name" class="font-semibold text-indigo-600 dark:text-indigo-400 truncate">Loading...</span>
             </div>
-
-            <div id="error-msg" class="hidden p-6 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-center text-red-600 dark:text-red-400">
-                Data not available for this IP.
+            <div class="bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
+                <span class="text-xs font-bold text-gray-500 uppercase">IP Address</span>
+                <span id="node-ip" class="font-mono select-all">...</span>
             </div>
+            <div class="bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
+                <span class="text-xs font-bold text-gray-500 uppercase">Public Key</span>
+                <span id="node-pubkey" class="font-mono text-xs truncate cursor-pointer hover:text-indigo-500" onclick="copyToClipboard(this.innerText)">...</span>
+            </div>
+            <div class="bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
+                <span class="text-xs font-bold text-gray-500 uppercase">First Seen</span>
+                <span id="node-first-seen" class="font-mono font-medium text-emerald-600 dark:text-emerald-400">...</span>
+            </div>
+        </div>
 
-            <div id="dashboard" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur rounded-xl shadow-xl p-5 border-t-4 border-indigo-500">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Network Latency (Ping)</h3>
-                    <div class="flex justify-between items-end mb-2">
-                        <span class="text-3xl font-mono font-bold text-gray-800 dark:text-white" id="val-ping">0</span>
-                        <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-1">ms</span>
-                    </div>
-                    <div class="ascii-graph text-indigo-600 dark:text-indigo-400 text-xs tracking-tighter h-12 flex items-end overflow-hidden" id="graph-ping"></div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+            <div class="stat-card bg-white dark:bg-gray-800 p-4 rounded-xl shadow border-t-4 border-emerald-500">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Ping</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-bold" id="val-ping">-</span>
+                    <span class="text-xs text-gray-500">ms</span>
                 </div>
-
-                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur rounded-xl shadow-xl p-5 border-t-4 border-purple-500">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Pod Credits</h3>
-                    <div class="flex justify-between items-end mb-2">
-                        <span class="text-3xl font-mono font-bold text-gray-800 dark:text-white" id="val-credits">0</span>
-                        <span class="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">Total</span>
-                    </div>
-                    <div class="ascii-graph text-purple-600 dark:text-purple-400 text-xs tracking-tighter h-12 flex items-end overflow-hidden" id="graph-credits"></div>
+            </div>
+            <div class="stat-card bg-white dark:bg-gray-800 p-4 rounded-xl shadow border-t-4 border-purple-500">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Credits</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-xl font-bold truncate" id="val-credits">-</span>
                 </div>
-
-                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur rounded-xl shadow-xl p-5 border-t-4 border-blue-500">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">SOL Balance</h3>
-                    <div class="flex justify-between items-end mb-2">
-                        <span class="text-3xl font-mono font-bold text-gray-800 dark:text-white" id="val-balance">0</span>
-                        <span class="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">SOL</span>
-                    </div>
-                    <div class="ascii-graph text-blue-600 dark:text-blue-400 text-xs tracking-tighter h-12 flex items-end overflow-hidden" id="graph-balance"></div>
+            </div>
+            <div class="stat-card bg-white dark:bg-gray-800 p-4 rounded-xl shadow border-t-4 border-indigo-500">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Balance</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-bold" id="val-balance">-</span>
+                    <span class="text-xs text-gray-500">SOL</span>
                 </div>
-
-                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur rounded-xl shadow-xl p-5 border-t-4 border-emerald-500">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Process Uptime</h3>
-                    <div class="flex justify-between items-end mb-2">
-                        <span class="text-2xl font-mono font-bold text-gray-800 dark:text-white" id="val-uptime">-</span>
-                        <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1">Time</span>
-                    </div>
-                    <div class="ascii-graph text-emerald-600 dark:text-emerald-400 text-xs tracking-tighter h-12 flex items-end overflow-hidden" id="graph-uptime"></div>
+            </div>
+            <div class="stat-card bg-white dark:bg-gray-800 p-4 rounded-xl shadow border-t-4 border-orange-500">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Storage</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-bold" id="val-storage">-</span>
                 </div>
-
-                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur rounded-xl shadow-xl p-5 border-t-4 border-orange-500">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Storage Committed</h3>
-                    <div class="flex justify-between items-end mb-2">
-                        <span class="text-3xl font-mono font-bold text-gray-800 dark:text-white" id="val-storage">0</span>
-                        <span class="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-1">Size</span>
-                    </div>
-                    <div class="ascii-graph text-orange-600 dark:text-orange-400 text-xs tracking-tighter h-12 flex items-end overflow-hidden" id="graph-storage"></div>
+            </div>
+            <div class="stat-card bg-white dark:bg-gray-800 p-4 rounded-xl shadow border-t-4 border-blue-500">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Uptime</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-xl font-bold" id="val-uptime">-</span>
                 </div>
-
-                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur rounded-xl shadow-xl p-5 border-t-4 border-rose-500">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Disk Usage</h3>
-                    <div class="flex justify-between items-end mb-2">
-                        <span class="text-3xl font-mono font-bold text-gray-800 dark:text-white" id="val-usage">0%</span>
-                        <span class="text-xs font-semibold text-rose-600 dark:text-rose-400 mb-1">Filled</span>
-                    </div>
-                    <div class="ascii-graph text-rose-600 dark:text-rose-400 text-xs tracking-tighter h-12 flex items-end overflow-hidden" id="graph-usage"></div>
+            </div>
+            <div class="stat-card bg-white dark:bg-gray-800 p-4 rounded-xl shadow border-t-4 border-rose-500">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Disk</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-bold" id="val-usage">-</span>
                 </div>
+            </div>
+        </div>
 
+        <main class="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <div class="relative h-[400px] w-full">
+                <canvas id="historyChart"></canvas>
+            </div>
+            <div class="mt-4 text-center text-xs text-gray-500">
+                Tip: Click legend items above to toggle datasets (Storage, Uptime, etc).
             </div>
         </main>
-
-        <footer class="mt-12 text-center text-sm text-gray-600 dark:text-gray-400 pt-6 border-t border-gray-300/50 dark:border-gray-700/50">
-            History data sourced via local CSV logs.
-        </footer>
     </div>
 
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const TARGET_IP = urlParams.get('ip');
-    const TARGET_HOST = urlParams.get('host') || 'rpc1.pchednode.com';
-    const GEO_HISTORY_URL = `https://${TARGET_HOST}/geo/history`;
-    const GRAPH_SAMPLES = 60; 
+    <script>
+        // --- State ---
+        let fullData = []; // Stores parsed CSV objects
+        let chartInstance = null;
+        let currentTimeframe = 24; // Default 24H
 
-    // Dark Mode
-    const htmlEl = document.documentElement;
-    if (localStorage.getItem('theme') === 'dark' || 
-       (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        htmlEl.classList.add('dark');
-    }
-
-    let fullData = []; 
-    let currentTimeframe = 24; 
-    let fullPubkey = "";
-
-    function parseCSV(text) {
-        const lines = text.trim().split('\n');
-        const rows = [];
-        lines.forEach(line => {
-            if (!line) return;
-            const parts = line.split(',');
-            if (parts.length >= 7 && !isNaN(parts[0])) {
-                rows.push({
-                    ts: parseInt(parts[0]),
-                    ping: parseFloat(parts[1]) || 0,
-                    credits: parseInt(parts[2]) || 0,
-                    balance: parseFloat(parts[3]) || 0,
-                    storage: parseFloat(parts[4]) || 0,
-                    uptime: parseInt(parts[5]) || 0,
-                    usage: parseFloat(parts[6]) || 0
-                });
-            }
-        });
-        return rows.sort((a,b) => a.ts - b.ts);
-    }
-
-    function renderAsciiGraph(values, isUptime = false) {
-        if (!values || values.length === 0) return "No Data";
-        
-        // Use more granular blocks for better resolution
-        const blocks = ["\u2581", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
-        
-        let min = Math.min(...values);
-        let max = Math.max(...values);
-
-        // For uptime, always anchor 0 to the bottom
-        if (isUptime) min = 0;
-
-        let range = max - min;
-        if (range === 0) range = 1;
-
-        return values.map(val => {
-            // Special visualization for Restart (Uptime drops near zero)
-            if (isUptime && val < 600) { // If uptime < 10 mins
-                 return "."; // Show a tiny dot to visually indicate a hard reset
-            }
-
-            const normalized = (val - min) / range;
-            const clamped = Math.max(0, Math.min(1, normalized));
-            const index = Math.floor(clamped * (blocks.length - 1));
-            return blocks[index];
-        }).join("");
-    }
-
-    function processDataForGraph(data, key) {
-        // ROBUST TIME FIX: Anchor 'Now' to the last entry in the log
-        // This ensures 24h/7d works relative to the data, not the viewer's wall clock.
-        if (data.length === 0) return [];
-        const lastTs = data[data.length - 1].ts; 
-        const cutoff = currentTimeframe === 0 ? 0 : lastTs - (currentTimeframe * 3600);
-        
-        const filtered = data.filter(row => row.ts >= cutoff);
-        if (filtered.length === 0) return [];
-
-        const result = [];
-        // Ensure we don't have more samples than pixels/columns available
-        const step = Math.max(1, filtered.length / GRAPH_SAMPLES);
-        
-        for (let i = 0; i < filtered.length; i += step) {
-            // Use Math.floor to ensure we get integer indices
-            const start = Math.floor(i);
-            const end = Math.floor(i + step);
-            const chunk = filtered.slice(start, end);
-            
-            if (chunk.length === 0) continue;
-
-            let val;
-            if (key === 'uptime') {
-                // MINIMUM works best for uptime to catch drops/restarts
-                val = Math.min(...chunk.map(r => r[key]));
-            } else {
-                // AVERAGE for everything else
-                const sum = chunk.reduce((acc, row) => acc + row[key], 0);
-                val = sum / chunk.length;
-            }
-            result.push(val);
+        // --- Helpers ---
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            // Simple visual feedback
+            const el = document.getElementById('node-pubkey');
+            const original = el.className;
+            el.className = "font-mono text-xs truncate text-green-500 font-bold transition";
+            setTimeout(() => el.className = original, 1000);
         }
-        return result;
-    }
 
-    function formatStorage(bytes) {
-        const gb = bytes / (1024 * 1024 * 1024);
-        if (gb >= 1000) return `${(gb / 1024).toFixed(1)} TB`;
-        return `${gb.toFixed(1)} GB`;
-    }
-    
-    function formatUptime(seconds) {
-        if (seconds < 3600) return `${Math.floor(seconds/60)}m`;
-        if (seconds < 86400) return `${Math.floor(seconds/3600)}h`;
-        return `${Math.floor(seconds/86400)}d`;
-    }
+        function formatRelativeTime(ts) {
+            if (!ts) return "Never";
+            const diff = Math.floor(Date.now() / 1000) - ts;
+            if (diff < 60) return `${diff}s ago`;
+            if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+            if (diff < 604800) return `${Math.floor(diff/86400)}d ago`; 
+            if (diff < 31536000) return `${Math.floor(diff/604800)}w ago`; 
+            return `${(diff/31536000).toFixed(1)}y ago`;
+        }
 
-    function formatPercent(val) {
-        const pct = val * 100;
-        if (pct < 0.01 && pct > 0) return "< 0.01%";
-        return `${pct.toFixed(2)}%`;
-    }
+        function formatStorage(bytes) {
+            if (!bytes) return "0 GB";
+            const gb = bytes / (1024 * 1024 * 1024);
+            if (gb >= 1000) return `${(gb / 1024).toFixed(2)} TB`;
+            return `${gb.toFixed(1)} GB`;
+        }
 
-    function updateDashboard() {
-        if (!fullData || fullData.length === 0) return;
-        const latest = fullData[fullData.length - 1];
+        function formatUptime(seconds) {
+            if (!seconds) return "0m";
+            if (seconds < 3600) return `${Math.floor(seconds/60)}m`;
+            if (seconds < 86400) return `${Math.floor(seconds/3600)}h`;
+            return `${(seconds/86400).toFixed(1)}d`;
+        }
 
-        document.getElementById('val-ping').innerText = latest.ping.toFixed(1);
-        document.getElementById('val-credits').innerText = new Intl.NumberFormat().format(latest.credits);
-        document.getElementById('val-balance').innerText = latest.balance.toFixed(3);
-        document.getElementById('val-storage').innerText = formatStorage(latest.storage);
-        document.getElementById('val-uptime').innerText = formatUptime(latest.uptime);
-        document.getElementById('val-usage').innerText = formatPercent(latest.usage);
-
-        document.getElementById('graph-ping').innerText = renderAsciiGraph(processDataForGraph(fullData, 'ping'));
-        document.getElementById('graph-credits').innerText = renderAsciiGraph(processDataForGraph(fullData, 'credits'));
-        document.getElementById('graph-balance').innerText = renderAsciiGraph(processDataForGraph(fullData, 'balance'));
-        document.getElementById('graph-storage').innerText = renderAsciiGraph(processDataForGraph(fullData, 'storage'));
+        // --- Core Logic ---
         
-        // Pass 'true' for isUptime to enable the special "dot" rendering for drops
-        document.getElementById('graph-uptime').innerText = renderAsciiGraph(processDataForGraph(fullData, 'uptime'), true);
-        
-        document.getElementById('graph-usage').innerText = renderAsciiGraph(processDataForGraph(fullData, 'usage'));
-    }
-
-    function setTimeframe(hours) {
-        currentTimeframe = hours;
-        ['24h', '7d', '30d', 'all'].forEach(id => {
-            const btn = document.getElementById(`btn-${id}`);
-            if ((hours === 24 && id === '24h') || 
-                (hours === 168 && id === '7d') || 
-                (hours === 720 && id === '30d') || 
-                (hours === 0 && id === 'all')) {
-                btn.className = "px-3 py-1.5 rounded-md text-sm font-bold transition bg-indigo-600 text-white shadow-md";
-            } else {
-                btn.className = "px-3 py-1.5 rounded-md text-sm font-medium transition text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50";
-            }
-        });
-        updateDashboard();
-    }
-
-    function copyHeaderPubkey() {
-        if (!fullPubkey || fullPubkey === "N/A" || fullPubkey === "Unknown") return;
-        navigator.clipboard.writeText(fullPubkey).then(() => {
-            const el = document.getElementById('copy-msg');
-            el.classList.remove('opacity-0', 'copy-feedback');
-            void el.offsetWidth;
-            el.classList.add('copy-feedback');
-        });
-    }
-
-    // --- INITIALIZATION ---
-    if (!TARGET_IP) {
-        document.getElementById('loading').innerText = "No IP specified in URL (?ip=...)";
-    } else {
-        document.getElementById('display-ip').innerText = TARGET_IP;
-        
-        fetch(`${GEO_HISTORY_URL}?ip=${TARGET_IP}`)
-            .then(res => {
-                if (!res.ok) throw new Error("API Fetch Failed (Check CORS or IP)");
-                return res.json(); 
-            })
-            .then(data => {
-                const meta = data.meta || {};
-                document.getElementById('display-name').innerText = meta.name || "N/A";
-                
-                fullPubkey = meta.pubkey || "N/A";
-                if (fullPubkey && fullPubkey.length > 10) {
-                    document.getElementById('display-pubkey').innerText = fullPubkey.slice(0, 6) + "..." + fullPubkey.slice(-6);
+        function setTimeframe(hours) {
+            currentTimeframe = hours;
+            
+            // Update Button Styles
+            [24, 168, 720, 0].forEach(h => {
+                const btn = document.getElementById(`btn-${h}`);
+                if (h === hours) {
+                    btn.className = "px-3 py-1 text-sm font-bold rounded-md transition bg-indigo-600 text-white shadow-md";
                 } else {
-                    document.getElementById('display-pubkey').innerText = fullPubkey;
+                    btn.className = "px-3 py-1 text-sm font-medium rounded-md transition hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300";
+                }
+            });
+
+            renderChart();
+        }
+
+        async function loadHistory() {
+            const params = new URLSearchParams(window.location.search);
+            const ip = params.get('ip');
+            const host = params.get('host') || window.location.hostname;
+
+            if (!ip) {
+                document.getElementById('node-name').textContent = "Error: No IP specified";
+                return;
+            }
+
+            document.getElementById('node-ip').textContent = ip;
+
+            try {
+                // Fetch data
+                const res = await fetch(`https://${host}/geo/history?ip=${ip}`);
+                if (!res.ok) throw new Error("API Fetch Failed");
+                const data = await res.json();
+
+                // 1. Metadata
+                document.getElementById('node-name').textContent = data.meta.name || "N/A";
+                document.getElementById('node-pubkey').textContent = data.meta.pubkey || "N/A";
+
+                // 2. Parse CSV
+                const rows = data.csv_data.trim().split('\n');
+                fullData = [];
+
+                // Extract First Seen from the very first row
+                if (rows.length > 0) {
+                    const firstRow = rows[0].split(',');
+                    const firstTs = parseFloat(firstRow[0]);
+                    if (!isNaN(firstTs)) {
+                        document.getElementById('node-first-seen').textContent = formatRelativeTime(firstTs);
+                    }
                 }
 
-                const csvText = data.csv_data;
-                fullData = parseCSV(csvText);
-                
-                if (fullData.length === 0) {
-                    throw new Error("CSV Data Empty");
-                }
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                updateDashboard();
-            })
-            .catch(err => {
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('error-msg').innerText = err.message;
-                document.getElementById('error-msg').classList.remove('hidden');
+                rows.forEach(row => {
+                    const cols = row.split(',');
+                    if (cols.length < 2) return;
+                    
+                    fullData.push({
+                        ts: parseInt(cols[0]),
+                        ping: cols[1] ? parseFloat(cols[1]) : null,
+                        credits: cols[2] ? parseInt(cols[2]) : null,
+                        balance: cols[3] ? parseFloat(cols[3]) : null,
+                        storage: cols[4] ? parseFloat(cols[4]) : null, // Bytes
+                        uptime: cols[5] ? parseInt(cols[5]) : null,   // Seconds
+                        usage: cols[6] ? parseFloat(cols[6]) : null    // 0-1.0 float
+                    });
+                });
+
+                // 3. Update Summary Cards (Latest Data)
+                updateSummaryCards();
+
+                // 4. Initial Chart Render
+                setTimeframe(24); 
+
+            } catch (err) {
                 console.error(err);
+                document.getElementById('node-name').textContent = "Error loading data";
+            }
+        }
+
+        function updateSummaryCards() {
+            if (fullData.length === 0) return;
+            const latest = fullData[fullData.length - 1];
+
+            document.getElementById('val-ping').textContent = latest.ping?.toFixed(1) || 0;
+            // Format credits with commas
+            document.getElementById('val-credits').textContent = latest.credits ? new Intl.NumberFormat().format(latest.credits) : 0;
+            document.getElementById('val-balance').textContent = latest.balance?.toFixed(3) || 0;
+            document.getElementById('val-storage').textContent = formatStorage(latest.storage);
+            document.getElementById('val-uptime').textContent = formatUptime(latest.uptime);
+            // Format usage as percentage
+            const usagePct = latest.usage ? (latest.usage * 100).toFixed(1) + "%" : "0%";
+            document.getElementById('val-usage').textContent = usagePct;
+        }
+
+        function renderChart() {
+            if (!fullData || fullData.length === 0) return;
+
+            // Filter by Timeframe
+            let filtered = fullData;
+            if (currentTimeframe > 0) {
+                const now = Math.floor(Date.now() / 1000);
+                // Note: Using last data point as anchor is safer for static logs, 
+                // but usually "Now" is better for live dashboards.
+                // We will use the last timestamp in data as anchor to ensure graph isn't empty if log is old.
+                const lastTs = fullData[fullData.length - 1].ts;
+                const cutoff = lastTs - (currentTimeframe * 3600);
+                filtered = fullData.filter(d => d.ts >= cutoff);
+            }
+
+            const labels = filtered.map(d => {
+                const date = new Date(d.ts * 1000);
+                return `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
             });
-    }
-</script>
+
+            const dsPing = filtered.map(d => d.ping);
+            const dsCredits = filtered.map(d => d.credits);
+            const dsBalance = filtered.map(d => d.balance);
+            const dsStorage = filtered.map(d => d.storage ? d.storage / (1024*1024*1024) : 0); // GB
+            const dsUptime = filtered.map(d => d.uptime ? d.uptime / 3600 : 0); // Hours
+            const dsUsage = filtered.map(d => d.usage ? d.usage * 100 : 0); // %
+
+            const ctx = document.getElementById('historyChart').getContext('2d');
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Ping (ms)',
+                            data: dsPing,
+                            borderColor: '#10b981', // Emerald 500
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            yAxisID: 'y',
+                            tension: 0.3,
+                            pointRadius: 1
+                        },
+                        {
+                            label: 'Credits',
+                            data: dsCredits,
+                            borderColor: '#a855f7', // Purple 500
+                            yAxisID: 'y1',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: true // Hidden default
+                        },
+                        {
+                            label: 'Balance (SOL)',
+                            data: dsBalance,
+                            borderColor: '#6366f1', // Indigo 500
+                            yAxisID: 'y2',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: true
+                        },
+                        {
+                            label: 'Storage (GB)',
+                            data: dsStorage,
+                            borderColor: '#f97316', // Orange 500
+                            yAxisID: 'y3',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: true
+                        },
+                        {
+                            label: 'Uptime (Hours)',
+                            data: dsUptime,
+                            borderColor: '#3b82f6', // Blue 500
+                            yAxisID: 'y4',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: true
+                        },
+                        {
+                            label: 'Disk Usage (%)',
+                            data: dsUsage,
+                            borderColor: '#f43f5e', // Rose 500
+                            yAxisID: 'y5',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: { ticks: { maxTicksLimit: 8, color: '#9ca3af' }, grid: { display: false } },
+                        y: { 
+                            type: 'linear', display: true, position: 'left', 
+                            title: { display: true, text: 'Ping (ms)' },
+                            grid: { color: 'rgba(156, 163, 175, 0.1)' } 
+                        },
+                        // Hidden axes config (needed for scaling but hidden from view unless needed)
+                        y1: { display: false, position: 'right' },
+                        y2: { display: false, position: 'right' },
+                        y3: { display: false, position: 'right' },
+                        y4: { display: false, position: 'right' },
+                        y5: { display: false, position: 'right', min: 0, max: 100 }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(2);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Theme ---
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlEl = document.documentElement; 
+
+        // Check local storage or system preference
+        if (localStorage.getItem('theme') === 'dark' || 
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlEl.classList.add('dark');
+        } else {
+            htmlEl.classList.remove('dark');
+        }
+
+        themeToggle?.addEventListener('click', () => {
+            htmlEl.classList.toggle('dark');
+            localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // Start
+        loadHistory();
+    </script>
 </body>
 </html>
