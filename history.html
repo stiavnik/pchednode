@@ -105,7 +105,7 @@
                 <canvas id="historyChart"></canvas>
             </div>
             <div class="mt-4 text-center text-xs text-gray-500">
-                Tip: Click legend items above to toggle datasets (Storage, Uptime, etc).
+                Tip: Click legend items above to toggle datasets on/off.
             </div>
         </main>
     </div>
@@ -119,7 +119,6 @@
         // --- Helpers ---
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text);
-            // Simple visual feedback
             const el = document.getElementById('node-pubkey');
             const original = el.className;
             el.className = "font-mono text-xs truncate text-green-500 font-bold transition";
@@ -152,11 +151,8 @@
         }
 
         // --- Core Logic ---
-        
         function setTimeframe(hours) {
             currentTimeframe = hours;
-            
-            // Update Button Styles
             [24, 168, 720, 0].forEach(h => {
                 const btn = document.getElementById(`btn-${h}`);
                 if (h === hours) {
@@ -165,7 +161,6 @@
                     btn.className = "px-3 py-1 text-sm font-medium rounded-md transition hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300";
                 }
             });
-
             renderChart();
         }
 
@@ -195,7 +190,6 @@
                 const rows = data.csv_data.trim().split('\n');
                 fullData = [];
 
-                // Extract First Seen from the very first row
                 if (rows.length > 0) {
                     const firstRow = rows[0].split(',');
                     const firstTs = parseFloat(firstRow[0]);
@@ -213,16 +207,13 @@
                         ping: cols[1] ? parseFloat(cols[1]) : null,
                         credits: cols[2] ? parseInt(cols[2]) : null,
                         balance: cols[3] ? parseFloat(cols[3]) : null,
-                        storage: cols[4] ? parseFloat(cols[4]) : null, // Bytes
-                        uptime: cols[5] ? parseInt(cols[5]) : null,   // Seconds
-                        usage: cols[6] ? parseFloat(cols[6]) : null    // 0-1.0 float
+                        storage: cols[4] ? parseFloat(cols[4]) : null, 
+                        uptime: cols[5] ? parseInt(cols[5]) : null,
+                        usage: cols[6] ? parseFloat(cols[6]) : null
                     });
                 });
 
-                // 3. Update Summary Cards (Latest Data)
                 updateSummaryCards();
-
-                // 4. Initial Chart Render
                 setTimeframe(24); 
 
             } catch (err) {
@@ -236,12 +227,10 @@
             const latest = fullData[fullData.length - 1];
 
             document.getElementById('val-ping').textContent = latest.ping?.toFixed(1) || 0;
-            // Format credits with commas
             document.getElementById('val-credits').textContent = latest.credits ? new Intl.NumberFormat().format(latest.credits) : 0;
             document.getElementById('val-balance').textContent = latest.balance?.toFixed(3) || 0;
             document.getElementById('val-storage').textContent = formatStorage(latest.storage);
             document.getElementById('val-uptime').textContent = formatUptime(latest.uptime);
-            // Format usage as percentage
             const usagePct = latest.usage ? (latest.usage * 100).toFixed(1) + "%" : "0%";
             document.getElementById('val-usage').textContent = usagePct;
         }
@@ -249,13 +238,8 @@
         function renderChart() {
             if (!fullData || fullData.length === 0) return;
 
-            // Filter by Timeframe
             let filtered = fullData;
             if (currentTimeframe > 0) {
-                const now = Math.floor(Date.now() / 1000);
-                // Note: Using last data point as anchor is safer for static logs, 
-                // but usually "Now" is better for live dashboards.
-                // We will use the last timestamp in data as anchor to ensure graph isn't empty if log is old.
                 const lastTs = fullData[fullData.length - 1].ts;
                 const cutoff = lastTs - (currentTimeframe * 3600);
                 filtered = fullData.filter(d => d.ts >= cutoff);
@@ -269,15 +253,23 @@
             const dsPing = filtered.map(d => d.ping);
             const dsCredits = filtered.map(d => d.credits);
             const dsBalance = filtered.map(d => d.balance);
-            const dsStorage = filtered.map(d => d.storage ? d.storage / (1024*1024*1024) : 0); // GB
-            const dsUptime = filtered.map(d => d.uptime ? d.uptime / 3600 : 0); // Hours
-            const dsUsage = filtered.map(d => d.usage ? d.usage * 100 : 0); // %
+            const dsStorage = filtered.map(d => d.storage ? d.storage / (1024*1024*1024) : 0);
+            const dsUptime = filtered.map(d => d.uptime ? d.uptime / 3600 : 0);
+            const dsUsage = filtered.map(d => d.usage ? d.usage * 100 : 0);
 
             const ctx = document.getElementById('historyChart').getContext('2d');
 
             if (chartInstance) {
                 chartInstance.destroy();
             }
+
+            // Colors aligned with index.html theme:
+            // Ping -> Emerald (Green)
+            // Credits -> Purple
+            // Balance -> Indigo
+            // Storage -> Orange
+            // Uptime -> Blue
+            // Disk -> Rose (Red)
 
             chartInstance = new Chart(ctx, {
                 type: 'line',
@@ -297,46 +289,46 @@
                             label: 'Credits',
                             data: dsCredits,
                             borderColor: '#a855f7', // Purple 500
+                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
                             yAxisID: 'y1',
                             tension: 0.3,
-                            pointRadius: 1,
-                            hidden: true // Hidden default
+                            pointRadius: 1
                         },
                         {
                             label: 'Balance (SOL)',
                             data: dsBalance,
                             borderColor: '#6366f1', // Indigo 500
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
                             yAxisID: 'y2',
                             tension: 0.3,
-                            pointRadius: 1,
-                            hidden: true
+                            pointRadius: 1
                         },
                         {
                             label: 'Storage (GB)',
                             data: dsStorage,
                             borderColor: '#f97316', // Orange 500
+                            backgroundColor: 'rgba(249, 115, 22, 0.1)',
                             yAxisID: 'y3',
                             tension: 0.3,
-                            pointRadius: 1,
-                            hidden: true
+                            pointRadius: 1
                         },
                         {
                             label: 'Uptime (Hours)',
                             data: dsUptime,
                             borderColor: '#3b82f6', // Blue 500
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
                             yAxisID: 'y4',
                             tension: 0.3,
-                            pointRadius: 1,
-                            hidden: true
+                            pointRadius: 1
                         },
                         {
                             label: 'Disk Usage (%)',
                             data: dsUsage,
                             borderColor: '#f43f5e', // Rose 500
+                            backgroundColor: 'rgba(244, 63, 94, 0.1)',
                             yAxisID: 'y5',
                             tension: 0.3,
-                            pointRadius: 1,
-                            hidden: true
+                            pointRadius: 1
                         }
                     ]
                 },
@@ -354,7 +346,7 @@
                             title: { display: true, text: 'Ping (ms)' },
                             grid: { color: 'rgba(156, 163, 175, 0.1)' } 
                         },
-                        // Hidden axes config (needed for scaling but hidden from view unless needed)
+                        // Hidden axes ensure scaling works but doesn't clutter the chart
                         y1: { display: false, position: 'right' },
                         y2: { display: false, position: 'right' },
                         y3: { display: false, position: 'right' },
@@ -366,7 +358,8 @@
                             position: 'top',
                             labels: {
                                 usePointStyle: true,
-                                boxWidth: 8
+                                boxWidth: 8,
+                                padding: 15
                             }
                         },
                         tooltip: {
@@ -390,7 +383,6 @@
         const themeToggle = document.getElementById('themeToggle');
         const htmlEl = document.documentElement; 
 
-        // Check local storage or system preference
         if (localStorage.getItem('theme') === 'dark' || 
         (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             htmlEl.classList.add('dark');
@@ -403,7 +395,6 @@
             localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
         });
 
-        // Start
         loadHistory();
     </script>
 </body>
