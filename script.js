@@ -173,9 +173,12 @@ function updateRowAfterGeo(ip) {
 
     // 2. Update Country + Provider (Flag + Small Text)
     if (row.cells[3]) {
-        // Only show flag if code is valid and not "--"
+        // Fix: Use the selected RPC host for the flag image
+        const rpcSelector = document.getElementById("rpcSelector");
+        const rpcHost = rpcSelector ? new URL(rpcSelector.value).hostname : window.location.hostname;
+
         const flag = cached.country_code && cached.country_code !== "--" 
-            ? `<img src="https://${window.location.hostname}/geo/flag/${cached.country_code}" class="inline-block mr-2 w-4 h-auto shadow-sm">` 
+            ? `<img src="https://${rpcHost}/geo/flag/${cached.country_code}" class="inline-block mr-2 w-4 h-auto shadow-sm">` 
             : "";
         
         // Short provider name in small text
@@ -382,6 +385,18 @@ function renderTable() {
             credits: undefined 
         };
 
+        // --- CRITICAL FIX: Generate Country HTML Here (Fixes "Text Only" on Sort) ---
+        let countryHtml = cached.country; 
+        if (cached.country_code && cached.provider) {
+             const flagUrl = `https://${rpcHost}/geo/flag/${cached.country_code}`;
+             const flagImg = (cached.country_code !== "--") 
+                ? `<img src="${flagUrl}" class="inline-block mr-2 w-4 h-auto shadow-sm">` 
+                : "";
+             const providerHtml = `<span class="text-[10px] uppercase tracking-tighter opacity-80">${cached.provider}</span>`;
+             countryHtml = `${flagImg}${providerHtml}`;
+        }
+        // ---------------------------------------------------------------------------
+
         const isKnown = cached.name && cached.name !== "N/A";
         const rowClass = (isKnown ? "known-server" : "") + (isDuplicated ? " duplicate-pubkey-row" : "");
         const nameClass = isKnown ? "font-semibold text-indigo-700" : "text-gray-500";
@@ -407,7 +422,7 @@ function renderTable() {
                 <span class="short-key">${shortKey}</span>${warningIcon}
             </td>
             <td class="text-xs">${publicStr}</td>
-            <td id="country-${ip}">${cached.country}</td>
+            <td id="country-${ip}" title="${cached.geo_sort}">${countryHtml}</td>
             <td class="text-right font-mono text-xs">${storageStr}</td>
             <td class="text-right font-mono text-xs">${usageStr}</td>
             <td class="text-right font-mono text-xs">${uptimeStr}</td>
