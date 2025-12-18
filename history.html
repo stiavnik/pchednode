@@ -12,7 +12,6 @@
     <style>
         .stat-card { transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-2px); }
-        /* Fix for scrollbar/background issues in some browsers */
         html { min-height: 100%; }
     </style>
 </head>
@@ -114,9 +113,9 @@
 
     <script>
         // --- State ---
-        let fullData = []; // Stores parsed CSV objects
+        let fullData = []; 
         let chartInstance = null;
-        let currentTimeframe = 24; // Default 24H
+        let currentTimeframe = 24; 
 
         // --- Helpers ---
         function copyToClipboard(text) {
@@ -233,7 +232,8 @@
             document.getElementById('val-balance').textContent = latest.balance?.toFixed(3) || 0;
             document.getElementById('val-storage').textContent = formatStorage(latest.storage);
             document.getElementById('val-uptime').textContent = formatUptime(latest.uptime);
-            const usagePct = latest.usage ? (latest.usage * 100).toFixed(1) + "%" : "0%";
+            // FIX: Removed multiplication by 100 for usage
+            const usagePct = latest.usage ? latest.usage.toFixed(1) + "%" : "0%";
             document.getElementById('val-usage').textContent = usagePct;
         }
 
@@ -257,7 +257,8 @@
             const dsBalance = filtered.map(d => d.balance);
             const dsStorage = filtered.map(d => d.storage ? d.storage / (1024*1024*1024) : 0);
             const dsUptime = filtered.map(d => d.uptime ? d.uptime / 3600 : 0);
-            const dsUsage = filtered.map(d => d.usage ? d.usage * 100 : 0);
+            // FIX: Removed multiplication by 100 for usage in chart
+            const dsUsage = filtered.map(d => d.usage ? d.usage : 0);
 
             const ctx = document.getElementById('historyChart').getContext('2d');
 
@@ -273,56 +274,62 @@
                         {
                             label: 'Ping (ms)',
                             data: dsPing,
-                            borderColor: '#10b981', // Emerald 500
+                            borderColor: '#10b981', // Emerald
                             backgroundColor: 'rgba(16, 185, 129, 0.1)',
                             yAxisID: 'y',
                             tension: 0.3,
-                            pointRadius: 1
+                            pointRadius: 1,
+                            hidden: false // VISIBLE
                         },
                         {
                             label: 'Credits',
                             data: dsCredits,
-                            borderColor: '#a855f7', // Purple 500
+                            borderColor: '#a855f7', // Purple
                             backgroundColor: 'rgba(168, 85, 247, 0.1)',
                             yAxisID: 'y1',
                             tension: 0.3,
-                            pointRadius: 1
+                            pointRadius: 1,
+                            hidden: false // VISIBLE
                         },
                         {
                             label: 'Balance (SOL)',
                             data: dsBalance,
-                            borderColor: '#6366f1', // Indigo 500
+                            borderColor: '#6366f1', // Indigo
                             backgroundColor: 'rgba(99, 102, 241, 0.1)',
                             yAxisID: 'y2',
                             tension: 0.3,
-                            pointRadius: 1
+                            pointRadius: 1,
+                            hidden: true // HIDDEN
                         },
                         {
                             label: 'Storage (GB)',
                             data: dsStorage,
-                            borderColor: '#f97316', // Orange 500
+                            borderColor: '#f97316', // Orange
                             backgroundColor: 'rgba(249, 115, 22, 0.1)',
                             yAxisID: 'y3',
                             tension: 0.3,
-                            pointRadius: 1
+                            pointRadius: 1,
+                            hidden: true // HIDDEN
                         },
                         {
                             label: 'Uptime (Hours)',
                             data: dsUptime,
-                            borderColor: '#3b82f6', // Blue 500
+                            borderColor: '#3b82f6', // Blue
                             backgroundColor: 'rgba(59, 130, 246, 0.1)',
                             yAxisID: 'y4',
                             tension: 0.3,
-                            pointRadius: 1
+                            pointRadius: 1,
+                            hidden: false // VISIBLE
                         },
                         {
                             label: 'Disk Usage (%)',
                             data: dsUsage,
-                            borderColor: '#f43f5e', // Rose 500
+                            borderColor: '#f43f5e', // Rose
                             backgroundColor: 'rgba(244, 63, 94, 0.1)',
                             yAxisID: 'y5',
                             tension: 0.3,
-                            pointRadius: 1
+                            pointRadius: 1,
+                            hidden: false // VISIBLE
                         }
                     ]
                 },
@@ -372,7 +379,6 @@
             });
         }
 
-        // --- Theme ---
         const themeToggle = document.getElementById('themeToggle');
         const htmlEl = document.documentElement; 
 
