@@ -5,7 +5,7 @@ let pubkeyToIpsMap = {};
 
 // --- Global State ---
 let currentPods = [];
-let sortCol = 'last_seen'; 
+let sortCol = 'credits';
 let sortAsc = false;      
 
 // --- Batch Fetch State ---
