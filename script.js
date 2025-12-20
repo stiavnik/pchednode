@@ -5,7 +5,7 @@ let pubkeyToIpsMap = {};
 
 // --- Global State ---
 let currentPods = [];
-let sortCol = 'credits';
+let sortCol = 'credits'; 
 let sortAsc = false;      
 
 // --- Batch Fetch State ---
@@ -457,17 +457,17 @@ function renderTable() {
                 // Update Cache
                 ipCache[ip] = {
                     name: g.name || "N/A",
-                    country: g.country,          // Full name (e.g. "Germany")
-                    country_code: g.country_code,// "de"
-                    provider: g.provider,        // "Contabo"
-                    geo_sort: g.geo_sort,        // "Germany Contabo"
+                    country: g.country,
+                    country_code: g.country_code,
+                    provider: g.provider,
+                    geo_sort: g.geo_sort,
                     ping: g.ping !== undefined ? g.ping : null,
                     balance: g.balance !== undefined ? g.balance : null,
                     credits: g.credits !== undefined ? g.credits : null
                 };
-                
-                updateRowAfterGeo(ip);
             }
+            // Force a re-render to apply sorting now that data is available
+            requestAnimationFrame(() => renderTable());
         })
         .catch(e => console.error("Batch geo error", e))
         .finally(() => {
