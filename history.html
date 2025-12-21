@@ -74,13 +74,13 @@
                     <span class="text-xl font-bold truncate" id="val-credits">-</span>
                 </div>
             </div>
-            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-indigo-500">
-                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Balance</h3>
-                <div class="flex items-baseline gap-1">
-                    <span class="text-2xl font-bold" id="val-balance">-</span>
-                    <span class="text-xs text-gray-500">SOL</span>
-                </div>
-            </div>
+			<div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-indigo-500">
+				<h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Stake</h3>
+				<div class="flex items-baseline gap-1">
+					<span class="text-2xl font-bold" id="val-balance">-</span>
+					<span class="text-xs text-gray-500">XAND</span>
+				</div>
+			</div>
             <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-orange-500">
                 <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Storage</h3>
                 <div class="flex items-baseline gap-1">
@@ -291,16 +291,17 @@
                             pointRadius: 1,
                             hidden: false // VISIBLE
                         },
-                        {
-                            label: 'Balance (SOL)',
-                            data: dsBalance,
-                            borderColor: '#6366f1', // Indigo
-                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                            yAxisID: 'y2',
-                            tension: 0.3,
-                            pointRadius: 1,
-                            hidden: true // HIDDEN
-                        },
+						// ... inside renderChart() ...
+						{
+							label: 'Stake', // Changed from Balance (SOL)
+							data: dsBalance, // Variable name can stay same to minimize code churn
+							borderColor: '#6366f1',
+							backgroundColor: 'rgba(99, 102, 241, 0.1)',
+							yAxisID: 'y2',
+							tension: 0.3,
+							pointRadius: 1,
+							hidden: true 
+						},
                         {
                             label: 'Storage (GB)',
                             data: dsStorage,
