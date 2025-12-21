@@ -70,7 +70,7 @@ function formatStakeHtml(stake) {
     if (stake === null) return `<span class="text-gray-400 text-xs">-</span>`;
     const val = parseFloat(stake);
     const fmt = isNaN(val) ? stake : val.toFixed(0); // Stake usually whole numbers
-    return `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${fmt} 굄</span>`;
+    return `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${fmt} XAND</span>`;
 }
 
 function markLoadButton() {
