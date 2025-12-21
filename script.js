@@ -11,6 +11,17 @@ let sortAsc = false;
 // --- Batch Fetch State ---
 let isBatchFetching = false;
 
+// --- Security Helper: Prevent XSS in Tooltips ---
+function escapeHtml(text) {
+    if (!text) return text;
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 function formatRelativeTime(ts) {
     if (!ts) return { text: "-", class: "text-gray-400" };
     const diff = Math.floor(Date.now() / 1000) - ts;
@@ -48,18 +59,10 @@ function cleanVersion(v) {
 
 // --- HTML Formatters for Stats ---
 function formatPingHtml(ping) {
-    if (ping === undefined) {
-        return '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
-    }
-    if (ping === null) {
-        return '<span class="text-gray-400 text-xs font-mono">-</span>';
-    }
-    if (ping > 400) {
-        return `<span class="text-red-500">${ping} ms</span>`;
-    }
-    if (ping > 200) {
-        return `<span class="text-orange-500">${ping} ms</span>`;
-    }
+    if (ping === undefined) return '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
+    if (ping === null) return '<span class="text-gray-400 text-xs font-mono">-</span>';
+    if (ping > 400) return `<span class="text-red-500">${ping} ms</span>`;
+    if (ping > 200) return `<span class="text-orange-500">${ping} ms</span>`;
     return `<span class="text-green-600">${ping} ms</span>`;
 }
 
@@ -119,7 +122,7 @@ function handleSort(column) {
     } else {
         sortCol = column;
         sortAsc = false; 
-        if (['version', 'name', 'country', 'pubkey', 'is_public'].includes(column)) {
+        if (['version', 'name', 'country', 'pubkey', 'is_public', 'nfts'].includes(column)) {
             sortAsc = true;
         }
     }
@@ -127,71 +130,25 @@ function handleSort(column) {
 }
 
 function copyPubkey(text, element, event) {
-    if (event) {
-        event.stopPropagation();
-    } else if (window.event) {
-        window.event.cancelBubble = true;
-    }
-
+    if (event) { event.stopPropagation(); } else if (window.event) { window.event.cancelBubble = true; }
     navigator.clipboard.writeText(text).then(() => {
         const originalHTML = element.innerHTML;
         element.innerHTML = "Copied!";
         element.classList.replace("text-gray-600", "text-green-600");
         element.classList.add("font-bold");
-
         setTimeout(() => {
             element.innerHTML = originalHTML;
             element.classList.replace("text-green-600", "text-gray-600");
             element.classList.remove("font-bold");
         }, 1000);
-    }).catch(err => {
-        console.error("Clipboard write failed", err);
-    });
+    }).catch(err => console.error("Clipboard write failed", err));
 }
 
-// --- CORE UI UPDATE FUNCTION ---
-function updateRowAfterGeo(ip) {
-    const cached = ipCache[ip];
-    if (!cached) return;
-
-    const nameCell = document.getElementById(`name-${ip}`);
-    const row = nameCell?.parentElement;
-    if (!row) return;
-
-    // 1. Update Name
-    if (nameCell) {
-        if (cached.name && cached.name !== "N/A") {
-            nameCell.textContent = cached.name;
-            row.classList.add("known-server");
-            nameCell.classList.remove("text-gray-500");
-            nameCell.classList.add("font-semibold", "text-indigo-700");
-        } else if (cached.name === "N/A") {
-            nameCell.textContent = "N/A";
-            row.classList.remove("known-server");
-        }
-    }
-
-    // 2. Update Country + Provider (Flag + Small Text)
-    if (row.cells[3]) {
-        // Fix: Use the selected RPC host for the flag image
-        const rpcSelector = document.getElementById("rpcSelector");
-        const rpcHost = rpcSelector ? new URL(rpcSelector.value).hostname : window.location.hostname;
-
-        const flag = cached.country_code && cached.country_code !== "--" 
-            ? `<img src="https://${rpcHost}/geo/flag/${cached.country_code}" class="inline-block mr-2 w-4 h-auto shadow-sm">` 
-            : "";
-        
-        // Short provider name in small text
-        const providerHtml = `<span class="text-[10px] uppercase tracking-tighter opacity-80">${cached.provider || ""}</span>`;
-        
-        row.cells[3].innerHTML = `${flag}${providerHtml}`;
-        row.cells[3].title = cached.geo_sort || "Unknown"; // Tooltip shows "Germany Contabo"
-    }
-
-    // 3. Update Stats
-    if (row.cells[7]) row.cells[7].innerHTML = formatPingHtml(cached.ping);
-    if (row.cells[8]) row.cells[8].innerHTML = formatCreditsHtml(cached.credits);
-    if (row.cells[9]) row.cells[9].innerHTML = formatBalanceHtml(cached.balance);
+function getSortIndicator(col) {
+    if (sortCol !== col) return '<span class="text-gray-300 ml-1 opacity-50">↕</span>';
+    return sortAsc 
+        ? '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↑</span>' 
+        : '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↓</span>';
 }
 
 function refilterAndRestyle() {
@@ -201,13 +158,11 @@ function refilterAndRestyle() {
     document.querySelectorAll("#pched-live-view tbody tr").forEach(row => {
         const nameCell = row.querySelector("td[id^='name-']");
         if (!nameCell) return;
-        
         const ip = nameCell.id.replace("name-", "");
         const cache = ipCache[ip] || {};
         const name = (cache.name || "N/A").toLowerCase();
         const ipText = ip.toLowerCase();
         const pubkey = row.cells[1]?.dataset.pubkey?.toLowerCase() || "";
-
         if (!toggle || value === "") {
             row.style.display = "";
         } else {
@@ -220,22 +175,12 @@ function refilterAndRestyle() {
 let filterTimer;
 function scheduleFilter() {
     clearTimeout(filterTimer);
-    filterTimer = setTimeout(() => {
-        markLoadButton();
-        refilterAndRestyle();
-    }, 150);
+    filterTimer = setTimeout(() => { markLoadButton(); refilterAndRestyle(); }, 150);
 }
 
-function getSortIndicator(col) {
-    if (sortCol !== col) return '<span class="text-gray-300 ml-1 opacity-50">↕</span>';
-    return sortAsc 
-        ? '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↑</span>' 
-        : '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↓</span>';
-}
-
+// --- MAIN RENDER FUNCTION ---
 function renderTable() {
     const output = document.getElementById("pched-live-view");
-    
     if (!currentPods) return;
     let podsToRender = [...currentPods];
 
@@ -249,83 +194,66 @@ function renderTable() {
     podsToRender.sort((a, b) => {
         const ipA = a.address.split(":")[0];
         const ipB = b.address.split(":")[0];
-        const cacheA = ipCache[ipA] || { name: "", geo_sort: "zzzz" };
-        const cacheB = ipCache[ipB] || { name: "", geo_sort: "zzzz" };
-
+        const cacheA = ipCache[ipA] || { name: "", geo_sort: "zzzz", nfts: [] };
+        const cacheB = ipCache[ipB] || { name: "", geo_sort: "zzzz", nfts: [] };
         let valA, valB, comparison = 0;
 
         switch (sortCol) {
             case 'name':
                 valA = (cacheA.name === "N/A" ? "" : cacheA.name).toLowerCase();
                 valB = (cacheB.name === "N/A" ? "" : cacheB.name).toLowerCase();
-                if (valA < valB) comparison = -1;
-                else if (valA > valB) comparison = 1;
+                if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
                 break;
             case 'pubkey':
                 valA = (a.pubkey || "").toLowerCase();
                 valB = (b.pubkey || "").toLowerCase();
-                if (valA < valB) comparison = -1;
-                else if (valA > valB) comparison = 1;
+                if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
                 break;
             case 'is_public':
-                valA = a.is_public ? 1 : 0;
-                valB = b.is_public ? 1 : 0;
-                comparison = valA - valB;
+                comparison = (a.is_public ? 1 : 0) - (b.is_public ? 1 : 0);
                 break;
             case 'country':
-                // --- CRITICAL SORT LOGIC ---
                 valA = (cacheA.geo_sort || "").toLowerCase();
                 valB = (cacheB.geo_sort || "").toLowerCase();
-                
-                // Keep loading rows at the bottom during initial fetch
                 if (valA.includes("loading") && !valB.includes("loading")) return 1;
                 if (!valA.includes("loading") && valB.includes("loading")) return -1;
-                
-                if (valA < valB) comparison = -1;
-                else if (valA > valB) comparison = 1;
+                if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
                 break;
             case 'storage':
-                 valA = a.storage_committed || -1;
-                 valB = b.storage_committed || -1;
-                 comparison = valA - valB;
+                 comparison = (a.storage_committed || -1) - (b.storage_committed || -1);
                  break;
             case 'usage':
-                 valA = a.storage_usage_percent || -1;
-                 valB = b.storage_usage_percent || -1;
-                 comparison = valA - valB;
+                 comparison = (a.storage_usage_percent || -1) - (b.storage_usage_percent || -1);
                  break;
             case 'ping':
                 valA = (cacheA.ping === null) ? Infinity : (cacheA.ping === undefined ? 99999 : cacheA.ping);
                 valB = (cacheB.ping === null) ? Infinity : (cacheB.ping === undefined ? 99999 : cacheB.ping);
-                if (valA < valB) comparison = -1;
-                else if (valA > valB) comparison = 1;
+                if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
                 break;
             case 'credits':
-                valA = (cacheA.credits === undefined || cacheA.credits === null) ? -1 : cacheA.credits;
-                valB = (cacheB.credits === undefined || cacheB.credits === null) ? -1 : cacheB.credits;
-                if (valA < valB) comparison = -1;
-                else if (valA > valB) comparison = 1;
+                valA = (cacheA.credits ?? -1);
+                valB = (cacheB.credits ?? -1);
+                if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
                 break;
             case 'balance':
                 valA = parseFloat(cacheA.balance) || -1;
                 valB = parseFloat(cacheB.balance) || -1;
-                if (valA < valB) comparison = -1;
-                else if (valA > valB) comparison = 1;
+                if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
                 break;
             case 'uptime':
-                valA = a.uptime || -1;
-                valB = b.uptime || -1;
-                comparison = valA - valB;
+                comparison = (a.uptime || -1) - (b.uptime || -1);
                 break;
             case 'version':
                 comparison = compareVersions(a.version, b.version);
                 break;
-            case 'last_seen':
-            default:
-                valA = a.last_seen_timestamp || 0;
-                valB = b.last_seen_timestamp || 0;
-                if (valA < valB) comparison = -1;
-                else if (valA > valB) comparison = 1;
+            // --- NEW SORT CASE FOR NFTS ---
+            case 'nfts':
+                valA = (cacheA.nfts || []).length;
+                valB = (cacheB.nfts || []).length;
+                comparison = valA - valB;
+                break;
+            default: // last_seen
+                comparison = (a.last_seen_timestamp || 0) - (b.last_seen_timestamp || 0);
                 break;
         }
         return sortAsc ? comparison : -comparison;
@@ -337,6 +265,7 @@ function renderTable() {
     let html = `<table class="min-w-full"><thead><tr>
         <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')" title="Click footer to register your name">Name ${getSortIndicator('name')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('pubkey')">Pubkey ${getSortIndicator('pubkey')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('nfts')">NFT ${getSortIndicator('nfts')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('is_public')">Pub? ${getSortIndicator('is_public')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('country')">Country ${getSortIndicator('country')}</th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('storage')">Size ${getSortIndicator('storage')}</th>
@@ -367,35 +296,55 @@ function renderTable() {
         }
 
         const existing = ipCache[ip];
-        // If we don't have a provider yet (or it's an error state), re-fetch
         const needsFetch = !existing || existing.country?.includes("loading-spinner") || existing.country === "Geo Error" || !existing.provider;
         
-        if (needsFetch) {
-            batchQueue.push({ ip: ip, pubkey: pubkey });
-        }
+        if (needsFetch) batchQueue.push({ ip: ip, pubkey: pubkey });
         
-        // Default placeholder while loading
         const cached = existing && !needsFetch ? existing : { 
-            name: "N/A", 
-            country: '<span class="loading-spinner">Loading</span>', 
-            provider: "",
-            geo_sort: "loading",
-            ping: undefined, 
-            balance: undefined, 
-            credits: undefined 
+            name: "N/A", country: '<span class="loading-spinner">Loading</span>', provider: "", geo_sort: "loading", nfts: [] 
         };
 
-        // --- CRITICAL FIX: Generate Country HTML Here (Fixes "Text Only" on Sort) ---
+        // --- BADGE LOGIC (Next to Name) ---
+        let badgeHtml = "";
+        if (cached.nfts && cached.nfts.length > 0) {
+            const hasNft = cached.nfts.some(a => a.type === 'NFT');
+            const hasToken = cached.nfts.some(a => a.type === 'TOKEN');
+            if (hasNft) {
+                badgeHtml += `<span class="ml-2 px-1.5 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 rounded shadow-sm" title="Xandeum NFT Owner">NFT</span>`;
+            }
+            if (hasToken) {
+                badgeHtml += `<span class="ml-1 px-1.5 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r from-blue-400 to-indigo-500 rounded shadow-sm" title="XAND Token Holder">XAND</span>`;
+            }
+        }
+
+        // --- NFT COUNT CELL ---
+        let nftCellHtml = `<span class="text-gray-300 text-xs">-</span>`;
+        if (cached.nfts && cached.nfts.length > 0) {
+            const count = cached.nfts.length;
+            // XSS FIX APPLIED HERE: using escapeHtml()
+            const tooltip = cached.nfts.map(n => `${escapeHtml(n.name)} (${n.type})`).join('\n');
+            const hasNft = cached.nfts.some(n => n.type === 'NFT');
+            const colorClass = hasNft 
+                ? "bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-800" 
+                : "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800";
+
+            nftCellHtml = `<div class="group relative inline-block">
+                <span class="px-2 py-0.5 text-xs font-bold rounded border ${colorClass} cursor-help">${count}</span>
+                <div class="invisible group-hover:visible absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-pre shadow-lg border border-gray-700">
+                    ${tooltip}
+                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                </div>
+            </div>`;
+        }
+
         let countryHtml = cached.country; 
         if (cached.country_code && cached.provider) {
              const flagUrl = `https://${rpcHost}/geo/flag/${cached.country_code}`;
              const flagImg = (cached.country_code !== "--") 
-                ? `<img src="${flagUrl}" class="inline-block mr-2 w-4 h-auto shadow-sm">` 
-                : "";
+                ? `<img src="${flagUrl}" class="inline-block mr-2 w-4 h-auto shadow-sm">` : "";
              const providerHtml = `<span class="text-[10px] uppercase tracking-tighter opacity-80">${cached.provider}</span>`;
              countryHtml = `${flagImg}${providerHtml}`;
         }
-        // ---------------------------------------------------------------------------
 
         const isKnown = cached.name && cached.name !== "N/A";
         const rowClass = (isKnown ? "known-server" : "") + (isDuplicated ? " duplicate-pubkey-row" : "");
@@ -414,13 +363,12 @@ function renderTable() {
         const versionStr = cleanVersion(pod.version);
 
         html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}&host=${rpcHost}'" style="cursor:pointer;">
-            <td id="name-${ip}" class="${nameClass}" title="Click footer to register your name">${cached.name}</td>
+            <td id="name-${ip}" class="${nameClass}" title="Click footer to register your name">${cached.name} ${badgeHtml}</td>
             <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 ${pubkeyCellClass}"
-                data-pubkey="${pubkey}" 
-                title="${hoverTitle}" 
-                onclick="copyPubkey('${pubkey}', this, event)">
+                data-pubkey="${pubkey}" title="${hoverTitle}" onclick="copyPubkey('${pubkey}', this, event)">
                 <span class="short-key">${shortKey}</span>${warningIcon}
             </td>
+            <td class="text-center">${nftCellHtml}</td>
             <td class="text-xs">${publicStr}</td>
             <td id="country-${ip}" title="${cached.geo_sort}">${countryHtml}</td>
             <td class="text-right font-mono text-xs">${storageStr}</td>
@@ -437,7 +385,6 @@ function renderTable() {
     html += "</tbody></table>";
     output.innerHTML = html;
     
-    // 4. FIRE THE BATCH FETCH
     if (batchQueue.length > 0 && !isBatchFetching) {
         isBatchFetching = true;
         const rpcUrl = document.getElementById("rpcSelector").value;
@@ -453,26 +400,22 @@ function renderTable() {
         .then(results => {
             for (const ip in results) {
                 const g = results[ip];
-                
-                // Update Cache
                 ipCache[ip] = {
                     name: g.name || "N/A",
                     country: g.country,
                     country_code: g.country_code,
                     provider: g.provider,
                     geo_sort: g.geo_sort,
-                    ping: g.ping !== undefined ? g.ping : null,
-                    balance: g.balance !== undefined ? g.balance : null,
-                    credits: g.credits !== undefined ? g.credits : null
+                    ping: g.ping,
+                    balance: g.balance,
+                    credits: g.credits,
+                    nfts: g.nfts || [] 
                 };
             }
-            // Force a re-render to apply sorting now that data is available
             requestAnimationFrame(() => renderTable());
         })
         .catch(e => console.error("Batch geo error", e))
-        .finally(() => {
-            isBatchFetching = false;
-        });
+        .finally(() => { isBatchFetching = false; });
     }
 
     setTimeout(refilterAndRestyle, 0);
@@ -482,42 +425,27 @@ async function sendRpcRequest() {
     if (!hasLoadedOnce) hasLoadedOnce = true;
     document.getElementById("loadButton").textContent = "RELOAD";
     clearLoadButtonHighlight();
-
     const rpcUrl = document.getElementById("rpcSelector").value;
     const output = document.getElementById("pched-live-view");
     output.innerHTML = '<p class="text-center text-indigo-600 dark:text-indigo-400 font-semibold">Loading pod list...</p>';
-
     try {
         const res = await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ jsonrpc: "2.0", method: "get-pods-with-stats", id: 1 }) });
-        
         if (!res.ok) throw new Error(res.status);
         const data = await res.json();
-        
         const rawPods = data.result?.pods || [];
         const uniqueMap = new Map();
-
         rawPods.forEach(p => {
              const ip = p.address ? p.address.split(':')[0] : 'unknown';
              if (ip === 'unknown') return;
-
-             if (!uniqueMap.has(ip)) {
-                 uniqueMap.set(ip, p);
-             } else {
+             if (!uniqueMap.has(ip)) { uniqueMap.set(ip, p); } 
+             else {
                  const existing = uniqueMap.get(ip);
-                 const merged = { ...existing, ...p };
-                 if ((p.last_seen_timestamp || 0) > (existing.last_seen_timestamp || 0)) {
-                     uniqueMap.set(ip, merged);
-                 }
+                 if ((p.last_seen_timestamp || 0) > (existing.last_seen_timestamp || 0)) uniqueMap.set(ip, { ...existing, ...p });
              }
         });
-        
         currentPods = Array.from(uniqueMap.values());
-        
-        if (currentPods.length === 0) {
-            output.innerHTML = "<p class='text-gray-500 dark:text-gray-400'>No pods found.</p>";
-            return;
-        }
+        if (currentPods.length === 0) { output.innerHTML = "<p class='text-gray-500 dark:text-gray-400'>No pods found.</p>"; return; }
 
         pubkeyCountMap = {};
         pubkeyToIpsMap = {};
@@ -528,12 +456,8 @@ async function sendRpcRequest() {
             if (!pubkeyToIpsMap[pk]) pubkeyToIpsMap[pk] = [];
             pubkeyToIpsMap[pk].push(pod.address.split(":")[0]);
         });
-
         renderTable();
-
-    } catch (e) {
-        output.innerHTML = `<p class="text-red-500">Error: Could not reach RPC.</p>`;
-    }
+    } catch (e) { output.innerHTML = `<p class="text-red-500">Error: Could not reach RPC.</p>`; }
 }
 
 window.addEventListener("load", markLoadButton);
@@ -542,19 +466,15 @@ document.getElementById("versionFilterToggle").addEventListener("change", () => 
 document.getElementById("versionFilterValue").addEventListener("input", () => { markLoadButton(); renderTable(); });
 document.getElementById("globalFilterToggle").addEventListener("change", scheduleFilter);
 document.getElementById("globalFilterValue").addEventListener("input", scheduleFilter);
-
 setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
 
 const themeToggle = document.getElementById('themeToggle');
 const htmlEl = document.documentElement; 
-
-if (localStorage.getItem('theme') === 'dark' || 
-   (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     htmlEl.classList.add('dark');
 } else {
     htmlEl.classList.remove('dark');
 }
-
 themeToggle?.addEventListener('click', () => {
     htmlEl.classList.toggle('dark');
     localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
