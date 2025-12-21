@@ -7,19 +7,11 @@ let pubkeyToIpsMap = {};
 let currentPods = [];
 let sortCol = 'credits'; 
 let sortAsc = false;      
-
-// --- Batch Fetch State ---
 let isBatchFetching = false;
 
-// --- Security Helper: Prevent XSS in Tooltips ---
 function escapeHtml(text) {
     if (!text) return text;
-    return text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
 function formatRelativeTime(ts) {
@@ -57,7 +49,6 @@ function cleanVersion(v) {
     return v.split('-')[0];
 }
 
-// --- HTML Formatters for Stats ---
 function formatPingHtml(ping) {
     if (ping === undefined) return '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
     if (ping === null) return '<span class="text-gray-400 text-xs font-mono">-</span>';
@@ -73,12 +64,13 @@ function formatCreditsHtml(credits) {
     return `<span class="text-purple-600 dark:text-purple-400 font-bold">${val}</span>`;
 }
 
-function formatBalanceHtml(balance) {
-    if (balance === undefined) return '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
-    if (balance === null) return `<span class="text-gray-400 text-xs">-</span>`;
-    const val = parseFloat(balance);
-    const fmt = isNaN(val) ? balance : val.toFixed(3);
-    return `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${fmt} ◎</span>`;
+// --- NEW STAKE FORMATTER ---
+function formatStakeHtml(stake) {
+    if (stake === undefined) return '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
+    if (stake === null) return `<span class="text-gray-400 text-xs">-</span>`;
+    const val = parseFloat(stake);
+    const fmt = isNaN(val) ? stake : val.toFixed(0); // Stake usually whole numbers
+    return `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${fmt} 굄</span>`;
 }
 
 function markLoadButton() {
@@ -100,11 +92,9 @@ function compareVersions(vA, vB) {
     if (!cleanA && !cleanB) return 0;
     if (!cleanA) return -1;
     if (!cleanB) return 1;
-
     const partsA = cleanA.split('.').map(Number);
     const partsB = cleanB.split('.').map(Number);
     const len = Math.max(partsA.length, partsB.length);
-
     for (let i = 0; i < len; i++) {
         const a = partsA[i] || 0;
         const b = partsB[i] || 0;
@@ -116,7 +106,6 @@ function compareVersions(vA, vB) {
 
 function handleSort(column) {
     if (!currentPods || currentPods.length === 0) return;
-
     if (sortCol === column) {
         sortAsc = !sortAsc;
     } else {
@@ -141,7 +130,7 @@ function copyPubkey(text, element, event) {
             element.classList.replace("text-green-600", "text-gray-600");
             element.classList.remove("font-bold");
         }, 1000);
-    }).catch(err => console.error("Clipboard write failed", err));
+    });
 }
 
 function getSortIndicator(col) {
@@ -154,7 +143,6 @@ function getSortIndicator(col) {
 function refilterAndRestyle() {
     const toggle = document.getElementById("globalFilterToggle").checked;
     const value = document.getElementById("globalFilterValue").value.trim().toLowerCase();
-
     document.querySelectorAll("#pched-live-view tbody tr").forEach(row => {
         const nameCell = row.querySelector("td[id^='name-']");
         if (!nameCell) return;
@@ -178,19 +166,16 @@ function scheduleFilter() {
     filterTimer = setTimeout(() => { markLoadButton(); refilterAndRestyle(); }, 150);
 }
 
-// --- MAIN RENDER FUNCTION ---
 function renderTable() {
     const output = document.getElementById("pched-live-view");
     if (!currentPods) return;
     let podsToRender = [...currentPods];
 
-    // 1. FILTER
     if (document.getElementById("versionFilterToggle").checked) {
         const v = document.getElementById("versionFilterValue").value.trim();
         if (v) podsToRender = podsToRender.filter(p => cleanVersion(p.version) === v);
     }
 
-    // 2. SORT
     podsToRender.sort((a, b) => {
         const ipA = a.address.split(":")[0];
         const ipB = b.address.split(":")[0];
@@ -235,9 +220,10 @@ function renderTable() {
                 valB = (cacheB.credits ?? -1);
                 if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
                 break;
-            case 'balance':
-                valA = parseFloat(cacheA.balance) || -1;
-                valB = parseFloat(cacheB.balance) || -1;
+            // --- UPDATED SORT FOR STAKE ---
+            case 'stake':
+                valA = parseFloat(cacheA.stake) || -1;
+                valB = parseFloat(cacheB.stake) || -1;
                 if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
                 break;
             case 'uptime':
@@ -246,7 +232,6 @@ function renderTable() {
             case 'version':
                 comparison = compareVersions(a.version, b.version);
                 break;
-            // --- NEW SORT CASE FOR NFTS ---
             case 'nfts':
                 valA = (cacheA.nfts || []).length;
                 valB = (cacheB.nfts || []).length;
@@ -261,7 +246,6 @@ function renderTable() {
 
     document.getElementById("podCount").textContent = podsToRender.length;
 
-    // 3. BUILD HTML
     let html = `<table class="min-w-full"><thead><tr>
         <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')" title="Click footer to register your name">Name ${getSortIndicator('name')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('pubkey')">Pubkey ${getSortIndicator('pubkey')}</th>
@@ -273,7 +257,7 @@ function renderTable() {
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('uptime')">Up ${getSortIndicator('uptime')}</th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('ping')">Ping ${getSortIndicator('ping')}</th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('credits')">Credits ${getSortIndicator('credits')}</th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('balance')">Bal ${getSortIndicator('balance')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('stake')">Stake ${getSortIndicator('stake')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('last_seen')">Seen ${getSortIndicator('last_seen')}</th>
         <th class="rounded-tr-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('version')">Ver ${getSortIndicator('version')}</th>
     </tr></thead><tbody>`;
@@ -301,33 +285,25 @@ function renderTable() {
         if (needsFetch) batchQueue.push({ ip: ip, pubkey: pubkey });
         
         const cached = existing && !needsFetch ? existing : { 
-            name: "N/A", country: '<span class="loading-spinner">Loading</span>', provider: "", geo_sort: "loading", nfts: [] 
+            name: "N/A", country: '<span class="loading-spinner">Loading</span>', provider: "", geo_sort: "loading", nfts: [], stake: 0 
         };
 
-        // --- BADGE LOGIC (Next to Name) ---
         let badgeHtml = "";
         if (cached.nfts && cached.nfts.length > 0) {
             const hasNft = cached.nfts.some(a => a.type === 'NFT');
             const hasToken = cached.nfts.some(a => a.type === 'TOKEN');
-            if (hasNft) {
-                badgeHtml += `<span class="ml-2 px-1.5 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 rounded shadow-sm" title="Xandeum NFT Owner">NFT</span>`;
-            }
-            if (hasToken) {
-                badgeHtml += `<span class="ml-1 px-1.5 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r from-blue-400 to-indigo-500 rounded shadow-sm" title="XAND Token Holder">XAND</span>`;
-            }
+            if (hasNft) badgeHtml += `<span class="ml-2 px-1.5 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 rounded shadow-sm" title="Xandeum NFT Owner">NFT</span>`;
+            if (hasToken) badgeHtml += `<span class="ml-1 px-1.5 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r from-blue-400 to-indigo-500 rounded shadow-sm" title="XAND Token Holder">XAND</span>`;
         }
 
-        // --- NFT COUNT CELL ---
         let nftCellHtml = `<span class="text-gray-300 text-xs">-</span>`;
         if (cached.nfts && cached.nfts.length > 0) {
             const count = cached.nfts.length;
-            // XSS FIX APPLIED HERE: using escapeHtml()
             const tooltip = cached.nfts.map(n => `${escapeHtml(n.name)} (${n.type})`).join('\n');
             const hasNft = cached.nfts.some(n => n.type === 'NFT');
             const colorClass = hasNft 
                 ? "bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-800" 
                 : "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800";
-
             nftCellHtml = `<div class="group relative inline-block">
                 <span class="px-2 py-0.5 text-xs font-bold rounded border ${colorClass} cursor-help">${count}</span>
                 <div class="invisible group-hover:visible absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-pre shadow-lg border border-gray-700">
@@ -340,8 +316,7 @@ function renderTable() {
         let countryHtml = cached.country; 
         if (cached.country_code && cached.provider) {
              const flagUrl = `https://${rpcHost}/geo/flag/${cached.country_code}`;
-             const flagImg = (cached.country_code !== "--") 
-                ? `<img src="${flagUrl}" class="inline-block mr-2 w-4 h-auto shadow-sm">` : "";
+             const flagImg = (cached.country_code !== "--") ? `<img src="${flagUrl}" class="inline-block mr-2 w-4 h-auto shadow-sm">` : "";
              const providerHtml = `<span class="text-[10px] uppercase tracking-tighter opacity-80">${cached.provider}</span>`;
              countryHtml = `${flagImg}${providerHtml}`;
         }
@@ -354,7 +329,8 @@ function renderTable() {
 
         let pingHtml = formatPingHtml(cached.ping);
         let creditsHtml = formatCreditsHtml(cached.credits);
-        let balanceHtml = formatBalanceHtml(cached.balance);
+        // CHANGED: Use Stake HTML
+        let stakeHtml = formatStakeHtml(cached.stake);
 
         const publicStr = (pod.is_public === true) ? "Yes" : (pod.is_public === false ? "No" : "-");
         const storageStr = formatStorage(pod.storage_committed);
@@ -376,7 +352,7 @@ function renderTable() {
             <td class="text-right font-mono text-xs">${uptimeStr}</td>
             <td class="text-right font-mono text-sm">${pingHtml}</td>
             <td class="text-right font-mono text-sm">${creditsHtml}</td>
-            <td class="text-right font-mono text-sm">${balanceHtml}</td>
+            <td class="text-right font-mono text-sm">${stakeHtml}</td>
             <td class="${timeClass}">${timeText}</td>
             <td>${versionStr}</td>
         </tr>`;
@@ -407,7 +383,7 @@ function renderTable() {
                     provider: g.provider,
                     geo_sort: g.geo_sort,
                     ping: g.ping,
-                    balance: g.balance,
+                    stake: g.stake, // Grab Stake
                     credits: g.credits,
                     nfts: g.nfts || [] 
                 };
@@ -417,10 +393,10 @@ function renderTable() {
         .catch(e => console.error("Batch geo error", e))
         .finally(() => { isBatchFetching = false; });
     }
-
     setTimeout(refilterAndRestyle, 0);
 }
 
+// ... (Rest of existing loader code remains same) ...
 async function sendRpcRequest() {
     if (!hasLoadedOnce) hasLoadedOnce = true;
     document.getElementById("loadButton").textContent = "RELOAD";
@@ -446,7 +422,6 @@ async function sendRpcRequest() {
         });
         currentPods = Array.from(uniqueMap.values());
         if (currentPods.length === 0) { output.innerHTML = "<p class='text-gray-500 dark:text-gray-400'>No pods found.</p>"; return; }
-
         pubkeyCountMap = {};
         pubkeyToIpsMap = {};
         currentPods.forEach(pod => {
