@@ -1,7 +1,9 @@
-https://dao.xandeum.network/dao/XAND/proposal/7F3QzpdznP7i9ZFeGwwAyZeSL8QWBL8AD3M84Hf3GRtK
-Moderator Payouts Jan 2025
+https://dao.xandeum.network/dao/XAND/proposal/7jsHwLmX49KwBwgwJuF7bLKWXKEsw11PPVbjWZibxspd
+Additional payouts
 Completed
 Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
+
+Invalid wallet address; July, August, September to new wallet
 
 
 Instructions
@@ -19,22 +21,22 @@ Account 2
 
 Voter
 Writable
-6rtkufGjFwFdEc4feHV7MXM9Zt4DyZGjthiEemhaUHrt
+6jCYsLo6P8DEGXaGn5DZcnnGcaG3aNj1yRUubBZhTvjX
 Account 3
 
 Voter Authority
-D7Tm6P4XoXn9d4Ye63JbhyzZrdeR3Pr2aivbweH7G9u2
+5J1ifsZNZnSg8cMPSYmgVdNmNmciLH7bKohYAgnXkt8h
 Account 4
 
 Voter Weight Record
 Writable
-FueqUK95JJmXA9kwHYeXEffGiugSchnVHJTjPWmV97tx
+EFAmoGMPCTFTHiNX7EeAW63q3xLcYTUPRqY1vEEAB1CZ
 Account 5
 
 Vault
 Writable
-85zaZamR2XJx3NnkCCRyCzPeBTS8F5TWckY5sXBTmGeu
-owner: 6rtkufGjFwFdEc4feHV7MXM9Zt4DyZGjthiEemhaUHrt
+CkvRnFgVHtCerd2XLoctck2pc74yG1oUtsWfxLUwwvrq
+owner: 6jCYsLo6P8DEGXaGn5DZcnnGcaG3aNj1yRUubBZhTvjX
 Account 6
 
 Deposit Token
@@ -50,13 +52,13 @@ Account 8
 
 Grant Authority
 Signer
-D7Tm6P4XoXn9d4Ye63JbhyzZrdeR3Pr2aivbweH7G9u2
+5J1ifsZNZnSg8cMPSYmgVdNmNmciLH7bKohYAgnXkt8h
 Account 9
 
 Payer
 Signer
 Writable
-D7Tm6P4XoXn9d4Ye63JbhyzZrdeR3Pr2aivbweH7G9u2
+5J1ifsZNZnSg8cMPSYmgVdNmNmciLH7bKohYAgnXkt8h
 Account 10
 
 Deposit Mint
@@ -78,15 +80,15 @@ Account 14
 SysvarRent111111111111111111111111111111111
 Sysvar: Rent
 Data
-Grant to: D7Tm6P4XoXn9d4Ye63JbhyzZrdeR3Pr2aivbweH7G9u2
+Grant to: 5J1ifsZNZnSg8cMPSYmgVdNmNmciLH7bKohYAgnXkt8h
 Lock type: cliff
-Amount: 40,000
-Start date: Fri Jan 31 2025
-End date: Sat Jan 31 2026
+Amount: 20,000
+Start date: Thu Jul 31 2025
+End date: Fri Jul 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Execution date: 07-05-2025 09:12 - View transaction
+Execution date: 04-11-2025 18:45 - View transaction
 Transaction 2
 instruction 1 - Grant
 Program
@@ -101,22 +103,22 @@ Account 2
 
 Voter
 Writable
-HPGNaQPu5e7UAharmiwEeetAZxgz3rsmFiRH9kLBr3Bz
+6jCYsLo6P8DEGXaGn5DZcnnGcaG3aNj1yRUubBZhTvjX
 Account 3
 
 Voter Authority
-EDvQNtVLGjYnW9qF9uc3GVjcyLMBPWBb6JiwmYLzTckj
+5J1ifsZNZnSg8cMPSYmgVdNmNmciLH7bKohYAgnXkt8h
 Account 4
 
 Voter Weight Record
 Writable
-B2rt7n8QwRJe6hqe3C9s5wPDkcKM3GD63Gwd4Si1maFk
+EFAmoGMPCTFTHiNX7EeAW63q3xLcYTUPRqY1vEEAB1CZ
 Account 5
 
 Vault
 Writable
-HKY6ZdbziNCF2XqpVKWmR6vAP56GfQECJ7BKPtZYAcHF
-owner: HPGNaQPu5e7UAharmiwEeetAZxgz3rsmFiRH9kLBr3Bz
+CkvRnFgVHtCerd2XLoctck2pc74yG1oUtsWfxLUwwvrq
+owner: 6jCYsLo6P8DEGXaGn5DZcnnGcaG3aNj1yRUubBZhTvjX
 Account 6
 
 Deposit Token
@@ -132,13 +134,13 @@ Account 8
 
 Grant Authority
 Signer
-EDvQNtVLGjYnW9qF9uc3GVjcyLMBPWBb6JiwmYLzTckj
+5J1ifsZNZnSg8cMPSYmgVdNmNmciLH7bKohYAgnXkt8h
 Account 9
 
 Payer
 Signer
 Writable
-EDvQNtVLGjYnW9qF9uc3GVjcyLMBPWBb6JiwmYLzTckj
+5J1ifsZNZnSg8cMPSYmgVdNmNmciLH7bKohYAgnXkt8h
 Account 10
 
 Deposit Mint
@@ -160,15 +162,15 @@ Account 14
 SysvarRent111111111111111111111111111111111
 Sysvar: Rent
 Data
-Grant to: EDvQNtVLGjYnW9qF9uc3GVjcyLMBPWBb6JiwmYLzTckj
+Grant to: 5J1ifsZNZnSg8cMPSYmgVdNmNmciLH7bKohYAgnXkt8h
 Lock type: cliff
-Amount: 40,000
-Start date: Fri Jan 31 2025
-End date: Sat Jan 31 2026
+Amount: 30,000
+Start date: Sun Aug 31 2025
+End date: Mon Aug 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Execution date: 07-05-2025 10:23 - View transaction
+Execution date: 04-11-2025 18:45 - View transaction
 Transaction 3
 instruction 1 - Grant
 Program
@@ -183,22 +185,22 @@ Account 2
 
 Voter
 Writable
-2mahsFqfyKsrwFFUcCH7szvUMZLWz8BAE8ik66nZcEAj
+6jCYsLo6P8DEGXaGn5DZcnnGcaG3aNj1yRUubBZhTvjX
 Account 3
 
 Voter Authority
-H5qQA4rTw9TR5s6pLLMcFk4pm2HgFMTJzaFt52Bie54a
+5J1ifsZNZnSg8cMPSYmgVdNmNmciLH7bKohYAgnXkt8h
 Account 4
 
 Voter Weight Record
 Writable
-GiWtFUrWCbJh72eysJLVShwqgiEdRH6u7Cny1smgCRNR
+EFAmoGMPCTFTHiNX7EeAW63q3xLcYTUPRqY1vEEAB1CZ
 Account 5
 
 Vault
 Writable
-F82MJFKL2ZVaAjD8NuiWUufycsP9apA1SjziUxAs8ZP5
-owner: 2mahsFqfyKsrwFFUcCH7szvUMZLWz8BAE8ik66nZcEAj
+CkvRnFgVHtCerd2XLoctck2pc74yG1oUtsWfxLUwwvrq
+owner: 6jCYsLo6P8DEGXaGn5DZcnnGcaG3aNj1yRUubBZhTvjX
 Account 6
 
 Deposit Token
@@ -214,13 +216,13 @@ Account 8
 
 Grant Authority
 Signer
-H5qQA4rTw9TR5s6pLLMcFk4pm2HgFMTJzaFt52Bie54a
+5J1ifsZNZnSg8cMPSYmgVdNmNmciLH7bKohYAgnXkt8h
 Account 9
 
 Payer
 Signer
 Writable
-H5qQA4rTw9TR5s6pLLMcFk4pm2HgFMTJzaFt52Bie54a
+5J1ifsZNZnSg8cMPSYmgVdNmNmciLH7bKohYAgnXkt8h
 Account 10
 
 Deposit Mint
@@ -242,94 +244,12 @@ Account 14
 SysvarRent111111111111111111111111111111111
 Sysvar: Rent
 Data
-Grant to: H5qQA4rTw9TR5s6pLLMcFk4pm2HgFMTJzaFt52Bie54a
+Grant to: 5J1ifsZNZnSg8cMPSYmgVdNmNmciLH7bKohYAgnXkt8h
 Lock type: cliff
-Amount: 40,000
-Start date: Fri Jan 31 2025
-End date: Sat Jan 31 2026
+Amount: 30,000
+Start date: Tue Sep 30 2025
+End date: Wed Sep 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Execution date: 07-05-2025 07:27 - View transaction
-Transaction 4
-instruction 1 - Grant
-Program
-Authority: Ec3nz…sNXnK
-Upgradeable: Yes
-HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
-Account 1
-
-Registrar
-EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
-Account 2
-
-Voter
-Writable
-3MqZuiKKJNY65ZdQYeP9o4o1kNe8Ea2DP6DavD95Ac7f
-Account 3
-
-Voter Authority
-ABvNi1HtPSitU7YbX6uLdvip14FCuGnrmnwk2JpBdsft
-Account 4
-
-Voter Weight Record
-Writable
-6UeWZemiU8oa8s6zc6a2ZhZVE4jGeVXhvfvCAxVTrQYM
-Account 5
-
-Vault
-Writable
-CUMZFtFoSWQP6Vwtm45swU11wCHyrX15jzMJqf3BoksB
-owner: 3MqZuiKKJNY65ZdQYeP9o4o1kNe8Ea2DP6DavD95Ac7f
-Account 6
-
-Deposit Token
-Writable
-GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
-owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
-Account 7
-
-Token Authority
-Signer
-FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
-Account 8
-
-Grant Authority
-Signer
-ABvNi1HtPSitU7YbX6uLdvip14FCuGnrmnwk2JpBdsft
-Account 9
-
-Payer
-Signer
-Writable
-ABvNi1HtPSitU7YbX6uLdvip14FCuGnrmnwk2JpBdsft
-Account 10
-
-Deposit Mint
-XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
-Account 11
-
-11111111111111111111111111111111
-System Program
-Account 12
-
-TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
-Token Program
-Account 13
-
-ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
-ATA Program
-Account 14
-
-SysvarRent111111111111111111111111111111111
-Sysvar: Rent
-Data
-Grant to: ABvNi1HtPSitU7YbX6uLdvip14FCuGnrmnwk2JpBdsft
-Lock type: cliff
-Amount: 40,000
-Start date: Fri Jan 31 2025
-End date: Sat Jan 31 2026
-Dao can clawback:No
-Only grantee can execute instruction
-
-Execution date: 07-05-2025 22:21 - View transaction
+Execution date: 04-11-2025 18:45 - View transaction

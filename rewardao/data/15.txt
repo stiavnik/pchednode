@@ -1,0 +1,89 @@
+https://dao.xandeum.network/dao/XAND/proposal/7tvGYb5uzLeZoKkXscX7S63XWnVr7NZAn1P23cFZphQg
+Additional Devnet Pnode Payouts May 2025 - 8
+Completed
+Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
+
+
+Instructions
+Transaction 1
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+QS1vpnBiXyrwftCznpzLoeHAkSmXZQTesGXFoWfCdTZ
+Account 3
+
+Voter Authority
+5RdaUNW2qYMGhhgqUdWU2ojpPkhR7bv2ABfFQfvRrYJt
+Account 4
+
+Voter Weight Record
+Writable
+B4zyQRAEfwzHuVDyrkTSUroQ6gAk68nayaZMUGbvdbkZ
+Account 5
+
+Vault
+Writable
+2vnFvKrJX6RmpvoVzRsTnPpLrejwMAdPbuH5pF2YmzPy
+owner: QS1vpnBiXyrwftCznpzLoeHAkSmXZQTesGXFoWfCdTZ
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+5RdaUNW2qYMGhhgqUdWU2ojpPkhR7bv2ABfFQfvRrYJt
+Account 9
+
+Payer
+Signer
+Writable
+5RdaUNW2qYMGhhgqUdWU2ojpPkhR7bv2ABfFQfvRrYJt
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: 5RdaUNW2qYMGhhgqUdWU2ojpPkhR7bv2ABfFQfvRrYJt
+Lock type: cliff
+Amount: 10,000
+Start date: Sat May 31 2025
+End date: Sun May 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 30-06-2025 19:57 - View transaction

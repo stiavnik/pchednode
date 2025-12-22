@@ -1,0 +1,1577 @@
+https://dao.xandeum.network/dao/XAND/proposal/6KfhGAqCkTSBDxcDMpUCDbG1J1V7dceZQStZHHkry3yf
+March 2025 DevNet vNode payments
+Executable
+Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
+
+Operator payments for running a vNode in the Incentivized DevNet
+
+
+Instructions
+Transaction 1
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+2PDbrsz2gyX81RyPy1sK5bCJikAQ6Q47pnce7WQg77v5
+Account 3
+
+Voter Authority
+QvRRjuJd3Uvw1AsMGcjMoV8HxQV1emXPBgyU5SniPEy
+Account 4
+
+Voter Weight Record
+Writable
+9NyFDTer8HM1ScqC9PYLKzh9Zehd497xRZfY7GTc9k8X
+Account 5
+
+Vault
+Writable
+9Lu9byJB8gFF8i5e5edw9Ru1e1K4QthAdhsihsnAMseZ
+owner: 2PDbrsz2gyX81RyPy1sK5bCJikAQ6Q47pnce7WQg77v5
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+QvRRjuJd3Uvw1AsMGcjMoV8HxQV1emXPBgyU5SniPEy
+Account 9
+
+Payer
+Signer
+Writable
+QvRRjuJd3Uvw1AsMGcjMoV8HxQV1emXPBgyU5SniPEy
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: QvRRjuJd3Uvw1AsMGcjMoV8HxQV1emXPBgyU5SniPEy
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 07-06-2025 04:59 - View transaction
+Transaction 2
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+6jZaHbEVm3S7W3XJdKboSJFkugnbKt7oywNkDm2cEPUk
+Account 3
+
+Voter Authority
+Bxg2ptrTeUwsdAVgFrMu4GMrjFU6qV1BnC34RPwH9BJp
+Account 4
+
+Voter Weight Record
+Writable
+BjzmNRCiUzEinCtC6FpFE9hHhpCRN1pcPW82FesGXPr
+Account 5
+
+Vault
+Writable
+EHKDmG2LYooQFoQiiM4i8ZYH8Agdj1DWisbUMFaEJmTa
+owner: 6jZaHbEVm3S7W3XJdKboSJFkugnbKt7oywNkDm2cEPUk
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+Bxg2ptrTeUwsdAVgFrMu4GMrjFU6qV1BnC34RPwH9BJp
+Account 9
+
+Payer
+Signer
+Writable
+Bxg2ptrTeUwsdAVgFrMu4GMrjFU6qV1BnC34RPwH9BJp
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: Bxg2ptrTeUwsdAVgFrMu4GMrjFU6qV1BnC34RPwH9BJp
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 06-06-2025 01:57 - View transaction
+Transaction 3
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+5pKcmyzGVD3tNTEp6TwX61fNcRm9cnL6oGu7WeF1vRWT
+Account 3
+
+Voter Authority
+DvvExJpeby3KUVR87zJbJ3LUe4PFv479vVXdjHcXVasv
+Account 4
+
+Voter Weight Record
+Writable
+B3GxVKJHuqeJ6vsy4vTR3AkXZTr7wLXbvg5rA2Jw7Z2Y
+Account 5
+
+Vault
+Writable
+753X2zWxBjrarGgrVsibMpwe4oEqK6GU7ztXD9KGggbr
+owner: 5pKcmyzGVD3tNTEp6TwX61fNcRm9cnL6oGu7WeF1vRWT
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+DvvExJpeby3KUVR87zJbJ3LUe4PFv479vVXdjHcXVasv
+Account 9
+
+Payer
+Signer
+Writable
+DvvExJpeby3KUVR87zJbJ3LUe4PFv479vVXdjHcXVasv
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: DvvExJpeby3KUVR87zJbJ3LUe4PFv479vVXdjHcXVasv
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 06-06-2025 11:35 - View transaction
+Transaction 4
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+5fSLWYVnZF6h4EazovwqWJAsBsc5gAXXSEYMLykWuVd2
+Account 3
+
+Voter Authority
+D8mo6L3ZRKz7AoEQF65isjRw7QQ1jqBBwQX66mgPEjAr
+Account 4
+
+Voter Weight Record
+Writable
+4dfpVN7bMFCM4y26TSFQ1fJbixF5bxAtjUvzwcZnBd7d
+Account 5
+
+Vault
+Writable
+5PZ7LCxcuuzd7TqUX9cbshrjQ4cyhkpr1zxGgErmPTXF
+owner: 5fSLWYVnZF6h4EazovwqWJAsBsc5gAXXSEYMLykWuVd2
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+D8mo6L3ZRKz7AoEQF65isjRw7QQ1jqBBwQX66mgPEjAr
+Account 9
+
+Payer
+Signer
+Writable
+D8mo6L3ZRKz7AoEQF65isjRw7QQ1jqBBwQX66mgPEjAr
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: D8mo6L3ZRKz7AoEQF65isjRw7QQ1jqBBwQX66mgPEjAr
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Inspect
+
+Execute
+Transaction 5
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+2X3b3xkFmaoct5HQ5RBrNGDncioMGXnUcZjsz8oRWpdU
+Account 3
+
+Voter Authority
+4Ud8eU6dR6CGGAgrTJB2aVrsf3bce7eQyDZ1gRLTHNcn
+Account 4
+
+Voter Weight Record
+Writable
+14Z3LwXBtkhxW2aaudpAdP9mjVFJwAWFoj5dvSftQ5ym
+Account 5
+
+Vault
+Writable
+6fMTPB32k6x922WWobcHHc5R5JXmx9fsgpjpR6peu12p
+owner: 2X3b3xkFmaoct5HQ5RBrNGDncioMGXnUcZjsz8oRWpdU
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+4Ud8eU6dR6CGGAgrTJB2aVrsf3bce7eQyDZ1gRLTHNcn
+Account 9
+
+Payer
+Signer
+Writable
+4Ud8eU6dR6CGGAgrTJB2aVrsf3bce7eQyDZ1gRLTHNcn
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: 4Ud8eU6dR6CGGAgrTJB2aVrsf3bce7eQyDZ1gRLTHNcn
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 11-06-2025 20:40 - View transaction
+Transaction 6
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+8Y13vKQ4phP1Bn4cRq3hJ4ZGnGBK86fxSDdAdrRSSgS2
+Account 3
+
+Voter Authority
+F4XJsyo3gfDfrLMNoC3q3jpTWzF2vx8ntVJX9F2PLj5X
+Account 4
+
+Voter Weight Record
+Writable
+8FXBqP35mn6sEC8aS4QLvtafybB6UkMRQ6CDgLUgWSVY
+Account 5
+
+Vault
+Writable
+6nXyhr9LMYAaxJLmaMtq2Zt1TPLFf2coG2xXPKJNuQ6V
+owner: 8Y13vKQ4phP1Bn4cRq3hJ4ZGnGBK86fxSDdAdrRSSgS2
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+F4XJsyo3gfDfrLMNoC3q3jpTWzF2vx8ntVJX9F2PLj5X
+Account 9
+
+Payer
+Signer
+Writable
+F4XJsyo3gfDfrLMNoC3q3jpTWzF2vx8ntVJX9F2PLj5X
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: F4XJsyo3gfDfrLMNoC3q3jpTWzF2vx8ntVJX9F2PLj5X
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 11-06-2025 20:19 - View transaction
+Transaction 7
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+8pWLSKzdYjgtuCkSZC5miTJni8ADfT3FcndKcsfxHR36
+Account 3
+
+Voter Authority
+KeDctUqAjECBp8iMFXQZvjrn5BCJfWd1NXniMZofEDA
+Account 4
+
+Voter Weight Record
+Writable
+4erSLFdNUSxx1UNxYBRJu9BhrxcTJGdedT2sy8Gwxuu9
+Account 5
+
+Vault
+Writable
+Fy6vkeEPMRLsiytVurq8FWVEoHLM2iqHVTJmNJU8hNng
+owner: 8pWLSKzdYjgtuCkSZC5miTJni8ADfT3FcndKcsfxHR36
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+KeDctUqAjECBp8iMFXQZvjrn5BCJfWd1NXniMZofEDA
+Account 9
+
+Payer
+Signer
+Writable
+KeDctUqAjECBp8iMFXQZvjrn5BCJfWd1NXniMZofEDA
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: KeDctUqAjECBp8iMFXQZvjrn5BCJfWd1NXniMZofEDA
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 11-06-2025 20:29 - View transaction
+Transaction 8
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+DsXP9LnNo9g9aCDdNvBgn9aLsZgTVtQkpJaZgF5NJGur
+Account 3
+
+Voter Authority
+1kbN95whs6ANM4DCpM65BugzWYczsSvrEKnCbAbJCsT
+Account 4
+
+Voter Weight Record
+Writable
+DWkLCBZRybYhFQ8ohEsY4AvYDHpRtaKHoiWYzKLyxTV5
+Account 5
+
+Vault
+Writable
+8rgTpSzzvgKh5Fmd3VpJhzJwM9rJAQfEvsGVVg5Sz6d7
+owner: DsXP9LnNo9g9aCDdNvBgn9aLsZgTVtQkpJaZgF5NJGur
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+1kbN95whs6ANM4DCpM65BugzWYczsSvrEKnCbAbJCsT
+Account 9
+
+Payer
+Signer
+Writable
+1kbN95whs6ANM4DCpM65BugzWYczsSvrEKnCbAbJCsT
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: 1kbN95whs6ANM4DCpM65BugzWYczsSvrEKnCbAbJCsT
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 14-06-2025 11:13 - View transaction
+Transaction 9
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+5in8HL7xWN4kBkYKG9N8XSLErdWLMDpB3X9W5yJU4fMf
+Account 3
+
+Voter Authority
+6VvpCUkUP1712EuGqqS5RaaT4TF8ULoKrQuwrXicCJCf
+Account 4
+
+Voter Weight Record
+Writable
+FsLMr7tnke6yTDuMRHJDk3vGRgXRqiAjnZ5VNNbwm4CL
+Account 5
+
+Vault
+Writable
+CPAsS9SU38vBJ7TrPbg3cPJxoExvrm8MBPr1kG8ekvk4
+owner: 5in8HL7xWN4kBkYKG9N8XSLErdWLMDpB3X9W5yJU4fMf
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+6VvpCUkUP1712EuGqqS5RaaT4TF8ULoKrQuwrXicCJCf
+Account 9
+
+Payer
+Signer
+Writable
+6VvpCUkUP1712EuGqqS5RaaT4TF8ULoKrQuwrXicCJCf
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: 6VvpCUkUP1712EuGqqS5RaaT4TF8ULoKrQuwrXicCJCf
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 08-06-2025 23:49 - View transaction
+Transaction 10
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+8yHykLSwz6j1HgrJNhDKUGHmaFt7cE8GXwzoW4PyRDzY
+Account 3
+
+Voter Authority
+5mP2DtHmXfZigNQLFEwKwkoFmfz5KMRXg6yUHfj96bgn
+Account 4
+
+Voter Weight Record
+Writable
+F88hC56LRz1rVcqSHo4bHEY7sFbZakoPxMaAi6g3ha8
+Account 5
+
+Vault
+Writable
+664dJm4i4gDEHUZMbq6EPpiWrpbLyJw2XsN1q1NeraLD
+owner: 8yHykLSwz6j1HgrJNhDKUGHmaFt7cE8GXwzoW4PyRDzY
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+5mP2DtHmXfZigNQLFEwKwkoFmfz5KMRXg6yUHfj96bgn
+Account 9
+
+Payer
+Signer
+Writable
+5mP2DtHmXfZigNQLFEwKwkoFmfz5KMRXg6yUHfj96bgn
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: 5mP2DtHmXfZigNQLFEwKwkoFmfz5KMRXg6yUHfj96bgn
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Inspect
+
+Execute
+Transaction 11
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+5d2LauTgccV37kxhiYkW4teGbTPNDdigsJ2V9RuhGEE
+Account 3
+
+Voter Authority
+GngEvx5zNCDZxnL9iUNHLVXtJu7vYp7neoWri3zCuyNs
+Account 4
+
+Voter Weight Record
+Writable
+8mczQknaT28DoTxpk7PLQF8naQGUesTpeN9cGJVCb74y
+Account 5
+
+Vault
+Writable
+6jRwvU6KTWjQsH2dGCCwu8xpiGogzB5RMCqTS8HnkyQQ
+owner: 5d2LauTgccV37kxhiYkW4teGbTPNDdigsJ2V9RuhGEE
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+GngEvx5zNCDZxnL9iUNHLVXtJu7vYp7neoWri3zCuyNs
+Account 9
+
+Payer
+Signer
+Writable
+GngEvx5zNCDZxnL9iUNHLVXtJu7vYp7neoWri3zCuyNs
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: GngEvx5zNCDZxnL9iUNHLVXtJu7vYp7neoWri3zCuyNs
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 22-07-2025 17:34 - View transaction
+Transaction 12
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+Dkrn87SgKvNj6NPGfGr4pU36aUy9aVn8GeGrzVZagZj3
+Account 3
+
+Voter Authority
+GWN41SyozSCyanq7S5yE6S6Q4KrYTUAkZEC7P8WTydpr
+Account 4
+
+Voter Weight Record
+Writable
+DyGjKZeEYkWfxzk7EWaACggriYyTD9YWvXCjQpHjwMfw
+Account 5
+
+Vault
+Writable
+5k9zw8c4Z79J6x8dkGZm59TMq8dnQfBCUxAbwAjuK7CX
+owner: Dkrn87SgKvNj6NPGfGr4pU36aUy9aVn8GeGrzVZagZj3
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+GWN41SyozSCyanq7S5yE6S6Q4KrYTUAkZEC7P8WTydpr
+Account 9
+
+Payer
+Signer
+Writable
+GWN41SyozSCyanq7S5yE6S6Q4KrYTUAkZEC7P8WTydpr
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: GWN41SyozSCyanq7S5yE6S6Q4KrYTUAkZEC7P8WTydpr
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 18-06-2025 21:59 - View transaction
+Transaction 13
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+Hj5ipCVQeLPrvP1pE1pWhvwa8xiJgZQc3gZhcJZqaguD
+Account 3
+
+Voter Authority
+63f7PyEUAByP6FYkywty7xdSpKXp4nSrS53QcNCXgus7
+Account 4
+
+Voter Weight Record
+Writable
+BLKAfDHCZPnFV5Fz9dHwT2kAfW3TQiiZu1yqCgMT3kW8
+Account 5
+
+Vault
+Writable
+3A5sdekekcsd6tQbkEWv3drgfNLtG1ee2deq9omDKq8J
+owner: Hj5ipCVQeLPrvP1pE1pWhvwa8xiJgZQc3gZhcJZqaguD
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+63f7PyEUAByP6FYkywty7xdSpKXp4nSrS53QcNCXgus7
+Account 9
+
+Payer
+Signer
+Writable
+63f7PyEUAByP6FYkywty7xdSpKXp4nSrS53QcNCXgus7
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: 63f7PyEUAByP6FYkywty7xdSpKXp4nSrS53QcNCXgus7
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 10-06-2025 01:12 - View transaction
+Transaction 14
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+3tZTbKig2M1uj37D7oK31U1TArneZVwD2Mt3xeyUxKTs
+Account 3
+
+Voter Authority
+7KbVkNEoGwwmCh816pXeSbFeX5ikxRQ2fkK67M4gcWHr
+Account 4
+
+Voter Weight Record
+Writable
+FovSpy2Wdc1gkaTh5SgXDUQXFA8PtwYAynEbK7H5wMDq
+Account 5
+
+Vault
+Writable
+3EnoKLYMesqbe2fUf7zCEqw8xufedQuAwnvUTYjchSvf
+owner: 3tZTbKig2M1uj37D7oK31U1TArneZVwD2Mt3xeyUxKTs
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+7KbVkNEoGwwmCh816pXeSbFeX5ikxRQ2fkK67M4gcWHr
+Account 9
+
+Payer
+Signer
+Writable
+7KbVkNEoGwwmCh816pXeSbFeX5ikxRQ2fkK67M4gcWHr
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: 7KbVkNEoGwwmCh816pXeSbFeX5ikxRQ2fkK67M4gcWHr
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 10-06-2025 16:09 - View transaction
+Transaction 15
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+AA6XKruJpUtRKyTTxBPzZ3gidssMpj3o9vHyifUfPS1
+Account 3
+
+Voter Authority
+CJsVULvkQ9Zgf6iaEELncNYfVQUYyUaABPpfDSEGhSQu
+Account 4
+
+Voter Weight Record
+Writable
+AJPa7bJGTLwFVqnYmmD7EnMUJHmSiyZ6XEZRjNq5n7Zs
+Account 5
+
+Vault
+Writable
+4w64KruriV3yehKdmFyKLtyMTtA6creUqm1Pcw74nkNB
+owner: AA6XKruJpUtRKyTTxBPzZ3gidssMpj3o9vHyifUfPS1
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+CJsVULvkQ9Zgf6iaEELncNYfVQUYyUaABPpfDSEGhSQu
+Account 9
+
+Payer
+Signer
+Writable
+CJsVULvkQ9Zgf6iaEELncNYfVQUYyUaABPpfDSEGhSQu
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: CJsVULvkQ9Zgf6iaEELncNYfVQUYyUaABPpfDSEGhSQu
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 01-11-2025 12:05 - View transaction
+Transaction 16
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+EkpH814yRSE6R3mT4S5zVqESx1T3WrwG9Eek12KMJVEr
+Account 3
+
+Voter Authority
+FH6GhMWQMxRKhqtuKb2Uxs5sv6dXkfJ59QtWZhXb6cMe
+Account 4
+
+Voter Weight Record
+Writable
+2qbhNjEG1N6gudAhaYD7kJMxqmBKcUhNh2V7DovNYgXD
+Account 5
+
+Vault
+Writable
+7WxKRuHGtYiYCETFfyb45RYoPiZarcoaweJCZw2h9YQZ
+owner: EkpH814yRSE6R3mT4S5zVqESx1T3WrwG9Eek12KMJVEr
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+FH6GhMWQMxRKhqtuKb2Uxs5sv6dXkfJ59QtWZhXb6cMe
+Account 9
+
+Payer
+Signer
+Writable
+FH6GhMWQMxRKhqtuKb2Uxs5sv6dXkfJ59QtWZhXb6cMe
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: FH6GhMWQMxRKhqtuKb2Uxs5sv6dXkfJ59QtWZhXb6cMe
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 05-06-2025 22:43 - View transaction
+Transaction 17
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+AqvL9ZZ6e46WwGzuuwFpRevyfK8Ah7tmxXecudXr7H81
+Account 3
+
+Voter Authority
+7E2Ur4s8hKfHCop9ngaApFsWb3gDdivQX1LP7yfpHXUo
+Account 4
+
+Voter Weight Record
+Writable
+J2XcG75HFYpjehbrarvkWLcbKEfCD2BgjHTETHE4Vycg
+Account 5
+
+Vault
+Writable
+FVfbuDghfxZ9mxqjTXa5stUNGy4zYeyJvScZHVaUL7yf
+owner: AqvL9ZZ6e46WwGzuuwFpRevyfK8Ah7tmxXecudXr7H81
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+7E2Ur4s8hKfHCop9ngaApFsWb3gDdivQX1LP7yfpHXUo
+Account 9
+
+Payer
+Signer
+Writable
+7E2Ur4s8hKfHCop9ngaApFsWb3gDdivQX1LP7yfpHXUo
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: 7E2Ur4s8hKfHCop9ngaApFsWb3gDdivQX1LP7yfpHXUo
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 06-06-2025 00:44 - View transaction
+Transaction 18
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+6rtkufGjFwFdEc4feHV7MXM9Zt4DyZGjthiEemhaUHrt
+Account 3
+
+Voter Authority
+D7Tm6P4XoXn9d4Ye63JbhyzZrdeR3Pr2aivbweH7G9u2
+Account 4
+
+Voter Weight Record
+Writable
+FueqUK95JJmXA9kwHYeXEffGiugSchnVHJTjPWmV97tx
+Account 5
+
+Vault
+Writable
+85zaZamR2XJx3NnkCCRyCzPeBTS8F5TWckY5sXBTmGeu
+owner: 6rtkufGjFwFdEc4feHV7MXM9Zt4DyZGjthiEemhaUHrt
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+D7Tm6P4XoXn9d4Ye63JbhyzZrdeR3Pr2aivbweH7G9u2
+Account 9
+
+Payer
+Signer
+Writable
+D7Tm6P4XoXn9d4Ye63JbhyzZrdeR3Pr2aivbweH7G9u2
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: D7Tm6P4XoXn9d4Ye63JbhyzZrdeR3Pr2aivbweH7G9u2
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 05-06-2025 21:56 - View transaction
+Transaction 19
+instruction 1 - Grant
+Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
+HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
+Account 1
+
+Registrar
+EoqZf99e2F6ypoyfrd7dJFkrpM3pyhQKZY6gygqqknKd
+Account 2
+
+Voter
+Writable
+3cj3hyAVeRfhaVwm21vXbM6hSTEQD3bE5r4qBkiB8Z1a
+Account 3
+
+Voter Authority
+BTGKNXvwC7Y2T3U8PHRrf9hF2uHbfC16cyJaEgaUkaNs
+Account 4
+
+Voter Weight Record
+Writable
+5sXubbin9UxQFxpuZACrezqyqDU1GiByXxnbpF6pFqh6
+Account 5
+
+Vault
+Writable
+8t6F1cVpz18WhsbaiG1gMQeekTTABq7FkiYDJiDnEE7D
+owner: 3cj3hyAVeRfhaVwm21vXbM6hSTEQD3bE5r4qBkiB8Z1a
+Account 6
+
+Deposit Token
+Writable
+GpXAak3zX8ZLBHWhhBWEBDSZuBsxzL4s6kk3gUPu9sEm
+owner: FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 7
+
+Token Authority
+Signer
+FUBGqvghKNgKcSddaxyhrpcbjcxGJtJAfRoBjkyj1DeV
+Account 8
+
+Grant Authority
+Signer
+BTGKNXvwC7Y2T3U8PHRrf9hF2uHbfC16cyJaEgaUkaNs
+Account 9
+
+Payer
+Signer
+Writable
+BTGKNXvwC7Y2T3U8PHRrf9hF2uHbfC16cyJaEgaUkaNs
+Account 10
+
+Deposit Mint
+XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
+Account 11
+
+11111111111111111111111111111111
+System Program
+Account 12
+
+TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+Token Program
+Account 13
+
+ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL
+ATA Program
+Account 14
+
+SysvarRent111111111111111111111111111111111
+Sysvar: Rent
+Data
+Grant to: BTGKNXvwC7Y2T3U8PHRrf9hF2uHbfC16cyJaEgaUkaNs
+Lock type: cliff
+Amount: 10,000
+Start date: Mon Mar 31 2025
+End date: Tue Mar 31 2026
+Dao can clawback:No
+Only grantee can execute instruction
+
+Execution date: 06-06-2025 01:51 - View transaction
+
+Inspect all
+
+Execute in separated transactions (2)
+
+Execute all in one transaction (19)
