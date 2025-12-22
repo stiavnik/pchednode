@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAO Rewards Checker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+      }
+    </script>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .stat-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-lime-100 to-green-200 dark:from-slate-900 dark:to-gray-900 transition-colors duration-500 text-gray-900 dark:text-gray-100">
+    
+    <div class="max-w-7xl mx-auto p-4 md:p-8">
+        <header class="mb-8 flex flex-col md:flex-row items-center justify-between border-b border-gray-300/50 dark:border-gray-700/50 pb-6 gap-4">
+            <a href="../index.html" class="flex-shrink-0 group">
+                <img src="../pched.jpg" alt="pchednode" class="w-40 h-24 rounded-lg shadow-lg group-hover:shadow-2xl transition-all object-cover">
+            </a>
+
+            <h1 class="text-3xl md:text-4xl font-extrabold text-center flex-1">
+                DAO Rewards Checker <span class="text-indigo-600 dark:text-indigo-400 font-normal text-xl block md:inline">for Xandeum</span>
+            </h1>
+
+            <div class="flex items-center gap-3">
+                <a href="../index.html" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg hover:shadow-indigo-500/50 transition-all text-sm flex items-center whitespace-nowrap">
+                    pchednode.com →
+                </a>
+
+                <button id="themeToggle" class="px-5 py-2.5 rounded-xl bg-white/20 dark:bg-gray-800/50 backdrop-blur hover:bg-white/30 dark:hover:bg-gray-700/70 transition-all font-semibold text-sm shadow-lg text-gray-900 dark:text-gray-100 border border-white/10">
+                    Dark
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <div id="loading-panel" class="text-center py-8 text-xl font-bold text-gray-500 animate-pulse">
+                Reading blockchain data...
+            </div>
+
+            <div id="stats-panel" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-lg p-6 border-l-8 border-green-500">
+                    <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Total Executed</h3>
+                    <div class="mt-2 flex items-baseline gap-2">
+                        <span id="global-exec-sum" class="text-4xl font-extrabold text-gray-900 dark:text-white">0</span>
+                        <span class="text-xl font-bold text-indigo-600 dark:text-indigo-400">XAND</span>
+                    </div>
+                    <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Across <span id="global-exec-count" class="font-bold">0</span> transactions
+                    </div>
+                </div>
+
+                <div class="stat-card bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-lg p-6 border-l-8 border-yellow-500">
+                    <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Total Pending</h3>
+                    <div class="mt-2 flex items-baseline gap-2">
+                        <span id="global-pending-sum" class="text-4xl font-extrabold text-gray-900 dark:text-white">0</span>
+                        <span class="text-xl font-bold text-indigo-600 dark:text-indigo-400">XAND</span>
+                    </div>
+                    <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Across <span id="global-pending-count" class="font-bold">0</span> transactions
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-xl p-6 mb-8">
+                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Check Your Rewards</label>
+                <div class="flex flex-col md:flex-row gap-3">
+                    <input type="text" id="searchInput" placeholder="Enter your manager reward wallet (e.g. A1s...), not your pNode pubkey" 
+                           class="flex-1 px-5 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-lg text-lg text-gray-900 dark:text-gray-100 focus:ring-4 focus:ring-indigo-500/30 outline-none transition-all shadow-inner placeholder-gray-400 dark:placeholder-gray-500">
+                    <button onclick="performSearch()" 
+                            class="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-lg hover:shadow-indigo-500/50 transition-all text-lg">
+                        SEARCH
+                    </button>
+                </div>
+            </div>
+
+            <div id="results-area" class="hidden">
+                
+                <div class="flex flex-wrap gap-4 mb-6">
+                    <div class="bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 px-4 py-2 rounded-lg text-green-800 dark:text-green-300 font-bold">
+                        User Executed: <span id="user-exec-sum">0</span> XAND <span class="text-xs font-normal opacity-75">in <span id="user-exec-count">0</span> txs</span>
+                    </div>
+                    <div class="bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 px-4 py-2 rounded-lg text-yellow-800 dark:text-yellow-300 font-bold">
+                        User Pending: <span id="user-pending-sum">0</span> XAND <span class="text-xs font-normal opacity-75">in <span id="user-pending-count">0</span> txs</span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl shadow-2xl bg-white dark:bg-gray-800">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 uppercase text-xs font-bold tracking-wider">
+                            <tr>
+                                <th class="p-4 border-b border-gray-200 dark:border-gray-700">Proposal Name</th>
+                                <th class="p-4 border-b border-gray-200 dark:border-gray-700 text-right">Amount (XAND)</th>
+                                <th class="p-4 border-b border-gray-200 dark:border-gray-700 text-center">Status</th>
+                                <th class="p-4 border-b border-gray-200 dark:border-gray-700 text-center">Proposal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-table-body" class="divide-y divide-gray-100 dark:divide-gray-700">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="no-results" class="hidden text-center p-10 text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-gray-800/50 rounded-xl">
+                No transactions found for this address.
+            </div>
+
+        </main>
+
+        <footer class="mt-12 text-center text-sm text-gray-600 dark:text-gray-400 border-t border-gray-300/50 dark:border-gray-700/50 pt-6">
+            © 2025 Substance242 | Data sourced via sequential local files.
+        </footer>
+    </div>
+
+    <script>
+        // --- Dark Mode Logic (Matches your existing site) ---
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        // Check local storage or system preference
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlElement.classList.add('dark');
+        } else {
+            htmlElement.classList.remove('dark');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            htmlElement.classList.toggle('dark');
+            if (htmlElement.classList.contains('dark')) {
+                localStorage.theme = 'dark';
+            } else {
+                localStorage.theme = 'light';
+            }
+        });
+
+        // --- Data Logic ---
+        
+        // This will hold all our loaded data
+        let allProposals = [];
+
+        // Formatting Helper for Numbers
+        const formatNum = (num) => new Intl.NumberFormat('en-US').format(num);
+
+        async function initData() {
+            let fileIndex = 1;
+            let keepFetching = true;
+
+            const globalStats = {
+                execCount: 0,
+                execSum: 0,
+                pendingCount: 0,
+                pendingSum: 0
+            };
+
+            while (keepFetching) {
+                const fileName = `data/${fileIndex}.txt`;
+                
+                try {
+                    const response = await fetch(fileName);
+                    if (!response.ok) {
+                        keepFetching = false;
+                        break;
+                    }
+
+                    const text = await response.text();
+                    const lines = text.split('\n');
+
+                    // Parsing File Header
+                    const proposalLink = lines[0] ? lines[0].trim() : '#';
+                    const proposalName = lines[1] ? lines[1].trim() : `Proposal ${fileIndex}`;
+
+                    // Parsing Transactions
+                    const chunks = text.split('Transaction ');
+                    const transactions = [];
+
+                    for (let i = 1; i < chunks.length; i++) {
+                        const chunk = chunks[i];
+                        
+                        // Extract Amount
+                        const amountMatch = chunk.match(/Amount:\s*([\d,]+)/i);
+                        let amount = 0;
+                        if (amountMatch && amountMatch[1]) {
+                            amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+                        }
+
+                        // Extract PubKey
+                        const grantMatch = chunk.match(/Grant to:\s*([A-Za-z0-9]{32,44})/i);
+                        const pubKey = grantMatch ? grantMatch[1].trim() : null;
+
+                        // Check Execution
+                        const isExecuted = chunk.includes('Execution date:');
+
+                        // Update Global Stats
+                        if (isExecuted) {
+                            globalStats.execCount++;
+                            globalStats.execSum += amount;
+                        } else {
+                            globalStats.pendingCount++;
+                            globalStats.pendingSum += amount;
+                        }
+
+                        if (pubKey) {
+                            transactions.push({
+                                amount: amount,
+                                pubKey: pubKey,
+                                isExecuted: isExecuted,
+                                txId: i 
+                            });
+                        }
+                    }
+
+                    allProposals.push({
+                        id: fileIndex,
+                        name: proposalName,
+                        link: proposalLink,
+                        transactions: transactions
+                    });
+
+                    fileIndex++;
+
+                } catch (e) {
+                    console.error("Error reading file", fileName, e);
+                    keepFetching = false;
+                }
+            }
+
+            // Update UI with Global Stats
+            document.getElementById('global-exec-sum').textContent = formatNum(globalStats.execSum);
+            document.getElementById('global-exec-count').textContent = globalStats.execCount;
+            document.getElementById('global-pending-sum').textContent = formatNum(globalStats.pendingSum);
+            document.getElementById('global-pending-count').textContent = globalStats.pendingCount;
+
+            // Hide loading, show stats
+            document.getElementById('loading-panel').classList.add('hidden');
+            document.getElementById('stats-panel').classList.remove('hidden');
+            document.getElementById('stats-panel').classList.add('grid');
+        }
+
+        function performSearch() {
+            const inputKey = document.getElementById('searchInput').value.trim();
+            const resultsArea = document.getElementById('results-area');
+            const noResults = document.getElementById('no-results');
+            const tbody = document.getElementById('results-table-body');
+
+            if (!inputKey) {
+                alert("Please enter a Public Key");
+                return;
+            }
+
+            let userExecSum = 0;
+            let userExecCount = 0;
+            let userPendingSum = 0;
+            let userPendingCount = 0;
+            let foundMatches = false;
+
+            tbody.innerHTML = ''; 
+            
+            // Loop through proposals (oldest first in array, but we display in order)
+            // If you want latest proposal at bottom (sequential), standard forEach is fine.
+            allProposals.forEach(proposal => {
+                const userTxs = proposal.transactions.filter(tx => tx.pubKey === inputKey);
+
+                userTxs.forEach(tx => {
+                    foundMatches = true;
+
+                    if (tx.isExecuted) {
+                        userExecSum += tx.amount;
+                        userExecCount++;
+                    } else {
+                        userPendingSum += tx.amount;
+                        userPendingCount++;
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors";
+                    
+                    const statusHtml = tx.isExecuted
+                        ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">✅ Executed</span>`
+                        : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">⚠️ Pending</span>`;
+
+                    tr.innerHTML = `
+                        <td class="p-4 text-sm font-medium text-gray-900 dark:text-white">
+                            ${proposal.name} 
+                            <span class="text-xs text-gray-500 font-normal block">File #${proposal.id} • Tx ${tx.txId}</span>
+                        </td>
+                        <td class="p-4 text-sm text-gray-900 dark:text-white text-right font-mono">
+                            ${formatNum(tx.amount)}
+                        </td>
+                        <td class="p-4 text-center">
+                            ${statusHtml}
+                        </td>
+                        <td class="p-4 text-center">
+                            <a href="${proposal.link}" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-bold text-sm hover:underline">
+                                Link &rarr;
+                            </a>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+
+            if (foundMatches) {
+                document.getElementById('user-exec-sum').textContent = formatNum(userExecSum);
+                document.getElementById('user-exec-count').textContent = userExecCount;
+                document.getElementById('user-pending-sum').textContent = formatNum(userPendingSum);
+                document.getElementById('user-pending-count').textContent = userPendingCount;
+
+                resultsArea.classList.remove('hidden');
+                noResults.classList.add('hidden');
+            } else {
+                resultsArea.classList.add('hidden');
+                noResults.classList.remove('hidden');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initData);
+
+        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+    </script>
+</body>
+</html>
