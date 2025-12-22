@@ -187,19 +187,29 @@
                 
                 try {
                     const response = await fetch(fileName);
+                    
+                    // CHECK 1: Real 404 (File not found)
                     if (!response.ok) {
                         keepFetching = false;
                         break;
                     }
 
                     const text = await response.text();
+
+                    // CHECK 2: Soft 404 (Server sent HTML instead of text)
+                    // If the response starts with < (like <!DOCTYPE or <html), it's the 404 page
+                    if (text.trim().startsWith('<')) {
+                        keepFetching = false;
+                        break;
+                    }
+
                     const lines = text.split('\n');
 
                     // --- Parsing Header ---
                     const proposalLink = lines[0] ? lines[0].trim() : '#';
                     const proposalName = lines[1] ? lines[1].trim() : `Proposal ${fileIndex}`;
                     
-                    // Check Line 3 for status (Defeated detection)
+                    // Check Line 3 for status
                     const proposalState = lines[2] ? lines[2].trim().toLowerCase() : '';
                     const isDefeated = proposalState.includes('defeated') || proposalState.includes('cancelled');
 
