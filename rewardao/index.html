@@ -110,6 +110,28 @@
                             </tbody>
                     </table>
                 </div>
+
+                <div class="mt-6 p-4 md:p-5 bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 dark:border-orange-500/70 rounded-r-xl shadow-sm">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 mt-0.5">
+                            <svg class="h-6 w-6 text-orange-500 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-orange-800 dark:text-orange-200 uppercase tracking-wide">
+                                Vital Limitation Warning
+                            </h3>
+                            <div class="mt-1 text-sm text-orange-700 dark:text-orange-300 leading-relaxed">
+                                <p>
+                                    <strong>Do not exceed 30 simultaneous locked deposits.</strong> Realms DAO has a technical limit of approximately 30 active locks per wallet. 
+                                    If you reach this limit (e.g., 31 locks), you will be <strong>unable to create new deposits</strong> (claim rewards) until your oldest locked deposit expires and can be withdrawn.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
             
             <div id="no-results" class="hidden text-center p-10 text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-gray-800/50 rounded-xl">
@@ -124,11 +146,10 @@
     </div>
 
     <script>
-        // --- Dark Mode Logic (Matches your existing site) ---
+        // --- Dark Mode Logic ---
         const themeToggleBtn = document.getElementById('themeToggle');
         const htmlElement = document.documentElement;
         
-        // Check local storage or system preference
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             htmlElement.classList.add('dark');
         } else {
@@ -146,10 +167,8 @@
 
         // --- Data Logic ---
         
-        // This will hold all our loaded data
         let allProposals = [];
 
-        // Formatting Helper for Numbers
         const formatNum = (num) => new Intl.NumberFormat('en-US').format(num);
 
         async function initData() {
@@ -176,36 +195,37 @@
                     const text = await response.text();
                     const lines = text.split('\n');
 
-                    // Parsing File Header
+                    // --- Parsing Header ---
                     const proposalLink = lines[0] ? lines[0].trim() : '#';
                     const proposalName = lines[1] ? lines[1].trim() : `Proposal ${fileIndex}`;
+                    
+                    // Check Line 3 for status (Defeated detection)
+                    const proposalState = lines[2] ? lines[2].trim().toLowerCase() : '';
+                    const isDefeated = proposalState.includes('defeated') || proposalState.includes('cancelled');
 
-                    // Parsing Transactions
+                    // --- Parsing Transactions ---
                     const chunks = text.split('Transaction ');
                     const transactions = [];
 
                     for (let i = 1; i < chunks.length; i++) {
                         const chunk = chunks[i];
                         
-                        // Extract Amount
                         const amountMatch = chunk.match(/Amount:\s*([\d,]+)/i);
                         let amount = 0;
                         if (amountMatch && amountMatch[1]) {
                             amount = parseFloat(amountMatch[1].replace(/,/g, ''));
                         }
 
-                        // Extract PubKey
                         const grantMatch = chunk.match(/Grant to:\s*([A-Za-z0-9]{32,44})/i);
                         const pubKey = grantMatch ? grantMatch[1].trim() : null;
 
-                        // Check Execution
                         const isExecuted = chunk.includes('Execution date:');
 
-                        // Update Global Stats
+                        // --- Smart Status Logic ---
                         if (isExecuted) {
                             globalStats.execCount++;
                             globalStats.execSum += amount;
-                        } else {
+                        } else if (!isDefeated) {
                             globalStats.pendingCount++;
                             globalStats.pendingSum += amount;
                         }
@@ -215,6 +235,7 @@
                                 amount: amount,
                                 pubKey: pubKey,
                                 isExecuted: isExecuted,
+                                isDefeated: isDefeated,
                                 txId: i 
                             });
                         }
@@ -235,13 +256,11 @@
                 }
             }
 
-            // Update UI with Global Stats
             document.getElementById('global-exec-sum').textContent = formatNum(globalStats.execSum);
             document.getElementById('global-exec-count').textContent = globalStats.execCount;
             document.getElementById('global-pending-sum').textContent = formatNum(globalStats.pendingSum);
             document.getElementById('global-pending-count').textContent = globalStats.pendingCount;
 
-            // Hide loading, show stats
             document.getElementById('loading-panel').classList.add('hidden');
             document.getElementById('stats-panel').classList.remove('hidden');
             document.getElementById('stats-panel').classList.add('grid');
@@ -266,8 +285,6 @@
 
             tbody.innerHTML = ''; 
             
-            // Loop through proposals (oldest first in array, but we display in order)
-            // If you want latest proposal at bottom (sequential), standard forEach is fine.
             allProposals.forEach(proposal => {
                 const userTxs = proposal.transactions.filter(tx => tx.pubKey === inputKey);
 
@@ -277,7 +294,7 @@
                     if (tx.isExecuted) {
                         userExecSum += tx.amount;
                         userExecCount++;
-                    } else {
+                    } else if (!tx.isDefeated) {
                         userPendingSum += tx.amount;
                         userPendingCount++;
                     }
@@ -285,9 +302,14 @@
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors";
                     
-                    const statusHtml = tx.isExecuted
-                        ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">✅ Executed</span>`
-                        : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">⚠️ Pending</span>`;
+                    let statusHtml = '';
+                    if (tx.isExecuted) {
+                        statusHtml = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">✅ Executed</span>`;
+                    } else if (tx.isDefeated) {
+                        statusHtml = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">❌ Defeated</span>`;
+                    } else {
+                        statusHtml = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">⚠️ Pending</span>`;
+                    }
 
                     tr.innerHTML = `
                         <td class="p-4 text-sm font-medium text-gray-900 dark:text-white">
