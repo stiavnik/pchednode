@@ -40,10 +40,20 @@ body {
     border-spacing: 0 10px; 
 }
 
-/* Header Styling */
+/* Header Styling - UPDATED WITH FROSTED GLASS & Z-INDEX */
 #pched-live-view thead th {
     position: sticky; top: 0; 
-    background: #f8fafc; 
+    
+    /* NEW: Ensures header stays on top of content */
+    z-index: 10; 
+
+    /* NEW: Semi-transparent background (was #f8fafc) */
+    background: rgba(248, 250, 252, 0.9);
+    
+    /* NEW: Frosted glass blur effect */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px); /* Safari support */
+
     padding: 14px 16px; font-size: 0.8rem; text-transform: uppercase; color: #64748b;
     letter-spacing: 0.05em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     border-bottom: 1px solid #e2e8f0; 
@@ -58,7 +68,9 @@ body {
 
 /* Dark mode overrides */
 .dark #pched-live-view thead th { 
-    background: #1e293b; 
+    /* NEW: Semi-transparent background (was #1e293b) */
+    background: rgba(30, 41, 59, 0.9); 
+    
     color: #cbd5e1; 
     border-bottom: 1px solid #374151; 
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
