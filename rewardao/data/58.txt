@@ -506,9 +506,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 24-12-2025 14:10 - View transaction
 Transaction 7
 instruction 1 - Grant
 Program
@@ -1174,9 +1172,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 24-12-2025 14:46 - View transaction
 Transaction 15
 instruction 1 - Grant
 Program
@@ -1509,9 +1505,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 24-12-2025 14:05 - View transaction
 Transaction 19
 instruction 1 - Grant
 Program
@@ -1676,9 +1670,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 24-12-2025 16:28 - View transaction
 Transaction 21
 instruction 1 - Grant
 Program
@@ -3349,9 +3341,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 24-12-2025 14:36 - View transaction
 Transaction 41
 instruction 1 - Grant
 Program
@@ -3767,9 +3757,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 23-12-2025 19:29 - View transaction
 Transaction 46
 instruction 1 - Grant
 Program
@@ -4019,9 +4007,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 24-12-2025 00:43 - View transaction
 Transaction 49
 instruction 1 - Grant
 Program
@@ -4522,9 +4508,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 24-12-2025 14:17 - View transaction
 Transaction 55
 instruction 1 - Grant
 Program
@@ -4774,9 +4758,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 24-12-2025 13:09 - View transaction
 Transaction 58
 instruction 1 - Grant
 Program
@@ -5364,6 +5346,6 @@ Execute
 
 Inspect all
 
-Execute in separated transactions (57)
+Execute in separated transactions (48)
 
 Execute all in one transaction (64)
