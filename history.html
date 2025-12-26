@@ -6,6 +6,7 @@
     <title>Node History</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script>
       tailwind.config = { darkMode: 'class' }
     </script>
@@ -28,6 +29,12 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-4">
+                <div class="cf-turnstile scale-90 origin-right" 
+                     data-sitekey="0x4AAAAAACEiZegYcUILDmVT" 
+                     data-callback="onTurnstileSuccess"
+                     data-theme="auto">
+                </div>
+
                 <div class="flex bg-white/60 dark:bg-gray-800/60 backdrop-blur rounded-lg p-1 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
                     <button onclick="setTimeframe(24)" id="btn-24" class="px-3 py-1 text-sm font-medium rounded-md transition hover:bg-white/50 dark:hover:bg-gray-700">24H</button>
                     <button onclick="setTimeframe(168)" id="btn-168" class="px-3 py-1 text-sm font-medium rounded-md transition hover:bg-white/50 dark:hover:bg-gray-700">7D</button>
@@ -44,7 +51,7 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm">
             <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur px-4 py-3 rounded-xl shadow-sm border border-white/50 dark:border-gray-700/50 flex flex-col">
                 <span class="text-xs font-bold text-gray-500 uppercase">Node Name</span>
-                <span id="node-name" class="font-semibold text-indigo-600 dark:text-indigo-400 truncate">Loading...</span>
+                <span id="node-name" class="font-semibold text-indigo-600 dark:text-indigo-400 truncate">Waiting for check...</span>
             </div>
             <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur px-4 py-3 rounded-xl shadow-sm border border-white/50 dark:border-gray-700/50 flex flex-col">
                 <span class="text-xs font-bold text-gray-500 uppercase">IP Address</span>
@@ -116,6 +123,15 @@
         let fullData = []; 
         let chartInstance = null;
         let currentTimeframe = 24; 
+        let turnstileToken = null; // Store the security token
+
+        // --- Turnstile Callback ---
+        function onTurnstileSuccess(token) {
+            console.log("Security Check Passed");
+            turnstileToken = token;
+            document.getElementById('node-name').textContent = "Loading...";
+            loadHistory(); // Auto-load once verified
+        }
 
         // --- Helpers ---
         function copyToClipboard(text) {
@@ -177,9 +193,26 @@
 
             document.getElementById('node-ip').textContent = ip;
 
+            // Wait for Turnstile
+            if (!turnstileToken) {
+                document.getElementById('node-name').textContent = "Completing security check...";
+                return; 
+            }
+
             try {
-                // Fetch data
-                const res = await fetch(`https://${host}/geo/history?ip=${ip}`);
+                // Fetch data WITH security token
+                const res = await fetch(`https://${host}/geo/history?ip=${ip}`, {
+                    headers: {
+                        'X-Turnstile-Token': turnstileToken
+                    }
+                });
+
+                if (res.status === 403) {
+                    document.getElementById('node-name').textContent = "Security Check Failed";
+                    alert("Security check failed. Please refresh.");
+                    return;
+                }
+                
                 if (!res.ok) throw new Error("API Fetch Failed");
                 const data = await res.json();
 
@@ -395,7 +428,7 @@
             localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
         });
 
-        loadHistory();
+        // NOTE: loadHistory is now called by onTurnstileSuccess
     </script>
 </body>
 </html>
