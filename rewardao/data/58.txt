@@ -1948,6 +1948,7 @@ Account 5
 Vault
 Writable
 6ov2VePrcEvFfnWaMbNfuMZAiFuJeZua6b29WbTdD89q
+owner: AjRgmMJa7pnNhJzqg1FzPd2xoP3NhxtSqjXbqjMHBPqh
 Account 6
 
 Deposit Token
@@ -1999,9 +2000,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 27-12-2025 15:27 - View transaction
 Transaction 25
 instruction 1 - Grant
 Program
@@ -2671,9 +2670,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 27-12-2025 18:44 - View transaction
 Transaction 33
 instruction 1 - Grant
 Program
@@ -4173,9 +4170,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 27-12-2025 18:15 - View transaction
 Transaction 51
 instruction 1 - Grant
 Program
@@ -5346,6 +5341,6 @@ Execute
 
 Inspect all
 
-Execute in separated transactions (48)
+Execute in separated transactions (45)
 
 Execute all in one transaction (64)
