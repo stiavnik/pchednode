@@ -336,7 +336,15 @@ function renderTable() {
         const storageStr = formatStorage(pod.storage_committed);
         const usageStr = formatPercent(pod.storage_usage_percent);
         const uptimeStr = formatUptime(pod.uptime);
-        const versionStr = cleanVersion(pod.version);
+        const rawVer = pod.version || "";
+		const cleanVer = cleanVersion(rawVer);
+		let versionHtml = cleanVer;
+
+		// If the version was truncated (contained a dash), add decoration
+		if (rawVer !== cleanVer) {
+			// Adds a dotted underline and an asterisk, with the full version in the tooltip
+			versionHtml = `<span title="${escapeHtml(rawVer)}" class="cursor-help border-b border-dotted border-gray-400 hover:border-indigo-500 transition-colors">${cleanVer}*</span>`;
+		}
 
         html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}&host=${rpcHost}'" style="cursor:pointer;">
             <td id="name-${ip}" class="${nameClass}" title="Click footer to register your name">${cached.name} ${badgeHtml}</td>
@@ -354,7 +362,7 @@ function renderTable() {
             <td class="text-right font-mono text-sm">${creditsHtml}</td>
             <td class="text-right font-mono text-sm">${stakeHtml}</td>
             <td class="${timeClass}">${timeText}</td>
-            <td>${versionStr}</td>
+            <td>${versionHtml}</td>
         </tr>`;
     }
 
