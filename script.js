@@ -436,7 +436,16 @@ async function sendRpcRequest() {
 }
 
 window.addEventListener("load", markLoadButton);
-document.getElementById("rpcSelector").addEventListener("change", markLoadButton);
+document.getElementById("rpcSelector").addEventListener("change", () => {
+    markLoadButton();
+    ipCache = {}; // Clears the ghost data
+    
+    // Optional: clear the table immediately so the user doesn't see "stale" rows 
+    // while waiting for the new LOAD click.
+    document.getElementById("pched-live-view").innerHTML = 
+        '<p class="text-gray-500 dark:text-gray-400 mt-12 text-lg">Click LOAD to fetch pod data...</p>';
+    document.getElementById("podCount").textContent = "0";
+});
 document.getElementById("versionFilterToggle").addEventListener("change", () => { markLoadButton(); renderTable(); });
 document.getElementById("versionFilterValue").addEventListener("input", () => { markLoadButton(); renderTable(); });
 document.getElementById("globalFilterToggle").addEventListener("change", scheduleFilter);
