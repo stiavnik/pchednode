@@ -1416,12 +1416,10 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 01-01-2026 12:45 - View transaction
 
 Inspect all
 
-Execute in separated transactions (9)
+Execute in separated transactions (8)
 
 Execute all in one transaction (17)
