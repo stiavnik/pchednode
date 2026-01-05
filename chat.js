@@ -135,8 +135,10 @@ async function typeWriterEffect(fullText, sources) {
     // Parse Markdown safely
     // Note: marked.parse is correct for v4+
     const rawHtml = DOMPurify.sanitize(marked.parse(fullText));
-    
-    bubble.innerHTML = rawHtml;
+	// Remove leaked CRITICAL UPDATE blocks client-side as safety net
+	let cleanedHtml = rawHtml.replace(/<p>[\s\S]*?\[\[CRITICAL UPDATE.*?\]\][\s\S]*?<\/p>/gi, '');
+	cleanedHtml = cleanedHtml.replace(/<ul>[\s\S]*?Airdrop 2 Claim Date[\s\S]*?<\/ul>/gi, ''); // if bullet list leaked
+	bubble.innerHTML = cleanedHtml;
 
     // Append Sources if available
     if (sources && sources.length > 0) {
