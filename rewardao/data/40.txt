@@ -1,6 +1,6 @@
 https://dao.xandeum.network/dao/XAND/proposal/4gynqtAX9otu6bFq1WJUDWPkL9Y3uLquX3LN3Zn2JF6S
 June 2025 vNode payouts
-Executable
+Completed
 Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
 
 
@@ -332,9 +332,7 @@ End date: Tue Jun 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 07-01-2026 01:49 - View transaction
 Transaction 5
 instruction 1 - Grant
 Program
@@ -1319,9 +1317,4 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Execution date: 04-09-2025 13:03 - View transaction
-
-Inspect all
-
-Execute in separated transactions
-
-Execute all in one transaction (16)
+Discussion (0)
