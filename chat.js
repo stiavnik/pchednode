@@ -42,7 +42,7 @@ if (chatForm) {
             const loadingId = addLoadingBubble();
 
             // Updated URL to point to localhost or your domain
-            const response = await fetch("http://localhost:8080/ask", {
+            const response = await fetch("/ask", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ "question": text }),
@@ -236,3 +236,4 @@ function escapeHtml(text) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
