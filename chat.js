@@ -42,7 +42,7 @@ if (chatForm) {
             const loadingId = addLoadingBubble();
 
             // Updated URL to point to localhost or your domain
-            const response = await fetch("/ask", {
+            const response = await fetch("/ask", { // This uses the current domain (pchednode.com)
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ "question": text }),
@@ -236,4 +236,5 @@ function escapeHtml(text) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
 
