@@ -21,31 +21,28 @@ const chatMessages = document.getElementById('chat-messages');
 const sendBtn = document.getElementById('send-btn');
 const stopBtn = document.getElementById('stop-btn');
 
-let controller = null; // AbortController for stopping requests
+let controller = null;
 
 if (chatForm) {
     chatForm.addEventListener('submit', async (e) => {
-        e.preventDefault(); // STOP PAGE RELOAD
+        e.preventDefault();
         const text = userInput.value.trim();
         if (!text) return;
 
-        // 1. Add User Message
         addMessage(text, 'user');
         userInput.value = '';
-        userInput.style.height = 'auto'; // Reset height
+        userInput.style.height = 'auto';
 
-        // 2. Set Loading State
         setLoading(true);
 
-        // 3. Prepare Fetch with AbortController
         controller = new AbortController();
         const signal = controller.signal;
 
         try {
-            // Add a temporary loading bubble
             const loadingId = addLoadingBubble();
 
-            const response = await fetch("https://pchedai.pchednode.com/ask", {
+            // Updated URL to point to localhost or your domain
+            const response = await fetch("http://localhost:8080/ask", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ "question": text }),
@@ -56,12 +53,11 @@ if (chatForm) {
 
             const data = await response.json();
 
-            // Remove loading bubble
             removeMessage(loadingId);
 
-            // 4. Display AI Response
             if (data.answer) {
-                await typeWriterEffect(data.answer, data.sources || []);
+                // Pass request_id to the typewriter function
+                await typeWriterEffect(data.answer, data.sources || [], data.request_id);
             } else {
                 addMessage("Received empty response from server.", 'error');
             }
@@ -79,21 +75,39 @@ if (chatForm) {
         }
     });
 
-    // Handle Enter key to submit (Shift+Enter for new line)
     userInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            // Dispatch a cancelable submit event
             chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
         }
     });
 }
 
 stopBtn.addEventListener('click', () => {
-    if (controller) {
-        controller.abort();
-    }
+    if (controller) controller.abort();
 });
+
+// --- Feedback Function ---
+async function sendFeedback(requestId, rating, btnElement) {
+    if (!requestId) return;
+    
+    // UI Feedback immediately
+    const parent = btnElement.parentElement;
+    parent.innerHTML = `<span class="text-xs text-gray-500 italic">Thanks for feedback!</span>`;
+
+    try {
+        await fetch("http://localhost:8080/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                request_id: requestId, 
+                rating: rating 
+            })
+        });
+    } catch (e) {
+        console.error("Failed to send feedback", e);
+    }
+}
 
 // --- Helper Functions ---
 
@@ -120,39 +134,48 @@ function addMessage(text, type) {
     scrollToBottom();
 }
 
-// Function specifically for the AI response to support Markdown and Sources
-async function typeWriterEffect(fullText, sources) {
+async function typeWriterEffect(fullText, sources, requestId) {
     const div = document.createElement('div');
     div.className = `flex flex-col items-start animate-fade-in`;
     
-    // Create the container
     const bubble = document.createElement('div');
     bubble.className = 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-3 rounded-2xl rounded-tl-none shadow-sm max-w-[95%] md:max-w-[85%] prose dark:prose-invert';
     div.appendChild(bubble);
     chatMessages.appendChild(div);
     scrollToBottom();
 
-    // Parse Markdown safely
-    // Note: marked.parse is correct for v4+
+    // Sanitize and Render Markdown
     const rawHtml = DOMPurify.sanitize(marked.parse(fullText));
-	// Remove leaked CRITICAL UPDATE blocks client-side as safety net
-	let cleanedHtml = rawHtml.replace(/<p>[\s\S]*?\[\[CRITICAL UPDATE.*?\]\][\s\S]*?<\/p>/gi, '');
-	cleanedHtml = cleanedHtml.replace(/<ul>[\s\S]*?Airdrop 2 Claim Date[\s\S]*?<\/ul>/gi, ''); // if bullet list leaked
-	bubble.innerHTML = cleanedHtml;
+    let cleanedHtml = rawHtml.replace(/<p>[\s\S]*?\[\[CRITICAL UPDATE.*?\]\][\s\S]*?<\/p>/gi, '');
+    bubble.innerHTML = cleanedHtml;
 
-    // Append Sources if available
+    // Append Sources
     if (sources && sources.length > 0) {
         const sourceContainer = document.createElement('div');
         sourceContainer.className = "mt-3 pt-3 border-t border-gray-300 dark:border-gray-600 text-xs";
         let sourceHtml = '<p class="font-bold text-gray-500 dark:text-gray-400 mb-1">SOURCES:</p><ul class="space-y-1">';
         
         sources.forEach((src, index) => {
-            // Truncate long URLs for display
             const displayUrl = src.length > 40 ? src.substring(0, 37) + '...' : src;
             sourceHtml += `<li><span class="text-gray-400 mr-1">[${index+1}]</span> <a href="${src}" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline">${displayUrl}</a></li>`;
         });
         sourceHtml += '</ul>';
         bubble.insertAdjacentHTML('beforeend', sourceHtml);
+    }
+    
+    // Append Feedback Buttons
+    if (requestId) {
+        const feedbackHtml = `
+            <div class="mt-2 flex items-center gap-3 pt-2">
+                <button onclick="sendFeedback('${requestId}', 'up', this)" class="opacity-50 hover:opacity-100 transition-opacity text-gray-500 hover:text-green-600" title="Good answer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                </button>
+                <button onclick="sendFeedback('${requestId}', 'down', this)" class="opacity-50 hover:opacity-100 transition-opacity text-gray-500 hover:text-red-600" title="Bad answer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>
+                </button>
+            </div>
+        `;
+        bubble.insertAdjacentHTML('beforeend', feedbackHtml);
     }
     
     scrollToBottom();
