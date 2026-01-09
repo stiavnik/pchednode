@@ -42,7 +42,7 @@ if (chatForm) {
             const loadingId = addLoadingBubble();
 
             // Updated URL to point to localhost or your domain
-            const response = await fetch("/ask", { // This uses the current domain (pchednode.com)
+            const response = await fetch("https://pchedai.pchednode.com/ask", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ "question": text }),
@@ -96,7 +96,7 @@ async function sendFeedback(requestId, rating, btnElement) {
     parent.innerHTML = `<span class="text-xs text-gray-500 italic">Thanks for feedback!</span>`;
 
     try {
-        await fetch("http://localhost:8080/feedback", {
+        await fetch("https://pchedai.pchednode.com/feedback", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
@@ -236,5 +236,6 @@ function escapeHtml(text) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
 
 
