@@ -1,5 +1,5 @@
 https://dao.xandeum.network/dao/XAND/proposal/4gXCHX1vPakBmxNgdKv1vWgcEwjf8KCeNQcda5sES2fy
-June 2025 DevNet pNode epic payments
+June 2025 DevNet pNode payments
 Executable
 Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
 
@@ -1077,9 +1077,7 @@ End date: Tue Jun 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 27-01-2026 19:50 - View transaction
 Transaction 14
 instruction 1 - Grant
 Program
@@ -2723,9 +2721,7 @@ End date: Tue Jun 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 27-01-2026 06:24 - View transaction
 Transaction 34
 instruction 1 - Grant
 Program
@@ -3994,6 +3990,7 @@ Account 5
 Vault
 Writable
 AcL44ikfoEenpHyyBxtvV7ufidoKf38ZPwRbpTJYL3Ws
+owner: 44SrRCDpqfERYZ8YV5NNu8wHaTxNYLmdwpC3qYREJGEE
 Account 6
 
 Deposit Token
@@ -4045,9 +4042,7 @@ End date: Tue Jun 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 27-01-2026 20:04 - View transaction
 Transaction 50
 instruction 1 - Grant
 Program
@@ -4297,6 +4292,6 @@ Execution date: 23-08-2025 20:14 - View transaction
 
 Inspect all
 
-Execute in separated transactions (14)
+Execute in separated transactions (11)
 
 Execute all in one transaction (52)

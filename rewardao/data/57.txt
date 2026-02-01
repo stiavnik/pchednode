@@ -1,5 +1,5 @@
 https://dao.xandeum.network/dao/XAND/proposal/CtKa8mcE3nuRYKYv3y9LcaXiB9J6pYzdiCkdnxSK2J9A
-October 2025 DevNet vNode astonishing payouts
+October 2025 DevNet vNode payouts
 Executable
 Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
 
@@ -1330,9 +1330,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 31-01-2026 13:42 - View transaction
 Transaction 17
 instruction 1 - Grant
 Program
@@ -1418,6 +1416,6 @@ Execution date: 01-01-2026 12:45 - View transaction
 
 Inspect all
 
-Execute in separated transactions (7)
+Execute in separated transactions (6)
 
 Execute all in one transaction (17)

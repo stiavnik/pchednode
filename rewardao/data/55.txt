@@ -1,5 +1,5 @@
 https://dao.xandeum.network/dao/XAND/proposal/EdoPKCSryhhpGLjSK8tRWus3FXQVEFPD7Vuq3RRTMA7N
-October 2025 DevNet pNode brilliant payments - Part 1
+October 2025 DevNet pNode payments - Part 1
 Executable
 Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
 
@@ -338,9 +338,7 @@ End date: Sat Oct 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 29-01-2026 16:50 - View transaction
 Transaction 5
 instruction 1 - Grant
 Program
@@ -1000,9 +998,7 @@ End date: Sat Oct 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 27-01-2026 20:00 - View transaction
 Transaction 13
 instruction 1 - Grant
 Program
@@ -2492,9 +2488,7 @@ End date: Sat Oct 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 25-01-2026 21:04 - View transaction
 Transaction 31
 instruction 1 - Grant
 Program
@@ -2742,9 +2736,7 @@ End date: Sat Oct 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 27-01-2026 06:28 - View transaction
 Transaction 34
 instruction 1 - Grant
 Program
@@ -4108,6 +4100,7 @@ Account 5
 Vault
 Writable
 AcL44ikfoEenpHyyBxtvV7ufidoKf38ZPwRbpTJYL3Ws
+owner: 44SrRCDpqfERYZ8YV5NNu8wHaTxNYLmdwpC3qYREJGEE
 Account 6
 
 Deposit Token
@@ -4159,9 +4152,7 @@ End date: Sat Oct 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 27-01-2026 20:08 - View transaction
 Transaction 51
 instruction 1 - Grant
 Program
@@ -4491,9 +4482,7 @@ End date: Sat Oct 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 25-01-2026 21:00 - View transaction
 Transaction 55
 instruction 1 - Grant
 Program
@@ -5163,6 +5152,6 @@ Execute
 
 Inspect all
 
-Execute in separated transactions (38)
+Execute in separated transactions (32)
 
 Execute all in one transaction (62)

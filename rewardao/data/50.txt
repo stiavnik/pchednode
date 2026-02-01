@@ -1,5 +1,5 @@
 https://dao.xandeum.network/dao/XAND/proposal/9dsQH11fKKVHBixw5MWuWgaV27iB6cJXEbQc4HeDiNf1
-August 2025 DevNet pNode tremendous payments - Part 1
+August 2025 DevNet pNode payments - Part 1
 Executable
 Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
 
@@ -998,9 +998,7 @@ End date: Mon Aug 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 27-01-2026 19:57 - View transaction
 Transaction 13
 instruction 1 - Grant
 Program
@@ -2570,9 +2568,7 @@ End date: Mon Aug 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 27-01-2026 06:22 - View transaction
 Transaction 32
 instruction 1 - Grant
 Program
@@ -3847,6 +3843,7 @@ Account 5
 Vault
 Writable
 AcL44ikfoEenpHyyBxtvV7ufidoKf38ZPwRbpTJYL3Ws
+owner: 44SrRCDpqfERYZ8YV5NNu8wHaTxNYLmdwpC3qYREJGEE
 Account 6
 
 Deposit Token
@@ -3898,9 +3895,7 @@ End date: Mon Aug 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 27-01-2026 20:06 - View transaction
 Transaction 48
 instruction 1 - Grant
 Program
@@ -4894,6 +4889,6 @@ Execution date: 26-10-2025 15:43 - View transaction
 
 Inspect all
 
-Execute in separated transactions (27)
+Execute in separated transactions (24)
 
 Execute all in one transaction (59)
