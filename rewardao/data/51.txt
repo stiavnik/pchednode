@@ -1,5 +1,5 @@
 https://dao.xandeum.network/dao/XAND/proposal/5w16mZMqGy6HA1Y3vkKydN7H2g64SjCqD1pxi7EMqCTU
-September 2025 DevNet pNode payments - Part 1
+September 2025 DevNet pNode life-altering payments - Part 1
 Executable
 Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
 
@@ -4720,9 +4720,7 @@ End date: Wed Sep 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 01-02-2026 19:25 - View transaction
 Transaction 58
 instruction 1 - Grant
 Program
@@ -4892,6 +4890,6 @@ Execute
 
 Inspect all
 
-Execute in separated transactions (25)
+Execute in separated transactions (24)
 
 Execute all in one transaction (59)

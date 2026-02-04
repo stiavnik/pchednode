@@ -1,5 +1,5 @@
 https://dao.xandeum.network/dao/XAND/proposal/9dsQH11fKKVHBixw5MWuWgaV27iB6cJXEbQc4HeDiNf1
-August 2025 DevNet pNode payments - Part 1
+August 2025 DevNet pNode soul-snatching payments - Part 1
 Executable
 Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
 
@@ -4553,9 +4553,7 @@ End date: Mon Aug 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 01-02-2026 19:27 - View transaction
 Transaction 56
 instruction 1 - Grant
 Program
@@ -4889,6 +4887,6 @@ Execution date: 26-10-2025 15:43 - View transaction
 
 Inspect all
 
-Execute in separated transactions (24)
+Execute in separated transactions (23)
 
 Execute all in one transaction (59)
