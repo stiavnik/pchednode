@@ -3650,9 +3650,7 @@ End date: Sat Oct 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 23-02-2026 19:53 - View transaction
 Transaction 45
 instruction 1 - Grant
 Program
@@ -5148,6 +5146,6 @@ Execute
 
 Inspect all
 
-Execute in separated transactions (30)
+Execute in separated transactions (29)
 
 Execute all in one transaction (62)
