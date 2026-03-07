@@ -282,8 +282,10 @@
 
                 // Manager
                 const managerEl = document.getElementById('chain-manager');
-                managerEl.textContent = (chain.manager && chain.manager !== empty) ? chain.manager.slice(0,8) + "..." : "-";
-                managerEl.dataset.full = chain.manager || "";
+                const managerVal = chain.manager || "";
+                const isRealManager = managerVal && managerVal !== empty && managerVal !== "--";
+                managerEl.textContent = isRealManager ? managerVal.slice(0,8) + "..." : "-";
+                managerEl.dataset.full = isRealManager ? managerVal : "";
 
                 // NFT Slots
                 document.getElementById('chain-nft1').textContent = (chain.nft_slot_1 && chain.nft_slot_1 !== empty) ? chain.nft_slot_1.slice(0,8) + "..." : "-";
