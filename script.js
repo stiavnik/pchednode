@@ -288,14 +288,6 @@ function renderTable() {
             name: "N/A", country: '<span class="loading-spinner">Loading</span>', provider: "", geo_sort: "loading", nfts: [], stake: 0 
         };
 
-        let badgeHtml = "";
-        if (cached.nfts && cached.nfts.length > 0) {
-            const hasNft = cached.nfts.some(a => a.type === 'NFT');
-            const hasToken = cached.nfts.some(a => a.type === 'TOKEN');
-            if (hasNft) badgeHtml += `<span class="ml-2 px-1.5 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 rounded shadow-sm" title="Xandeum NFT Owner">NFT</span>`;
-            if (hasToken) badgeHtml += `<span class="ml-1 px-1.5 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r from-blue-400 to-indigo-500 rounded shadow-sm" title="XAND Token Holder">XAND</span>`;
-        }
-
         let nftCellHtml = `<span class="text-gray-400 dark:text-gray-600">-</span>`;
         if (cached.is_registered) {
             const nftCount = cached.nft_count || 0;
