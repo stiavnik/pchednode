@@ -233,8 +233,8 @@ function renderTable() {
                 comparison = compareVersions(a.version, b.version);
                 break;
             case 'nfts':
-                valA = (cacheA.nfts || []).length;
-                valB = (cacheB.nfts || []).length;
+                valA = (cacheA.is_registered ? 1 : 0) * 10 + (cacheA.nft_count || 0);
+                valB = (cacheB.is_registered ? 1 : 0) * 10 + (cacheB.nft_count || 0);
                 comparison = valA - valB;
                 break;
             default: // last_seen
@@ -296,21 +296,13 @@ function renderTable() {
             if (hasToken) badgeHtml += `<span class="ml-1 px-1.5 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r from-blue-400 to-indigo-500 rounded shadow-sm" title="XAND Token Holder">XAND</span>`;
         }
 
-        let nftCellHtml = `<span class="text-gray-300 text-xs">-</span>`;
-        if (cached.nfts && cached.nfts.length > 0) {
-            const count = cached.nfts.length;
-            const tooltip = cached.nfts.map(n => `${escapeHtml(n.name)} (${n.type})`).join('\n');
-            const hasNft = cached.nfts.some(n => n.type === 'NFT');
-            const colorClass = hasNft 
-                ? "bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-800" 
-                : "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800";
-            nftCellHtml = `<div class="group relative inline-block">
-                <span class="px-2 py-0.5 text-xs font-bold rounded border ${colorClass} cursor-help">${count}</span>
-                <div class="invisible group-hover:visible absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-pre shadow-lg border border-gray-700">
-                    ${tooltip}
-                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                </div>
-            </div>`;
+        let nftCellHtml = `<span class="text-gray-400 dark:text-gray-600">-</span>`;
+        if (cached.is_registered) {
+            const nftCount = cached.nft_count || 0;
+            // Highlight if registered. Using a subtle emerald/green theme for "Registered"
+            const regClass = "text-emerald-600 dark:text-emerald-400 font-bold";
+            const nftClass = nftCount > 0 ? "text-pink-500" : "opacity-50";
+            nftCellHtml = `<span class="${regClass}">Y <span class="text-[10px] ${nftClass}">(${nftCount})</span></span>`;
         }
 
         let countryHtml = cached.country; 
@@ -322,7 +314,8 @@ function renderTable() {
         }
 
         const isKnown = cached.name && cached.name !== "N/A";
-        const rowClass = (isKnown ? "known-server" : "") + (isDuplicated ? " duplicate-pubkey-row" : "");
+        const isRegistered = cached.is_registered ? "bg-emerald-50/30 dark:bg-emerald-900/10" : "";
+        const rowClass = `${isKnown ? "known-server" : ""} ${isDuplicated ? "duplicate-pubkey-row" : ""} ${isRegistered}`;
         const nameClass = isKnown ? "font-semibold text-indigo-700" : "text-gray-500";
         const pubkeyCellClass = isDuplicated ? "pubkey-duplicate" : "";
         const warningIcon = isDuplicated ? `<span class="warning-icon" title="Duplicates found">!</span>` : "";
@@ -391,9 +384,10 @@ function renderTable() {
                     provider: g.provider,
                     geo_sort: g.geo_sort,
                     ping: g.ping,
-                    stake: g.stake, // Grab Stake
+                    is_registered: g.is_registered, // Map new field
+                    nft_count: g.nft_count,         // Map new field
                     credits: g.credits,
-                    nfts: g.nfts || [] 
+                    nfts: [] 
                 };
             }
             requestAnimationFrame(() => renderTable());
