@@ -66,11 +66,8 @@ function formatCreditsHtml(credits) {
 
 // --- NEW STAKE FORMATTER ---
 function formatStakeHtml(stake) {
-    if (stake === undefined) return '<span class="inline-block w-3 h-3 border border-gray-400 border-t-indigo-600 rounded-full animate-spin"></span>';
-    if (stake === null) return `<span class="text-gray-400 text-xs">-</span>`;
-    const val = parseFloat(stake);
-    const fmt = isNaN(val) ? stake : val.toFixed(0); // Stake usually whole numbers
-    return `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${fmt} XAND</span>`;
+    const val = parseFloat(stake) || 0;
+    return `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${val} XAND</span>`;
 }
 
 function markLoadButton() {
@@ -179,8 +176,8 @@ function renderTable() {
     podsToRender.sort((a, b) => {
         const ipA = a.address.split(":")[0];
         const ipB = b.address.split(":")[0];
-        const cacheA = ipCache[ipA] || { name: "", geo_sort: "zzzz", nfts: [] };
-        const cacheB = ipCache[ipB] || { name: "", geo_sort: "zzzz", nfts: [] };
+		const cacheA = ipCache[ipA] || { name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0 };
+        const cacheB = ipCache[ipB] || { name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0 };
         let valA, valB, comparison = 0;
 
         switch (sortCol) {
@@ -249,7 +246,7 @@ function renderTable() {
     let html = `<table class="min-w-full"><thead><tr>
         <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')" title="Click footer to register your name">Name ${getSortIndicator('name')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('pubkey')">Pubkey ${getSortIndicator('pubkey')}</th>
-        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('nfts')">NFT ${getSortIndicator('nfts')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none text-center" onclick="handleSort('nfts')">REG?<br>(NFTs) ${getSortIndicator('nfts')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('is_public')">Pub? ${getSortIndicator('is_public')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('country')">Country ${getSortIndicator('country')}</th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('storage')">Size ${getSortIndicator('storage')}</th>
@@ -284,25 +281,25 @@ function renderTable() {
         
         if (needsFetch) batchQueue.push({ ip: ip, pubkey: pubkey });
         
+        // Default when nothing cached yet
         const cached = existing && !needsFetch ? existing : { 
-            name: "N/A", country: '<span class="loading-spinner">Loading</span>', provider: "", geo_sort: "loading", nfts: [], stake: 0 
+            name: "N/A", 
+            country: '<span class="loading-spinner">Loading</span>', 
+            provider: "", 
+            geo_sort: "loading", 
+            stake: 0,
+            is_registered: false,
+            nft_count: 0
         };
 
-        let badgeHtml = "";
-        if (cached.nfts && cached.nfts.length > 0) {
-            const hasNft = cached.nfts.some(a => a.type === 'NFT');
-            const hasToken = cached.nfts.some(a => a.type === 'TOKEN');
-            if (hasNft) badgeHtml += `<span class="ml-2 px-1.5 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 rounded shadow-sm" title="Xandeum NFT Owner">NFT</span>`;
-            if (hasToken) badgeHtml += `<span class="ml-1 px-1.5 py-0.5 text-[10px] font-bold text-white bg-gradient-to-r from-blue-400 to-indigo-500 rounded shadow-sm" title="XAND Token Holder">XAND</span>`;
-        }
-
-        let nftCellHtml = `<span class="text-gray-400 dark:text-gray-600">-</span>`;
+        // === NEW NFT CELL (cleaner + bigger number) ===
+        let nftCellHtml = `<span class="text-gray-400 dark:text-gray-600 text-sm">-</span>`;
         if (cached.is_registered) {
             const nftCount = cached.nft_count || 0;
-            // Highlight if registered. Using a subtle emerald/green theme for "Registered"
-            const regClass = "text-emerald-600 dark:text-emerald-400 font-bold";
-            const nftClass = nftCount > 0 ? "text-pink-500" : "opacity-50";
-            nftCellHtml = `<span class="${regClass}">Y <span class="text-[10px] ${nftClass}">(${nftCount})</span></span>`;
+            nftCellHtml = `
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">Y</span>
+                <span class="ml-1 text-pink-500 dark:text-pink-400 text-sm font-medium">(${nftCount})</span>
+            `;
         }
 
         let countryHtml = cached.country; 
@@ -340,7 +337,7 @@ function renderTable() {
 		}
 
         html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}&host=${rpcHost}'" style="cursor:pointer;">
-            <td id="name-${ip}" class="${nameClass}" title="Click footer to register your name">${cached.name} ${badgeHtml}</td>
+            <td id="name-${ip}" class="${nameClass}" title="Click footer to register your name">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 ${pubkeyCellClass}"
                 data-pubkey="${pubkey}" title="${hoverTitle}" onclick="copyPubkey('${pubkey}', this, event)">
                 <span class="short-key">${shortKey}</span>${warningIcon}
@@ -375,7 +372,7 @@ function renderTable() {
         })
         .then(r => r.json())
         .then(results => {
-            for (const ip in results) {
+			for (const ip in results) {
                 const g = results[ip];
                 ipCache[ip] = {
                     name: g.name || "N/A",
@@ -384,10 +381,10 @@ function renderTable() {
                     provider: g.provider,
                     geo_sort: g.geo_sort,
                     ping: g.ping,
-                    is_registered: g.is_registered, // Map new field
-                    nft_count: g.nft_count,         // Map new field
-                    credits: g.credits,
-                    nfts: [] 
+                    is_registered: g.is_registered,
+                    nft_count: g.nft_count,
+                    stake: g.stake || 0,      // ← critical fix
+                    credits: g.credits
                 };
             }
             requestAnimationFrame(() => renderTable());
