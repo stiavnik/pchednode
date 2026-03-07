@@ -43,6 +43,8 @@ body {
 /* Header Styling - UPDATED WITH FROSTED GLASS & Z-INDEX */
 #pched-live-view thead th {
     position: sticky; top: 0; 
+	white-space: nowrap;
+    line-height: 1.15;
     
     /* NEW: Ensures header stays on top of content */
     z-index: 10; 
@@ -70,6 +72,8 @@ body {
 .dark #pched-live-view thead th { 
     /* NEW: Semi-transparent background (was #1e293b) */
     background: rgba(30, 41, 59, 0.9); 
+	white-space: nowrap;
+    line-height: 1.15;
     
     color: #cbd5e1; 
     border-bottom: 1px solid #374151; 
