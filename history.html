@@ -49,6 +49,7 @@
         </header>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm">
+            <!-- existing 4 metadata cards unchanged -->
             <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur px-4 py-3 rounded-xl shadow-sm border border-white/50 dark:border-gray-700/50 flex flex-col">
                 <span class="text-xs font-bold text-gray-500 uppercase">Node Name</span>
                 <span id="node-name" class="font-semibold text-indigo-600 dark:text-indigo-400 truncate">Waiting for check...</span>
@@ -67,6 +68,7 @@
             </div>
         </div>
 
+        <!-- Existing 6 stat cards unchanged -->
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
             <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-emerald-500">
                 <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Ping</h3>
@@ -108,7 +110,49 @@
             </div>
         </div>
 
-        <main class="bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 md:p-6 rounded-xl shadow-lg border border-white/50 dark:border-gray-700/50">
+        <!-- NEW: Chain Registration Info (6 new cards) -->
+        <div class="mt-8">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <!-- Owner -->
+                <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-emerald-500 cursor-pointer" onclick="copyToClipboard(document.getElementById('chain-owner').dataset.full)">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Owner</h3>
+                    <span id="chain-owner" class="font-mono text-sm truncate text-emerald-600 dark:text-emerald-400" data-full="">-</span>
+                </div>
+
+                <!-- Manager -->
+                <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-rose-500 cursor-pointer" onclick="copyToClipboard(document.getElementById('chain-manager').dataset.full)">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Manager</h3>
+                    <span id="chain-manager" class="font-mono text-sm truncate text-rose-600 dark:text-rose-400" data-full="">-</span>
+                </div>
+
+                <!-- NFT Slot 1 -->
+                <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-violet-500">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">NFT Slot 1</h3>
+                    <span id="chain-nft1" class="font-mono text-xs truncate text-violet-600 dark:text-violet-400">-</span>
+                </div>
+
+                <!-- NFT Slot 2 -->
+                <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-violet-500">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">NFT Slot 2</h3>
+                    <span id="chain-nft2" class="font-mono text-xs truncate text-violet-600 dark:text-violet-400">-</span>
+                </div>
+
+                <!-- Registration Time -->
+                <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-amber-500">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Registered</h3>
+                    <span id="chain-reg-time" class="font-mono text-sm text-amber-600 dark:text-amber-400">-</span>
+                </div>
+
+                <!-- Manager Commission -->
+                <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-cyan-500">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Commission</h3>
+                    <span id="chain-commission" class="font-mono text-sm text-cyan-600 dark:text-cyan-400">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart unchanged -->
+        <main class="bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 md:p-6 rounded-xl shadow-lg border border-white/50 dark:border-gray-700/50 mt-8">
             <div class="relative h-[400px] w-full">
                 <canvas id="historyChart"></canvas>
             </div>
@@ -135,11 +179,18 @@
 
         // --- Helpers ---
         function copyToClipboard(text) {
-            navigator.clipboard.writeText(text);
-            const el = document.getElementById('node-pubkey');
-            const original = el.className;
-            el.className = "font-mono text-xs truncate text-green-500 font-bold transition";
-            setTimeout(() => el.className = original, 1000);
+            if (!text || text === "" || text === "-") return;
+            navigator.clipboard.writeText(text).then(() => {
+                // Visual feedback on Owner and Manager cards
+                const ownerCard = document.getElementById('chain-owner').parentElement;
+                const managerCard = document.getElementById('chain-manager').parentElement;
+                [ownerCard, managerCard].forEach(card => {
+                    const original = card.style.backgroundColor;
+                    card.style.transition = "background-color 0.4s";
+                    card.style.backgroundColor = "#10b98130";
+                    setTimeout(() => card.style.backgroundColor = original || "", 800);
+                });
+            });
         }
 
         function formatRelativeTime(ts) {
@@ -220,7 +271,31 @@
                 document.getElementById('node-name').textContent = data.meta.name || "N/A";
                 document.getElementById('node-pubkey').textContent = data.meta.pubkey || "N/A";
 
-                // 2. Parse CSV
+                // 2. NEW: Chain data
+                const chain = data.chain || {};
+                const empty = "11111111111111111111111111111111";
+
+                // Owner
+                const ownerEl = document.getElementById('chain-owner');
+                ownerEl.textContent = (chain.owner && chain.owner !== empty) ? chain.owner.slice(0,8) + "..." : "-";
+                ownerEl.dataset.full = chain.owner || "";
+
+                // Manager
+                const managerEl = document.getElementById('chain-manager');
+                managerEl.textContent = (chain.manager && chain.manager !== empty) ? chain.manager.slice(0,8) + "..." : "-";
+                managerEl.dataset.full = chain.manager || "";
+
+                // NFT Slots
+                document.getElementById('chain-nft1').textContent = (chain.nft_slot_1 && chain.nft_slot_1 !== empty) ? chain.nft_slot_1.slice(0,8) + "..." : "-";
+                document.getElementById('chain-nft2').textContent = (chain.nft_slot_2 && chain.nft_slot_2 !== empty) ? chain.nft_slot_2.slice(0,8) + "..." : "-";
+
+                // Registration Time
+                document.getElementById('chain-reg-time').textContent = chain.registration_time ? formatRelativeTime(chain.registration_time) : "-";
+
+                // Manager Commission
+                document.getElementById('chain-commission').textContent = (chain.manager_commission || 0) + "%";
+
+                // 3. Parse CSV
                 const rows = data.csv_data.trim().split('\n');
                 fullData = [];
 
