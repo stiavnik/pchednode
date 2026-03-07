@@ -108,7 +108,7 @@ function handleSort(column) {
     } else {
         sortCol = column;
         sortAsc = false; 
-        if (['version', 'name', 'country', 'pubkey', 'is_public', 'nfts'].includes(column)) {
+        if (['version', 'name', 'country', 'pubkey', 'is_public', 'nfts', 'owner', 'manager'].includes(column)) {
             sortAsc = true;
         }
     }
@@ -148,10 +148,13 @@ function refilterAndRestyle() {
         const name = (cache.name || "N/A").toLowerCase();
         const ipText = ip.toLowerCase();
         const pubkey = row.cells[1]?.dataset.pubkey?.toLowerCase() || "";
+        const owner = (cache.owner || "").toLowerCase();
+        const manager = (cache.manager || "").toLowerCase();
         if (!toggle || value === "") {
             row.style.display = "";
         } else {
-            const match = ipText.includes(value) || pubkey.includes(value) || name.includes(value);
+            const match = ipText.includes(value) || pubkey.includes(value) || 
+                          name.includes(value) || owner.includes(value) || manager.includes(value);
             row.style.display = match ? "" : "none";
         }
     });
@@ -176,8 +179,8 @@ function renderTable() {
     podsToRender.sort((a, b) => {
         const ipA = a.address.split(":")[0];
         const ipB = b.address.split(":")[0];
-		const cacheA = ipCache[ipA] || { name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0 };
-        const cacheB = ipCache[ipB] || { name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0 };
+        const cacheA = ipCache[ipA] || { name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0, owner: "--", manager: "--" };
+        const cacheB = ipCache[ipB] || { name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0, owner: "--", manager: "--" };
         let valA, valB, comparison = 0;
 
         switch (sortCol) {
@@ -247,6 +250,8 @@ function renderTable() {
         <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')" title="Click footer to register your name">Name ${getSortIndicator('name')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('pubkey')">Pubkey ${getSortIndicator('pubkey')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none text-center" onclick="handleSort('nfts')">REG?<br>(NFTs) ${getSortIndicator('nfts')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none text-center" onclick="handleSort('owner')" title="Owner pubkey">O ${getSortIndicator('owner')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none text-center" onclick="handleSort('manager')" title="Manager pubkey">M ${getSortIndicator('manager')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('is_public')">Pub? ${getSortIndicator('is_public')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('country')">Country ${getSortIndicator('country')}</th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('storage')">Size ${getSortIndicator('storage')}</th>
@@ -289,7 +294,9 @@ function renderTable() {
             geo_sort: "loading", 
             stake: 0,
             is_registered: false,
-            nft_count: 0
+            nft_count: 0,
+            owner: "--",      // new
+            manager: "--"     // new
         };
 
         // === NEW NFT CELL (cleaner + bigger number) ===
@@ -343,6 +350,16 @@ function renderTable() {
                 <span class="short-key">${shortKey}</span>${warningIcon}
             </td>
             <td class="text-center">${nftCellHtml}</td>
+            <td class="text-center font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600"
+                title="${cached.owner === '--' ? '' : `Click to copy: ${cached.owner}`}" 
+                onclick="copyPubkey('${cached.owner}', this, event)">
+                ${cached.owner === '--' ? '<span class="text-gray-400 dark:text-gray-600">-</span>' : 'O'}
+            </td>
+            <td class="text-center font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600"
+                title="${cached.manager === '--' ? '' : `Click to copy: ${cached.manager}`}" 
+                onclick="copyPubkey('${cached.manager}', this, event)">
+                ${cached.manager === '--' ? '<span class="text-gray-400 dark:text-gray-600">-</span>' : 'M'}
+            </td>
             <td class="text-xs">${publicStr}</td>
             <td id="country-${ip}" title="${cached.geo_sort}">${countryHtml}</td>
             <td class="text-right font-mono text-xs">${storageStr}</td>
@@ -383,7 +400,9 @@ function renderTable() {
                     ping: g.ping,
                     is_registered: g.is_registered,
                     nft_count: g.nft_count,
-                    stake: g.stake || 0,      // ← critical fix
+                    stake: g.stake || 0,
+                    owner: g.owner || "--",       // new
+                    manager: g.manager || "--",   // new
                     credits: g.credits
                 };
             }
