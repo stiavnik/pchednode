@@ -298,7 +298,7 @@ function renderTable() {
             const nftCount = cached.nft_count || 0;
             nftCellHtml = `
                 <span class="font-bold text-emerald-600 dark:text-emerald-400">Y</span>
-                <span class="ml-1 text-pink-500 dark:text-pink-400 text-sm font-medium">(${nftCount})</span>
+                <span class="ml-1 text-pink-500 dark:text-pink-400 text-xs font-medium">(${nftCount})</span>
             `;
         }
 
