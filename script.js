@@ -194,6 +194,16 @@ function renderTable() {
                 valB = (b.pubkey || "").toLowerCase();
                 if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
                 break;
+            case 'owner':
+                valA = (cacheA.owner || "").toLowerCase();
+                valB = (cacheB.owner || "").toLowerCase();
+                if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
+                break;
+            case 'manager':
+                valA = (cacheA.manager || "").toLowerCase();
+                valB = (cacheB.manager || "").toLowerCase();
+                if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
+                break;
             case 'is_public':
                 comparison = (a.is_public ? 1 : 0) - (b.is_public ? 1 : 0);
                 break;
