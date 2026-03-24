@@ -1,5 +1,5 @@
 https://dao.xandeum.network/dao/XAND/proposal/EZVPtgCDJafKLxWDNpc39QmwqCtcegSQ4cEHfqhDt2dX
-November 2025 DevNet pNode gorgeous payments - Part 2
+November 2025 DevNet pNode payments - Part 2
 Executable
 Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
 
@@ -501,9 +501,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 15-03-2026 20:16 - View transaction
 Transaction 7
 instruction 1 - Grant
 Program
@@ -2733,9 +2731,7 @@ End date: Mon Nov 30 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 07-03-2026 02:09 - View transaction
 Transaction 34
 instruction 1 - Grant
 Program
@@ -5056,6 +5052,6 @@ Execute
 
 Inspect all
 
-Execute in separated transactions (27)
+Execute in separated transactions (25)
 
 Execute all in one transaction (61)

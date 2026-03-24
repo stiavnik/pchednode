@@ -1,5 +1,5 @@
 https://dao.xandeum.network/dao/XAND/proposal/8mSLZWPzPtsn63AiMuUs1kMHUP4pzxGrqtqGSCJFwPg6
-July 2025 DevNet pNode straight-up filthy payments
+July 2025 DevNet pNode payments
 Executable
 Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
 
@@ -582,9 +582,7 @@ End date: Fri Jul 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 19-03-2026 20:12 - View transaction
 Transaction 8
 instruction 1 - Grant
 Program
@@ -7357,9 +7355,7 @@ End date: Fri Jul 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 07-03-2026 02:19 - View transaction
 Transaction 90
 instruction 1 - Grant
 Program
@@ -8185,6 +8181,6 @@ Execution date: 22-12-2025 04:11 - View transaction
 
 Inspect all
 
-Execute in separated transactions (34)
+Execute in separated transactions (32)
 
 Execute all in one transaction (99)
