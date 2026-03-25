@@ -1,6 +1,6 @@
 https://dao.xandeum.network/dao/XAND/proposal/DH9CzFVCtnfzEkx7KyNPsBaYo4y14GkTUD8Fa2SurKE1
 January 2026 DevNet pNode payments - Part 4
-Voting
+Executable
 Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
 
 Residual operator payments for running a pNode in the Incentivized DevNet
@@ -88,6 +88,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 2
 instruction 1 - Grant
 Program
@@ -170,5 +172,10 @@ Only grantee can execute instruction
 
 Inspect
 
+Execute
+
 Inspect all
-Discussion (0)
+
+Execute in separated transactions (2)
+
+Execute all in one transaction (2)

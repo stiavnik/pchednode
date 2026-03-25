@@ -1,6 +1,6 @@
 https://dao.xandeum.network/dao/XAND/proposal/5yJy73QnggPgi8WMBwxN4sqxDW3fb7ZS3GvtVC9Ff3TE
 January 2026 DevNet pNode payments - Part 3
-Voting
+Executable
 Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
 
 Operator (wallet address starts with LETTER after C) payments for running a pNode in the Incentivized DevNet
@@ -89,6 +89,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 2
 instruction 1 - Grant
 Program
@@ -170,7 +172,7 @@ End date: Sun Jan 31 2027
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
+Execution date: 25-03-2026 05:21 - View transaction
 Transaction 3
 instruction 1 - Grant
 Program
@@ -253,6 +255,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 4
 instruction 1 - Grant
 Program
@@ -335,6 +339,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 5
 instruction 1 - Grant
 Program
@@ -417,6 +423,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 6
 instruction 1 - Grant
 Program
@@ -499,6 +507,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 7
 instruction 1 - Grant
 Program
@@ -581,6 +591,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 8
 instruction 1 - Grant
 Program
@@ -662,6 +674,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 9
 instruction 1 - Grant
 Program
@@ -744,6 +758,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 10
 instruction 1 - Grant
 Program
@@ -826,6 +842,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 11
 instruction 1 - Grant
 Program
@@ -907,7 +925,7 @@ End date: Sun Jan 31 2027
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
+Execution date: 24-03-2026 22:53 - View transaction
 Transaction 12
 instruction 1 - Grant
 Program
@@ -990,6 +1008,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 13
 instruction 1 - Grant
 Program
@@ -1071,6 +1091,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 14
 instruction 1 - Grant
 Program
@@ -1153,6 +1175,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 15
 instruction 1 - Grant
 Program
@@ -1235,6 +1259,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 16
 instruction 1 - Grant
 Program
@@ -1317,6 +1343,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 17
 instruction 1 - Grant
 Program
@@ -1399,6 +1427,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 18
 instruction 1 - Grant
 Program
@@ -1480,6 +1510,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 19
 instruction 1 - Grant
 Program
@@ -1562,6 +1594,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 20
 instruction 1 - Grant
 Program
@@ -1644,6 +1678,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 21
 instruction 1 - Grant
 Program
@@ -1726,6 +1762,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 22
 instruction 1 - Grant
 Program
@@ -1807,6 +1845,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 23
 instruction 1 - Grant
 Program
@@ -1889,6 +1929,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 24
 instruction 1 - Grant
 Program
@@ -1970,6 +2012,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 25
 instruction 1 - Grant
 Program
@@ -2052,6 +2096,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 26
 instruction 1 - Grant
 Program
@@ -2134,6 +2180,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 27
 instruction 1 - Grant
 Program
@@ -2216,6 +2264,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 28
 instruction 1 - Grant
 Program
@@ -2298,6 +2348,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 29
 instruction 1 - Grant
 Program
@@ -2380,6 +2432,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 30
 instruction 1 - Grant
 Program
@@ -2461,6 +2515,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 31
 instruction 1 - Grant
 Program
@@ -2542,6 +2598,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 32
 instruction 1 - Grant
 Program
@@ -2623,6 +2681,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 33
 instruction 1 - Grant
 Program
@@ -2706,5 +2766,10 @@ Only grantee can execute instruction
 
 Inspect
 
+Execute
+
 Inspect all
-Discussion (0)
+
+Execute in separated transactions (31)
+
+Execute all in one transaction (33)
