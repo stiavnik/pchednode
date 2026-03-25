@@ -64,13 +64,18 @@ function formatCreditsHtml(credits) {
     return `<span class="text-purple-600 dark:text-purple-400 font-bold">${val}</span>`;
 }
 
-// --- NEW STAKE FORMATTER ---
-function formatStakeHtml(stake) {
+// --- STAKE FORMATTER (3 decimal places) ---
+function formatStakeHtml(stake, hasStaking = false) {
     const val = parseFloat(stake) || 0;
-    if (val <= 0) {
+
+    if (!hasStaking) {
         return '<span class="text-gray-400 dark:text-gray-600 text-xs font-medium">—</span>';
     }
-    return `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${val.toFixed(9)} WSOL</span>`;
+
+    // Always show exactly 3 decimals (even for 0)
+    const display = val.toFixed(3);
+
+    return `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${display} WSOL</span>`;
 }
 
 function markLoadButton() {
@@ -306,6 +311,7 @@ function renderTable() {
             provider: "", 
             geo_sort: "loading", 
             stake: 0,
+            has_staking: false,
             is_registered: false,
             nft_count: 0,
             owner: "--",      // new
@@ -340,21 +346,21 @@ function renderTable() {
         let pingHtml = formatPingHtml(cached.ping);
         let creditsHtml = formatCreditsHtml(cached.credits);
         // CHANGED: Use Stake HTML
-        let stakeHtml = formatStakeHtml(cached.stake);
+        let stakeHtml = formatStakeHtml(cached.stake, cached.has_staking);
 
         const publicStr = (pod.is_public === true) ? "Yes" : (pod.is_public === false ? "No" : "-");
         const storageStr = formatStorage(pod.storage_committed);
         const usageStr = formatPercent(pod.storage_usage_percent);
         const uptimeStr = formatUptime(pod.uptime);
         const rawVer = pod.version || "";
-		const cleanVer = cleanVersion(rawVer);
-		let versionHtml = cleanVer;
+        const cleanVer = cleanVersion(rawVer);
+        let versionHtml = cleanVer;
 
-		// If the version was truncated (contained a dash), add decoration
-		if (rawVer !== cleanVer) {
-			// Adds a dotted underline and an asterisk, with the full version in the tooltip
-			versionHtml = `<span title="${escapeHtml(rawVer)}" class="cursor-help border-b border-dotted border-gray-400 hover:border-indigo-500 transition-colors">${cleanVer}*</span>`;
-		}
+        // If the version was truncated (contained a dash), add decoration
+        if (rawVer !== cleanVer) {
+            // Adds a dotted underline and an asterisk, with the full version in the tooltip
+            versionHtml = `<span title="${escapeHtml(rawVer)}" class="cursor-help border-b border-dotted border-gray-400 hover:border-indigo-500 transition-colors">${cleanVer}*</span>`;
+        }
 
         html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}&host=${rpcHost}'" style="cursor:pointer;">
             <td id="name-${ip}" class="${nameClass}" title="Click footer to register your name">${cached.name}</td>
@@ -402,7 +408,7 @@ function renderTable() {
         })
         .then(r => r.json())
         .then(results => {
-			for (const ip in results) {
+            for (const ip in results) {
                 const g = results[ip];
                 ipCache[ip] = {
                     name: g.name || "N/A",
@@ -414,6 +420,7 @@ function renderTable() {
                     is_registered: g.is_registered,
                     nft_count: g.nft_count,
                     stake: g.stake || 0,
+                    has_staking: !!g.has_staking,
                     owner: g.owner || "--",       // new
                     manager: g.manager || "--",   // new
                     credits: g.credits
