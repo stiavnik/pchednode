@@ -240,13 +240,18 @@ function renderTable() {
                 break;
             // --- UPDATED SORT FOR STAKE ---
 			case 'stake':
-                if (cacheA.has_staking !== cacheB.has_staking) {
-                    // Put nodes WITHOUT staking at the bottom
-                    comparison = cacheA.has_staking ? 1 : -1;
-                    if (!sortAsc) comparison = -comparison; 
+                if (!cacheA.has_staking && cacheB.has_staking) {
+                    // A has no stake, B does. Force A to the bottom.
+                    // We check sortAsc to counteract the global flip at the end of the function.
+                    comparison = sortAsc ? 1 : -1;
+                } else if (cacheA.has_staking && !cacheB.has_staking) {
+                    // A has stake, B does not. Force B to the bottom.
+                    comparison = sortAsc ? -1 : 1;
                 } else if (!cacheA.has_staking && !cacheB.has_staking) {
+                    // Neither have stake, keep them together
                     comparison = 0;
                 } else {
+                    // Both have stake, sort them by actual amount
                     comparison = cacheA.stake - cacheB.stake;
                 }
                 break;
