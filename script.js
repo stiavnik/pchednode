@@ -239,10 +239,16 @@ function renderTable() {
                 if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
                 break;
             // --- UPDATED SORT FOR STAKE ---
-            case 'stake':
-                valA = a.has_staking ? a.stake_wsol : -1;
-                valB = b.has_staking ? b.stake_wsol : -1;
-                comparison = valA - valB;
+			case 'stake':
+                if (cacheA.has_staking !== cacheB.has_staking) {
+                    // Put nodes WITHOUT staking at the bottom
+                    comparison = cacheA.has_staking ? 1 : -1;
+                    if (!sortAsc) comparison = -comparison; 
+                } else if (!cacheA.has_staking && !cacheB.has_staking) {
+                    comparison = 0;
+                } else {
+                    comparison = cacheA.stake - cacheB.stake;
+                }
                 break;
             case 'uptime':
                 comparison = (a.uptime || -1) - (b.uptime || -1);
