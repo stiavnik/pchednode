@@ -67,7 +67,10 @@ function formatCreditsHtml(credits) {
 // --- NEW STAKE FORMATTER ---
 function formatStakeHtml(stake) {
     const val = parseFloat(stake) || 0;
-    return `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${val} XAND</span>`;
+    if (val <= 0) {
+        return '<span class="text-gray-400 dark:text-gray-600 text-xs font-medium">—</span>';
+    }
+    return `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${val.toFixed(9)} WSOL</span>`;
 }
 
 function markLoadButton() {
