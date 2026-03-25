@@ -240,9 +240,9 @@ function renderTable() {
                 break;
             // --- UPDATED SORT FOR STAKE ---
             case 'stake':
-                valA = parseFloat(cacheA.stake) || -1;
-                valB = parseFloat(cacheB.stake) || -1;
-                if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
+                valA = a.has_staking ? a.stake_wsol : -1;
+                valB = b.has_staking ? b.stake_wsol : -1;
+                comparison = valA - valB;
                 break;
             case 'uptime':
                 comparison = (a.uptime || -1) - (b.uptime || -1);
