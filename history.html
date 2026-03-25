@@ -87,7 +87,7 @@
 				<h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Stake</h3>
 				<div class="flex items-baseline gap-1">
 					<span class="text-2xl font-bold" id="val-balance">-</span>
-					<span class="text-xs text-gray-500">XAND</span>
+					<span class="text-xs text-gray-500">WSOL</span>
 				</div>
 			</div>
             <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-orange-500">
@@ -339,7 +339,7 @@
 
             document.getElementById('val-ping').textContent = latest.ping?.toFixed(1) || 0;
             document.getElementById('val-credits').textContent = latest.credits ? new Intl.NumberFormat().format(latest.credits) : 0;
-            document.getElementById('val-balance').textContent = latest.balance?.toFixed(3) || 0;
+            document.getElementById('val-balance').textContent = (latest.balance ?? 0).toFixed(3);
             document.getElementById('val-storage').textContent = formatStorage(latest.storage);
             document.getElementById('val-uptime').textContent = formatUptime(latest.uptime);
             // FIX: Removed multiplication by 100 for usage
@@ -479,7 +479,11 @@
                                     let label = context.dataset.label || '';
                                     if (label) label += ': ';
                                     if (context.parsed.y !== null) {
-                                        label += context.parsed.y.toFixed(2);
+                                        if (label.includes('Stake')) {
+                                            label += context.parsed.y.toFixed(3) + ' WSOL';
+                                        } else {
+                                            label += context.parsed.y.toFixed(2);
+                                        }
                                     }
                                     return label;
                                 }
