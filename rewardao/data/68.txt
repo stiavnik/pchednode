@@ -10,6 +10,8 @@ Instructions
 Transaction 1
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -90,6 +92,8 @@ Execution date: 11-03-2026 12:31 - View transaction
 Transaction 2
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -172,6 +176,8 @@ Execute
 Transaction 3
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -254,6 +260,8 @@ Execute
 Transaction 4
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -334,6 +342,8 @@ Execution date: 16-03-2026 18:31 - View transaction
 Transaction 5
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -416,6 +426,8 @@ Execute
 Transaction 6
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -498,6 +510,8 @@ Execute
 Transaction 7
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -578,6 +592,8 @@ Execution date: 19-03-2026 20:16 - View transaction
 Transaction 8
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -659,6 +675,8 @@ Execute
 Transaction 9
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -740,6 +758,8 @@ Execute
 Transaction 10
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -816,12 +836,12 @@ End date: Thu Dec 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 25-03-2026 22:01 - View transaction
 Transaction 11
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -904,6 +924,8 @@ Execute
 Transaction 12
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -986,6 +1008,8 @@ Execute
 Transaction 13
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -1068,6 +1092,8 @@ Execute
 Transaction 14
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -1150,6 +1176,8 @@ Execute
 Transaction 15
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -1230,6 +1258,8 @@ Execution date: 11-03-2026 13:12 - View transaction
 Transaction 16
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -1311,6 +1341,8 @@ Execute
 Transaction 17
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -1393,6 +1425,8 @@ Execute
 Transaction 18
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -1475,6 +1509,8 @@ Execute
 Transaction 19
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -1556,6 +1592,8 @@ Execute
 Transaction 20
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -1636,6 +1674,8 @@ Execution date: 23-03-2026 00:46 - View transaction
 Transaction 21
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -1718,6 +1758,8 @@ Execute
 Transaction 22
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -1800,6 +1842,8 @@ Execute
 Transaction 23
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -1882,6 +1926,8 @@ Execute
 Transaction 24
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -1964,6 +2010,8 @@ Execute
 Transaction 25
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -2040,12 +2088,12 @@ End date: Thu Dec 31 2026
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 25-03-2026 17:50 - View transaction
 Transaction 26
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -2128,6 +2176,8 @@ Execute
 Transaction 27
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -2210,6 +2260,8 @@ Execute
 Transaction 28
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -2292,6 +2344,8 @@ Execute
 Transaction 29
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -2374,6 +2428,8 @@ Execute
 Transaction 30
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -2456,6 +2512,8 @@ Execute
 Transaction 31
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -2538,6 +2596,8 @@ Execute
 Transaction 32
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -2620,6 +2680,8 @@ Execute
 Transaction 33
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -2702,6 +2764,8 @@ Execute
 Transaction 34
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -2784,6 +2848,8 @@ Execute
 Transaction 35
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -2866,6 +2932,8 @@ Execute
 Transaction 36
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -2948,6 +3016,8 @@ Execute
 Transaction 37
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -3030,6 +3100,8 @@ Execute
 Transaction 38
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -3112,6 +3184,8 @@ Execute
 Transaction 39
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -3192,6 +3266,8 @@ Execution date: 18-03-2026 23:14 - View transaction
 Transaction 40
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -3274,6 +3350,8 @@ Execute
 Transaction 41
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -3354,6 +3432,8 @@ Execution date: 11-03-2026 21:37 - View transaction
 Transaction 42
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -3435,6 +3515,8 @@ Execute
 Transaction 43
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -3517,6 +3599,8 @@ Execute
 Transaction 44
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -3598,6 +3682,8 @@ Execute
 Transaction 45
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -3678,6 +3764,8 @@ Execution date: 11-03-2026 18:34 - View transaction
 Transaction 46
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -3760,6 +3848,8 @@ Execute
 Transaction 47
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -3840,6 +3930,8 @@ Execution date: 21-03-2026 11:23 - View transaction
 Transaction 48
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -3922,6 +4014,8 @@ Execute
 Transaction 49
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -4002,6 +4096,8 @@ Execution date: 13-03-2026 11:06 - View transaction
 Transaction 50
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -4084,6 +4180,8 @@ Execute
 Transaction 51
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -4166,6 +4264,8 @@ Execute
 Transaction 52
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -4248,6 +4348,8 @@ Execute
 Transaction 53
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -4330,6 +4432,8 @@ Execute
 Transaction 54
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -4412,6 +4516,8 @@ Execute
 Transaction 55
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -4492,6 +4598,8 @@ Execution date: 13-03-2026 11:07 - View transaction
 Transaction 56
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -4574,6 +4682,8 @@ Execute
 Transaction 57
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -4656,6 +4766,8 @@ Execute
 Transaction 58
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -4738,6 +4850,8 @@ Execute
 Transaction 59
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -4820,6 +4934,8 @@ Execute
 Transaction 60
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -4902,6 +5018,8 @@ Execute
 Transaction 61
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -4984,6 +5102,8 @@ Execute
 Transaction 62
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -5066,6 +5186,8 @@ Execute
 Transaction 63
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -5146,6 +5268,8 @@ Execution date: 11-03-2026 14:49 - View transaction
 Transaction 64
 instruction 1 - Grant
 Program
+Authority: Ec3nz…sNXnK
+Upgradeable: Yes
 HBZ5oXbFBFbr8Krt2oMU7ApHFeukdRS8Rye1f3T66vg5
 Account 1
 
@@ -5228,6 +5352,6 @@ Execute
 
 Inspect all
 
-Execute in separated transactions (52)
+Execute in separated transactions (50)
 
 Execute all in one transaction (64)
