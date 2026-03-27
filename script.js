@@ -181,7 +181,7 @@ function refilterAndRestyle() {
         const cache = ipCache[ip] || {};
         const name = (cache.name || "N/A").toLowerCase();
         const ipText = ip.toLowerCase();
-        const pubkey = row.cells[1]?.dataset.pubkey?.toLowerCase() || "";
+        const pubkey = row.cells[2]?.dataset.pubkey?.toLowerCase() || "";
         const owner = (cache.owner || "").toLowerCase();
         const manager = (cache.manager || "").toLowerCase();
         if (!toggle || value === "") {
