@@ -66,16 +66,42 @@ function formatCreditsHtml(credits) {
 
 // --- STAKE FORMATTER (3 decimal places) ---
 function formatStakeHtml(stake, hasStaking = false) {
-    const val = parseFloat(stake) || 0;
+    if (!hasStaking) return '<span class="text-gray-400 dark:text-gray-600 text-xs font-medium">—</span>';
+    return `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${parseFloat(stake).toFixed(1)}</span>`;
+}
 
-    if (!hasStaking) {
-        return '<span class="text-gray-400 dark:text-gray-600 text-xs font-medium">—</span>';
+function formatCommissionHtml(com, hasStaking = false) {
+    if (!hasStaking) return '<span class="text-gray-400 dark:text-gray-600 text-xs font-medium">—</span>';
+    return `<span class="text-amber-600 dark:text-amber-400 font-medium">${parseFloat(com).toFixed(2)}%</span>`;
+}
+
+function formatStcoinHtml(stoin, hasStaking = false) {
+    if (!hasStaking) return '<span class="text-gray-400 dark:text-gray-600 text-xs font-medium">—</span>';
+    return `<span class="text-teal-600 dark:text-teal-400 font-medium">${parseFloat(stoin).toFixed(3)}</span>`;
+}
+
+async function loadYugaInfo() {
+    const rpcUrl = document.getElementById("rpcSelector").value;
+    const host = new URL(rpcUrl).hostname;
+    
+    const box = document.getElementById("yuga-box");
+    if (!box) return;
+
+    try {
+        const res = await fetch(`https://${host}/yuga-info`, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP error");
+        const data = await res.json();
+
+        if (data.error) throw new Error(data.error);
+		document.getElementById("yuga-current").textContent = data.yuga || '?';
+		document.getElementById("yuga-remaining").textContent = data.remaining ? `${data.remaining} left` : '?';
+		box.style.opacity = "1";
+    } catch (e) {
+        console.warn("Yuga info unavailable", e);
+        document.getElementById("yuga-current").textContent = "—";
+        document.getElementById("yuga-elapsed").textContent = "Elapsed: ?";
+        document.getElementById("yuga-remaining").textContent = "Remaining: ?";
     }
-
-    // Always show exactly 3 decimals (even for 0)
-    const display = val.toFixed(3);
-
-    return `<span class="text-indigo-600 dark:text-indigo-400 font-medium">${display} WSOL</span>`;
 }
 
 function markLoadButton() {
@@ -239,7 +265,7 @@ function renderTable() {
                 if (valA < valB) comparison = -1; else if (valA > valB) comparison = 1;
                 break;
             // --- UPDATED SORT FOR STAKE ---
-			case 'stake':
+            case 'stake':
                 if (!cacheA.has_staking && cacheB.has_staking) {
                     // A has no stake, B does. Force A to the bottom.
                     // We check sortAsc to counteract the global flip at the end of the function.
@@ -254,6 +280,18 @@ function renderTable() {
                     // Both have stake, sort them by actual amount
                     comparison = cacheA.stake - cacheB.stake;
                 }
+                break;
+            case 'commission':
+                if (!cacheA.has_staking && cacheB.has_staking) comparison = sortAsc ? 1 : -1;
+                else if (cacheA.has_staking && !cacheB.has_staking) comparison = sortAsc ? -1 : 1;
+                else if (!cacheA.has_staking && !cacheB.has_staking) comparison = 0;
+                else comparison = (cacheA.commission || 0) - (cacheB.commission || 0);
+                break;
+            case 'stoin_c':
+                if (!cacheA.has_staking && cacheB.has_staking) comparison = sortAsc ? 1 : -1;
+                else if (cacheA.has_staking && !cacheB.has_staking) comparison = sortAsc ? -1 : 1;
+                else if (!cacheA.has_staking && !cacheB.has_staking) comparison = 0;
+                else comparison = (cacheA.stoin_c || 0) - (cacheB.stoin_c || 0);
                 break;
             case 'uptime':
                 comparison = (a.uptime || -1) - (b.uptime || -1);
@@ -276,21 +314,23 @@ function renderTable() {
     document.getElementById("podCount").textContent = podsToRender.length;
 
     let html = `<table class="min-w-full"><thead><tr>
-        <th class="rounded-tl-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')" title="Click footer to register your name">Name ${getSortIndicator('name')}</th>
+        <th class="rounded-tl-lg text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('credits')">Credits ${getSortIndicator('credits')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')" title="Click footer to register your name">Name ${getSortIndicator('name')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('pubkey')">Pubkey ${getSortIndicator('pubkey')}</th>
-        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none text-center" onclick="handleSort('nfts')">REG?<br>(NFTs) ${getSortIndicator('nfts')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none text-center" onclick="handleSort('nfts')">Reg?<br>(NFTs) ${getSortIndicator('nfts')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none text-center" onclick="handleSort('owner')" title="Owner pubkey">O ${getSortIndicator('owner')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none text-center" onclick="handleSort('manager')" title="Manager pubkey">M ${getSortIndicator('manager')}</th>
-        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('is_public')">Pub? ${getSortIndicator('is_public')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('stake')">Stake<br>XAND ${getSortIndicator('stake')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('commission')">Commi<br>ssion ${getSortIndicator('commission')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('stoin_c')">STOINC<br>WSOL ${getSortIndicator('stoin_c')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('country')">Country ${getSortIndicator('country')}</th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('storage')">Size ${getSortIndicator('storage')}</th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('usage')">Use ${getSortIndicator('usage')}</th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('uptime')">Up ${getSortIndicator('uptime')}</th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('ping')">Ping ${getSortIndicator('ping')}</th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('credits')">Credits ${getSortIndicator('credits')}</th>
-        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('stake')">Stake ${getSortIndicator('stake')}</th>
-        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('last_seen')">Seen ${getSortIndicator('last_seen')}</th>
-        <th class="rounded-tr-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('version')">Ver ${getSortIndicator('version')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('storage')">Size ${getSortIndicator('storage')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('usage')">Used ${getSortIndicator('usage')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('version')">Ver ${getSortIndicator('version')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('is_public')">Pub? ${getSortIndicator('is_public')}</th>
+        <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('uptime')">Up ${getSortIndicator('uptime')}</th>
+        <th class="rounded-tr-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('last_seen')">Seen ${getSortIndicator('last_seen')}</th>
     </tr></thead><tbody>`;
 
     const batchQueue = [];
@@ -323,10 +363,12 @@ function renderTable() {
             geo_sort: "loading", 
             stake: 0,
             has_staking: false,
+            commission: 0,      // ← NEW
+            stoin_c: 0,         // ← NEW
             is_registered: false,
             nft_count: 0,
-            owner: "--",      // new
-            manager: "--"     // new
+            owner: "--",
+            manager: "--"
         };
 
         // === NEW NFT CELL (cleaner + bigger number) ===
@@ -356,8 +398,6 @@ function renderTable() {
 
         let pingHtml = formatPingHtml(cached.ping);
         let creditsHtml = formatCreditsHtml(cached.credits);
-        // CHANGED: Use Stake HTML
-        let stakeHtml = formatStakeHtml(cached.stake, cached.has_staking);
 
         const publicStr = (pod.is_public === true) ? "Yes" : (pod.is_public === false ? "No" : "-");
         const storageStr = formatStorage(pod.storage_committed);
@@ -374,6 +414,7 @@ function renderTable() {
         }
 
         html += `<tr class="${rowClass}" onclick="window.location.href='history.html?ip=${ip}&host=${rpcHost}'" style="cursor:pointer;">
+            <td class="text-right font-mono text-sm">${creditsHtml}</td>
             <td id="name-${ip}" class="${nameClass}" title="Click footer to register your name">${cached.name}</td>
             <td class="font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600 ${pubkeyCellClass}"
                 data-pubkey="${pubkey}" title="${hoverTitle}" onclick="copyPubkey('${pubkey}', this, event)">
@@ -390,16 +431,17 @@ function renderTable() {
                 onclick="copyPubkey('${cached.manager}', this, event)">
                 ${cached.manager === '--' ? '<span class="text-gray-400 dark:text-gray-600">-</span>' : 'M'}
             </td>
-            <td class="text-xs">${publicStr}</td>
+            <td class="text-right font-mono text-sm">${formatStakeHtml(cached.stake, cached.has_staking)}</td>
+            <td class="text-right font-mono text-sm">${formatCommissionHtml(cached.commission, cached.has_staking)}</td>
+            <td class="text-right font-mono text-sm">${formatStcoinHtml(cached.stoin_c, cached.has_staking)}</td>
             <td id="country-${ip}" title="${cached.geo_sort}">${countryHtml}</td>
+            <td class="text-right font-mono text-sm">${pingHtml}</td>
             <td class="text-right font-mono text-xs">${storageStr}</td>
             <td class="text-right font-mono text-xs">${usageStr}</td>
-            <td class="text-right font-mono text-xs">${uptimeStr}</td>
-            <td class="text-right font-mono text-sm">${pingHtml}</td>
-            <td class="text-right font-mono text-sm">${creditsHtml}</td>
-            <td class="text-right font-mono text-sm">${stakeHtml}</td>
-            <td class="${timeClass}">${timeText}</td>
             <td>${versionHtml}</td>
+            <td class="text-xs">${publicStr}</td>
+            <td class="text-right font-mono text-xs">${uptimeStr}</td>
+            <td class="${timeClass}">${timeText}</td>
         </tr>`;
     }
 
@@ -432,8 +474,10 @@ function renderTable() {
                     nft_count: g.nft_count,
                     stake: g.stake || 0,
                     has_staking: !!g.has_staking,
-                    owner: g.owner || "--",       // new
-                    manager: g.manager || "--",   // new
+                    commission: g.commission || 0,     // ← NEW
+                    stoin_c: g.stoin_c || 0,           // ← NEW
+                    owner: g.owner || "--",
+                    manager: g.manager || "--",
                     credits: g.credits
                 };
             }
@@ -481,6 +525,7 @@ async function sendRpcRequest() {
             pubkeyToIpsMap[pk].push(pod.address.split(":")[0]);
         });
         renderTable();
+        loadYugaInfo();   // ← ADD THIS LINE
     } catch (e) { output.innerHTML = `<p class="text-red-500">Error: Could not reach RPC.</p>`; }
 }
 
@@ -494,6 +539,7 @@ document.getElementById("rpcSelector").addEventListener("change", () => {
     document.getElementById("pched-live-view").innerHTML = 
         '<p class="text-gray-500 dark:text-gray-400 mt-12 text-lg">Click LOAD to fetch pod data...</p>';
     document.getElementById("podCount").textContent = "0";
+    loadYugaInfo();
 });
 document.getElementById("versionFilterToggle").addEventListener("change", () => { markLoadButton(); renderTable(); });
 document.getElementById("versionFilterValue").addEventListener("input", () => { markLoadButton(); renderTable(); });
@@ -511,4 +557,9 @@ if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') 
 themeToggle?.addEventListener('click', () => {
     htmlEl.classList.toggle('dark');
     localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
+});
+
+window.addEventListener("load", () => {
+    markLoadButton();
+    loadYugaInfo(); // <--- Fetches Yuga immediately on page load
 });
