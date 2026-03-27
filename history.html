@@ -69,7 +69,7 @@
         </div>
 
         <!-- Existing 6 stat cards unchanged -->
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-4 mb-6">
             <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-emerald-500">
                 <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Ping</h3>
                 <div class="flex items-baseline gap-1">
@@ -83,13 +83,28 @@
                     <span class="text-xl font-bold truncate" id="val-credits">-</span>
                 </div>
             </div>
-			<div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-indigo-500">
-				<h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Stake</h3>
-				<div class="flex items-baseline gap-1">
-					<span class="text-2xl font-bold" id="val-balance">-</span>
-					<span class="text-xs text-gray-500">WSOL</span>
-				</div>
-			</div>
+            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-indigo-500">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Stake</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-bold" id="val-balance">-</span>
+                    <span class="text-xs text-gray-500">XAND</span>
+                </div>
+            </div>
+            <!-- NEW: Commission -->
+            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-amber-500">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Commission</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-bold" id="val-commission">-</span>
+                </div>
+            </div>
+            <!-- NEW: STOINC -->
+            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-teal-500">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">STOINC</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-bold" id="val-stoin">-</span>
+                    <span class="text-xs text-gray-500">WSOL</span>
+                </div>
+            </div>
             <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-orange-500">
                 <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Storage</h3>
                 <div class="flex items-baseline gap-1">
@@ -320,7 +335,9 @@
                         balance: cols[3] ? parseFloat(cols[3]) : null,
                         storage: cols[4] ? parseFloat(cols[4]) : null, 
                         uptime: cols[5] ? parseInt(cols[5]) : null,
-                        usage: cols[6] ? parseFloat(cols[6]) : null
+                        usage: cols[6] ? parseFloat(cols[6]) : null,
+                        stoin: cols.length >= 8 ? parseFloat(cols[7]) : null,      // ← NEW
+                        commission: cols.length >= 9 ? parseFloat(cols[8]) : null  // ← NEW
                     });
                 });
 
@@ -342,9 +359,12 @@
             document.getElementById('val-balance').textContent = (latest.balance ?? 0).toFixed(3);
             document.getElementById('val-storage').textContent = formatStorage(latest.storage);
             document.getElementById('val-uptime').textContent = formatUptime(latest.uptime);
-            // FIX: Removed multiplication by 100 for usage
-            const usagePct = latest.usage ? latest.usage.toFixed(1) + "%" : "0%";
-            document.getElementById('val-usage').textContent = usagePct;
+            document.getElementById('val-usage').textContent = latest.usage ? latest.usage.toFixed(1) + "%" : "0%";
+            document.getElementById('val-commission').textContent = latest.commission !== null && latest.commission !== undefined ? latest.commission.toFixed(2) + '%' : '—';
+            document.getElementById('val-stoin').textContent = 
+                (latest.stoin !== null && latest.stoin !== undefined) 
+                ? latest.stoin.toFixed(3) 
+                : '—';
         }
 
         function renderChart() {
@@ -369,6 +389,8 @@
             const dsUptime = filtered.map(d => d.uptime ? d.uptime / 3600 : 0);
             // FIX: Removed multiplication by 100 for usage in chart
             const dsUsage = filtered.map(d => d.usage ? d.usage : 0);
+            const dsStoin = filtered.map(d => d.stoin ?? null); // Use null instead of 0 to avoid false zero drops
+            const dsCommission = filtered.map(d => d.commission ?? null); // <-- NEW
 
             const ctx = document.getElementById('historyChart').getContext('2d');
 
@@ -389,7 +411,7 @@
                             yAxisID: 'y',
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: false // VISIBLE
+                            hidden: true
                         },
                         {
                             label: 'Credits',
@@ -401,17 +423,27 @@
                             pointRadius: 1,
                             hidden: false // VISIBLE
                         },
-						// ... inside renderChart() ...
-						{
-							label: 'Stake', // Changed from Balance (SOL)
-							data: dsBalance, // Variable name can stay same to minimize code churn
-							borderColor: '#6366f1',
-							backgroundColor: 'rgba(99, 102, 241, 0.1)',
-							yAxisID: 'y2',
-							tension: 0.3,
-							pointRadius: 1,
-							hidden: true 
-						},
+                        // ... inside renderChart() ...
+                        {
+                            label: 'Stake', // Changed from Balance (SOL)
+                            data: dsBalance, // Variable name can stay same to minimize code churn
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            yAxisID: 'y2',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: false 
+                        },
+                        {
+                            label: 'STOINC',
+                            data: dsStoin,
+                            borderColor: '#14b8a6',
+                            backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                            yAxisID: 'y6',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: false 
+                        },
                         {
                             label: 'Storage (GB)',
                             data: dsStorage,
@@ -440,7 +472,17 @@
                             yAxisID: 'y5',
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: false // VISIBLE
+                            hidden: true // HIDDEN
+                        },
+                        {
+                            label: 'Commission (%)', // <-- NEW DATASET
+                            data: dsCommission,
+                            borderColor: '#fbbf24', // Amber/Yellow
+                            backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                            yAxisID: 'y7', // Needs an axis definition
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: true // <-- OFF by default
                         }
                     ]
                 },
@@ -462,7 +504,9 @@
                         y2: { display: false, position: 'right' },
                         y3: { display: false, position: 'right' },
                         y4: { display: false, position: 'right' },
-                        y5: { display: false, position: 'right', min: 0, max: 100 }
+                        y5: { display: false, position: 'right', min: 0, max: 100 },
+                        y6: { display: false, position: 'right', min: 0 },
+                        y7: { display: false, position: 'right', min: 0, max: 100 }, // <-- NEW AXIS
                     },
                     plugins: {
                         legend: {
@@ -480,7 +524,11 @@
                                     if (label) label += ': ';
                                     if (context.parsed.y !== null) {
                                         if (label.includes('Stake')) {
+                                            label += context.parsed.y.toFixed(3) + ' XAND';
+                                        } else if (label.includes('STOINC')) {
                                             label += context.parsed.y.toFixed(3) + ' WSOL';
+                                        } else if (label.includes('Commission') || label.includes('Usage')) {
+                                            label += context.parsed.y.toFixed(2) + '%'; // <-- FORMAT PERCENTAGES
                                         } else {
                                             label += context.parsed.y.toFixed(2);
                                         }
