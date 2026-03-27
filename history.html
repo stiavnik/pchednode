@@ -49,7 +49,6 @@
         </header>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm">
-            <!-- existing 4 metadata cards unchanged -->
             <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur px-4 py-3 rounded-xl shadow-sm border border-white/50 dark:border-gray-700/50 flex flex-col">
                 <span class="text-xs font-bold text-gray-500 uppercase">Node Name</span>
                 <span id="node-name" class="font-semibold text-indigo-600 dark:text-indigo-400 truncate">Waiting for check...</span>
@@ -68,7 +67,6 @@
             </div>
         </div>
 
-        <!-- Existing 6 stat cards unchanged -->
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-4 mb-6">
             <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-emerald-500">
                 <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Ping</h3>
@@ -77,27 +75,19 @@
                     <span class="text-xs text-gray-500">ms</span>
                 </div>
             </div>
-            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-purple-500">
+            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-violet-500">
                 <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Credits</h3>
                 <div class="flex items-baseline gap-1">
                     <span class="text-xl font-bold truncate" id="val-credits">-</span>
                 </div>
             </div>
-            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-indigo-500">
+            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-amber-500 col-span-2 md:col-span-1 lg:col-span-2">
                 <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Stake</h3>
                 <div class="flex items-baseline gap-1">
                     <span class="text-2xl font-bold" id="val-balance">-</span>
                     <span class="text-xs text-gray-500">XAND</span>
                 </div>
             </div>
-            <!-- NEW: Commission -->
-            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-amber-500">
-                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Commission</h3>
-                <div class="flex items-baseline gap-1">
-                    <span class="text-2xl font-bold" id="val-commission">-</span>
-                </div>
-            </div>
-            <!-- NEW: STOINC -->
             <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-teal-500">
                 <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">STOINC</h3>
                 <div class="flex items-baseline gap-1">
@@ -125,40 +115,33 @@
             </div>
         </div>
 
-        <!-- NEW: Chain Registration Info (6 new cards) -->
         <div class="mt-8">
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <!-- Owner -->
                 <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-emerald-500 cursor-pointer" onclick="copyToClipboard(document.getElementById('chain-owner').dataset.full)">
                     <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Owner</h3>
                     <span id="chain-owner" class="font-mono text-sm truncate text-emerald-600 dark:text-emerald-400" data-full="">-</span>
                 </div>
 
-                <!-- Manager -->
                 <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-rose-500 cursor-pointer" onclick="copyToClipboard(document.getElementById('chain-manager').dataset.full)">
                     <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Manager</h3>
                     <span id="chain-manager" class="font-mono text-sm truncate text-rose-600 dark:text-rose-400" data-full="">-</span>
                 </div>
 
-                <!-- NFT Slot 1 -->
                 <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-violet-500">
                     <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">NFT Slot 1</h3>
                     <span id="chain-nft1" class="font-mono text-xs truncate text-violet-600 dark:text-violet-400">-</span>
                 </div>
 
-                <!-- NFT Slot 2 -->
                 <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-violet-500">
                     <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">NFT Slot 2</h3>
                     <span id="chain-nft2" class="font-mono text-xs truncate text-violet-600 dark:text-violet-400">-</span>
                 </div>
 
-                <!-- Registration Time -->
                 <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-amber-500">
                     <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Registered</h3>
                     <span id="chain-reg-time" class="font-mono text-sm text-amber-600 dark:text-amber-400">-</span>
                 </div>
 
-                <!-- Manager Commission -->
                 <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-cyan-500">
                     <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Commission</h3>
                     <span id="chain-commission" class="font-mono text-sm text-cyan-600 dark:text-cyan-400">0%</span>
@@ -166,7 +149,6 @@
             </div>
         </div>
 
-        <!-- Chart unchanged -->
         <main class="bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 md:p-6 rounded-xl shadow-lg border border-white/50 dark:border-gray-700/50 mt-8">
             <div class="relative h-[400px] w-full">
                 <canvas id="historyChart"></canvas>
@@ -182,21 +164,20 @@
         let fullData = []; 
         let chartInstance = null;
         let currentTimeframe = 24; 
-        let turnstileToken = null; // Store the security token
+        let turnstileToken = null; 
 
         // --- Turnstile Callback ---
         function onTurnstileSuccess(token) {
             console.log("Security Check Passed");
             turnstileToken = token;
             document.getElementById('node-name').textContent = "Loading...";
-            loadHistory(); // Auto-load once verified
+            loadHistory(); 
         }
 
         // --- Helpers ---
         function copyToClipboard(text) {
             if (!text || text === "" || text === "-") return;
             navigator.clipboard.writeText(text).then(() => {
-                // Visual feedback on Owner and Manager cards
                 const ownerCard = document.getElementById('chain-owner').parentElement;
                 const managerCard = document.getElementById('chain-manager').parentElement;
                 [ownerCard, managerCard].forEach(card => {
@@ -259,14 +240,12 @@
 
             document.getElementById('node-ip').textContent = ip;
 
-            // Wait for Turnstile
             if (!turnstileToken) {
                 document.getElementById('node-name').textContent = "Completing security check...";
                 return; 
             }
 
             try {
-                // Fetch data WITH security token
                 const res = await fetch(`https://${host}/geo/history?ip=${ip}`, {
                     headers: {
                         'X-Turnstile-Token': turnstileToken
@@ -282,37 +261,29 @@
                 if (!res.ok) throw new Error("API Fetch Failed");
                 const data = await res.json();
 
-                // 1. Metadata
                 document.getElementById('node-name').textContent = data.meta.name || "N/A";
                 document.getElementById('node-pubkey').textContent = data.meta.pubkey || "N/A";
 
-                // 2. NEW: Chain data
                 const chain = data.chain || {};
                 const empty = "11111111111111111111111111111111";
 
-                // Owner
                 const ownerEl = document.getElementById('chain-owner');
                 ownerEl.textContent = (chain.owner && chain.owner !== empty) ? chain.owner.slice(0,8) + "..." : "-";
                 ownerEl.dataset.full = chain.owner || "";
 
-                // Manager
                 const managerEl = document.getElementById('chain-manager');
                 const managerVal = chain.manager || "";
                 const isRealManager = managerVal && managerVal !== empty && managerVal !== "--";
                 managerEl.textContent = isRealManager ? managerVal.slice(0,8) + "..." : "-";
                 managerEl.dataset.full = isRealManager ? managerVal : "";
 
-                // NFT Slots
                 document.getElementById('chain-nft1').textContent = (chain.nft_slot_1 && chain.nft_slot_1 !== empty) ? chain.nft_slot_1.slice(0,8) + "..." : "-";
                 document.getElementById('chain-nft2').textContent = (chain.nft_slot_2 && chain.nft_slot_2 !== empty) ? chain.nft_slot_2.slice(0,8) + "..." : "-";
 
-                // Registration Time
                 document.getElementById('chain-reg-time').textContent = chain.registration_time ? formatRelativeTime(chain.registration_time) : "-";
 
-                // Manager Commission
                 document.getElementById('chain-commission').textContent = (chain.manager_commission || 0) + "%";
 
-                // 3. Parse CSV
                 const rows = data.csv_data.trim().split('\n');
                 fullData = [];
 
@@ -336,8 +307,8 @@
                         storage: cols[4] ? parseFloat(cols[4]) : null, 
                         uptime: cols[5] ? parseInt(cols[5]) : null,
                         usage: cols[6] ? parseFloat(cols[6]) : null,
-                        stoin: cols.length >= 8 ? parseFloat(cols[7]) : null,      // ← NEW
-                        commission: cols.length >= 9 ? parseFloat(cols[8]) : null  // ← NEW
+                        stoin: cols.length >= 8 ? parseFloat(cols[7]) : null,      
+                        commission: cols.length >= 9 ? parseFloat(cols[8]) : null  
                     });
                 });
 
@@ -360,11 +331,7 @@
             document.getElementById('val-storage').textContent = formatStorage(latest.storage);
             document.getElementById('val-uptime').textContent = formatUptime(latest.uptime);
             document.getElementById('val-usage').textContent = latest.usage ? latest.usage.toFixed(1) + "%" : "0%";
-            document.getElementById('val-commission').textContent = latest.commission !== null && latest.commission !== undefined ? latest.commission.toFixed(2) + '%' : '—';
-            document.getElementById('val-stoin').textContent = 
-                (latest.stoin !== null && latest.stoin !== undefined) 
-                ? latest.stoin.toFixed(3) 
-                : '—';
+            document.getElementById('val-stoin').textContent = (latest.stoin !== null && latest.stoin !== undefined) ? latest.stoin.toFixed(3) : '—';
         }
 
         function renderChart() {
@@ -387,10 +354,9 @@
             const dsBalance = filtered.map(d => d.balance);
             const dsStorage = filtered.map(d => d.storage ? d.storage / (1024*1024*1024) : 0);
             const dsUptime = filtered.map(d => d.uptime ? d.uptime / 3600 : 0);
-            // FIX: Removed multiplication by 100 for usage in chart
             const dsUsage = filtered.map(d => d.usage ? d.usage : 0);
-            const dsStoin = filtered.map(d => d.stoin ?? null); // Use null instead of 0 to avoid false zero drops
-            const dsCommission = filtered.map(d => d.commission ?? null); // <-- NEW
+            const dsStoin = filtered.map(d => d.stoin ?? null); 
+            const dsCommission = filtered.map(d => d.commission ?? null); 
 
             const ctx = document.getElementById('historyChart').getContext('2d');
 
@@ -406,7 +372,7 @@
                         {
                             label: 'Ping (ms)',
                             data: dsPing,
-                            borderColor: '#10b981', // Emerald
+                            borderColor: '#10b981', // emerald-500
                             backgroundColor: 'rgba(16, 185, 129, 0.1)',
                             yAxisID: 'y',
                             tension: 0.3,
@@ -416,19 +382,18 @@
                         {
                             label: 'Credits',
                             data: dsCredits,
-                            borderColor: '#a855f7', // Purple
-                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                            borderColor: '#8b5cf6', // violet-500
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
                             yAxisID: 'y1',
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: false // VISIBLE
+                            hidden: false 
                         },
-                        // ... inside renderChart() ...
                         {
-                            label: 'Stake', // Changed from Balance (SOL)
-                            data: dsBalance, // Variable name can stay same to minimize code churn
-                            borderColor: '#6366f1',
-                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            label: 'Stake', 
+                            data: dsBalance, 
+                            borderColor: '#f59e0b', // amber-500
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
                             yAxisID: 'y2',
                             tension: 0.3,
                             pointRadius: 1,
@@ -437,7 +402,7 @@
                         {
                             label: 'STOINC',
                             data: dsStoin,
-                            borderColor: '#14b8a6',
+                            borderColor: '#14b8a6', // teal-500
                             backgroundColor: 'rgba(20, 184, 166, 0.1)',
                             yAxisID: 'y6',
                             tension: 0.3,
@@ -447,42 +412,42 @@
                         {
                             label: 'Storage (GB)',
                             data: dsStorage,
-                            borderColor: '#f97316', // Orange
+                            borderColor: '#f97316', // orange-500
                             backgroundColor: 'rgba(249, 115, 22, 0.1)',
                             yAxisID: 'y3',
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: true // HIDDEN
+                            hidden: true 
                         },
                         {
                             label: 'Uptime (Hours)',
                             data: dsUptime,
-                            borderColor: '#3b82f6', // Blue
+                            borderColor: '#3b82f6', // blue-500
                             backgroundColor: 'rgba(59, 130, 246, 0.1)',
                             yAxisID: 'y4',
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: false // VISIBLE
+                            hidden: false 
                         },
                         {
                             label: 'Disk Usage (%)',
                             data: dsUsage,
-                            borderColor: '#f43f5e', // Rose
+                            borderColor: '#f43f5e', // rose-500
                             backgroundColor: 'rgba(244, 63, 94, 0.1)',
                             yAxisID: 'y5',
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: true // HIDDEN
+                            hidden: true 
                         },
                         {
-                            label: 'Commission (%)', // <-- NEW DATASET
+                            label: 'Commission (%)', 
                             data: dsCommission,
-                            borderColor: '#fbbf24', // Amber/Yellow
-                            backgroundColor: 'rgba(251, 191, 36, 0.1)',
-                            yAxisID: 'y7', // Needs an axis definition
+                            borderColor: '#06b6d4', // cyan-500
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            yAxisID: 'y7', 
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: true // <-- OFF by default
+                            hidden: true 
                         }
                     ]
                 },
@@ -506,7 +471,7 @@
                         y4: { display: false, position: 'right' },
                         y5: { display: false, position: 'right', min: 0, max: 100 },
                         y6: { display: false, position: 'right', min: 0 },
-                        y7: { display: false, position: 'right', min: 0, max: 100 }, // <-- NEW AXIS
+                        y7: { display: false, position: 'right', min: 0, max: 100 }, 
                     },
                     plugins: {
                         legend: {
@@ -528,7 +493,7 @@
                                         } else if (label.includes('STOINC')) {
                                             label += context.parsed.y.toFixed(3) + ' WSOL';
                                         } else if (label.includes('Commission') || label.includes('Usage')) {
-                                            label += context.parsed.y.toFixed(2) + '%'; // <-- FORMAT PERCENTAGES
+                                            label += context.parsed.y.toFixed(2) + '%';
                                         } else {
                                             label += context.parsed.y.toFixed(2);
                                         }
@@ -557,7 +522,6 @@
             localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
         });
 
-        // NOTE: loadHistory is now called by onTurnstileSuccess
     </script>
 </body>
 </html>
