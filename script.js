@@ -93,9 +93,9 @@ async function loadYugaInfo() {
         const data = await res.json();
 
         if (data.error) throw new Error(data.error);
-		document.getElementById("yuga-current").textContent = data.yuga || '?';
-		document.getElementById("yuga-remaining").textContent = data.remaining ? `${data.remaining} left` : '?';
-		box.style.opacity = "1";
+        document.getElementById("yuga-current").textContent = data.yuga || '?';
+        document.getElementById("yuga-remaining").textContent = data.remaining ? `${data.remaining} left` : '?';
+        box.style.opacity = "1";
     } catch (e) {
         console.warn("Yuga info unavailable", e);
         document.getElementById("yuga-current").textContent = "—";
@@ -213,8 +213,16 @@ function renderTable() {
     podsToRender.sort((a, b) => {
         const ipA = a.address.split(":")[0];
         const ipB = b.address.split(":")[0];
-        const cacheA = ipCache[ipA] || { name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0, owner: "--", manager: "--" };
-        const cacheB = ipCache[ipB] || { name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0, owner: "--", manager: "--" };
+        const cacheA = ipCache[ipA] || { 
+            name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0, 
+            owner: "--", manager: "--",
+            nft_slot_1_name: "--", nft_slot_2_name: "--" 
+        };
+        const cacheB = ipCache[ipB] || { 
+            name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0, 
+            owner: "--", manager: "--",
+            nft_slot_1_name: "--", nft_slot_2_name: "--" 
+        };
         let valA, valB, comparison = 0;
 
         switch (sortCol) {
@@ -368,15 +376,30 @@ function renderTable() {
             is_registered: false,
             nft_count: 0,
             owner: "--",
-            manager: "--"
+            manager: "--",
+            nft_slot_1_name: "--",     // ← NEW
+            nft_slot_2_name: "--"      // ← NEW
         };
 
-        // === NEW NFT CELL (cleaner + bigger number) ===
+        // === NEW NFT CELL with tooltip showing real names ===
         let nftCellHtml = `<span class="text-gray-400 dark:text-gray-600 text-sm">-</span>`;
         if (cached.is_registered) {
             const nftCount = cached.nft_count || 0;
+
+            let tooltipLines = [];
+            if (cached.nft_slot_1_name && cached.nft_slot_1_name !== "--") {
+                tooltipLines.push(`NFT Slot 1: ${cached.nft_slot_1_name}`);
+            }
+            if (cached.nft_slot_2_name && cached.nft_slot_2_name !== "--") {
+                tooltipLines.push(`NFT Slot 2: ${cached.nft_slot_2_name}`);
+            }
+
+            const titleAttr = tooltipLines.length > 0 
+                ? `title="${escapeHtml(tooltipLines.join('\n'))}"` 
+                : '';
+
             nftCellHtml = `
-                <span class="font-bold text-emerald-600 dark:text-emerald-400">Y</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400" ${titleAttr}>Y</span>
                 <span class="ml-1 text-pink-500 dark:text-pink-400 text-xs font-medium">(${nftCount})</span>
             `;
         }
@@ -474,11 +497,13 @@ function renderTable() {
                     nft_count: g.nft_count,
                     stake: g.stake || 0,
                     has_staking: !!g.has_staking,
-                    commission: g.commission || 0,     // ← NEW
-                    stoin_c: g.stoin_c || 0,           // ← NEW
+                    commission: g.commission || 0,
+                    stoin_c: g.stoin_c || 0,
                     owner: g.owner || "--",
                     manager: g.manager || "--",
-                    credits: g.credits
+                    credits: g.credits,
+                    nft_slot_1_name: g.nft_slot_1_name || "--",   // ← NEW
+                    nft_slot_2_name: g.nft_slot_2_name || "--"    // ← NEW
                 };
             }
             requestAnimationFrame(() => renderTable());
