@@ -29,8 +29,8 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-4">
-                <div class="cf-turnstile scale-90 origin-right" 
-                     data-sitekey="0x4AAAAAACEiZegYcUILDmVT" 
+                <div class="cf-turnstile scale-90 origin-right"
+                     data-sitekey="0x4AAAAAACEiZegYcUILDmVT"
                      data-callback="onTurnstileSuccess"
                      data-theme="auto">
                 </div>
@@ -161,17 +161,17 @@
 
     <script>
         // --- State ---
-        let fullData = []; 
+        let fullData = [];
         let chartInstance = null;
-        let currentTimeframe = 24; 
-        let turnstileToken = null; 
+        let currentTimeframe = 24;
+        let turnstileToken = null;
 
         // --- Turnstile Callback ---
         function onTurnstileSuccess(token) {
             console.log("Security Check Passed");
             turnstileToken = token;
             document.getElementById('node-name').textContent = "Loading...";
-            loadHistory(); 
+            loadHistory();
         }
 
         // --- Helpers ---
@@ -195,8 +195,8 @@
             if (diff < 60) return `${diff}s ago`;
             if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
             if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
-            if (diff < 604800) return `${Math.floor(diff/86400)}d ago`; 
-            if (diff < 31536000) return `${Math.floor(diff/604800)}w ago`; 
+            if (diff < 604800) return `${Math.floor(diff/86400)}d ago`;
+            if (diff < 31536000) return `${Math.floor(diff/604800)}w ago`;
             return `${(diff/31536000).toFixed(1)}y ago`;
         }
 
@@ -212,6 +212,21 @@
             if (seconds < 3600) return `${Math.floor(seconds/60)}m`;
             if (seconds < 86400) return `${Math.floor(seconds/3600)}h`;
             return `${(seconds/86400).toFixed(1)}d`;
+        }
+
+        function applyNftMultiplier(nftName) {
+            if (!nftName || nftName === "--") return nftName;
+
+            const lowerName = nftName.toLowerCase();
+
+            if (lowerName.includes("titan")) return "11x " + nftName;
+            if (lowerName.includes("dragon")) return "4x " + nftName;
+            if (lowerName.includes("coyote")) return "2.5x " + nftName;
+            if (lowerName.includes("rabbit")) return "1.5x " + nftName;
+            if (lowerName.includes("xeno")) return "1.1x " + nftName;
+            if (lowerName.includes("cricket")) return "1.1x " + nftName;
+
+            return nftName; // Return original if no match
         }
 
         // --- Core Logic ---
@@ -242,7 +257,7 @@
 
             if (!turnstileToken) {
                 document.getElementById('node-name').textContent = "Completing security check...";
-                return; 
+                return;
             }
 
             try {
@@ -257,7 +272,7 @@
                     alert("Security check failed. Please refresh.");
                     return;
                 }
-                
+
                 if (!res.ok) throw new Error("API Fetch Failed");
                 const data = await res.json();
 
@@ -278,15 +293,18 @@
                 managerEl.dataset.full = isRealManager ? managerVal : "";
 
                 // === NFT names (new) ===
-                const nft1Name = chain.nft_slot_1_name || "--";
-                const nft2Name = chain.nft_slot_2_name || "--";
-                
-                document.getElementById('chain-nft1').textContent = (nft1Name && nft1Name !== "--") ? nft1Name : "-";
-                document.getElementById('chain-nft2').textContent = (nft2Name && nft2Name !== "--") ? nft2Name : "-";
+                const rawNft1Name = chain.nft_slot_1_name || "--";
+                const rawNft2Name = chain.nft_slot_2_name || "--";
 
-                // Optional: tooltip with full name on hover
-                document.getElementById('chain-nft1').title = (nft1Name && nft1Name !== "--") ? nft1Name : "";
-                document.getElementById('chain-nft2').title = (nft2Name && nft2Name !== "--") ? nft2Name : "";
+                const nft1Name = applyNftMultiplier(rawNft1Name);
+                const nft2Name = applyNftMultiplier(rawNft2Name);
+
+                document.getElementById('chain-nft1').textContent = (nft1Name && rawNft1Name !== "--") ? nft1Name : "-";
+                document.getElementById('chain-nft2').textContent = (nft2Name && rawNft2Name !== "--") ? nft2Name : "-";
+
+                // Tooltip with full name on hover (useful if the text truncates)
+                document.getElementById('chain-nft1').title = (nft1Name && rawNft1Name !== "--") ? nft1Name : "";
+                document.getElementById('chain-nft2').title = (nft2Name && rawNft2Name !== "--") ? nft2Name : "";
 
                 document.getElementById('chain-reg-time').textContent = chain.registration_time ? formatRelativeTime(chain.registration_time) : "-";
 
@@ -306,22 +324,22 @@
                 rows.forEach(row => {
                     const cols = row.split(',');
                     if (cols.length < 2) return;
-                    
+
                     fullData.push({
                         ts: parseInt(cols[0]),
                         ping: cols[1] ? parseFloat(cols[1]) : null,
                         credits: cols[2] ? parseInt(cols[2]) : null,
                         balance: cols[3] ? parseFloat(cols[3]) : null,
-                        storage: cols[4] ? parseFloat(cols[4]) : null, 
+                        storage: cols[4] ? parseFloat(cols[4]) : null,
                         uptime: cols[5] ? parseInt(cols[5]) : null,
                         usage: cols[6] ? parseFloat(cols[6]) : null,
-                        stoin: cols.length >= 8 ? parseFloat(cols[7]) : null,      
-                        commission: cols.length >= 9 ? parseFloat(cols[8]) : null  
+                        stoin: cols.length >= 8 ? parseFloat(cols[7]) : null,
+                        commission: cols.length >= 9 ? parseFloat(cols[8]) : null
                     });
                 });
 
                 updateSummaryCards();
-                setTimeframe(24); 
+                setTimeframe(24);
 
             } catch (err) {
                 console.error(err);
@@ -363,8 +381,8 @@
             const dsStorage = filtered.map(d => d.storage ? d.storage / (1024*1024*1024) : 0);
             const dsUptime = filtered.map(d => d.uptime ? d.uptime / 3600 : 0);
             const dsUsage = filtered.map(d => d.usage ? d.usage : 0);
-            const dsStoin = filtered.map(d => d.stoin ?? null); 
-            const dsCommission = filtered.map(d => d.commission ?? null); 
+            const dsStoin = filtered.map(d => d.stoin ?? null);
+            const dsCommission = filtered.map(d => d.commission ?? null);
 
             const ctx = document.getElementById('historyChart').getContext('2d');
 
@@ -395,17 +413,17 @@
                             yAxisID: 'y1',
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: false 
+                            hidden: false
                         },
                         {
-                            label: 'Stake', 
-                            data: dsBalance, 
+                            label: 'Stake',
+                            data: dsBalance,
                             borderColor: '#f59e0b', // amber-500
                             backgroundColor: 'rgba(245, 158, 11, 0.1)',
                             yAxisID: 'y2',
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: false 
+                            hidden: false
                         },
                         {
                             label: 'STOINC',
@@ -415,7 +433,7 @@
                             yAxisID: 'y6',
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: false 
+                            hidden: false
                         },
                         {
                             label: 'Storage (GB)',
@@ -425,7 +443,7 @@
                             yAxisID: 'y3',
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: true 
+                            hidden: true
                         },
                         {
                             label: 'Uptime (Hours)',
@@ -435,7 +453,7 @@
                             yAxisID: 'y4',
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: false 
+                            hidden: false
                         },
                         {
                             label: 'Disk Usage (%)',
@@ -445,17 +463,17 @@
                             yAxisID: 'y5',
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: true 
+                            hidden: true
                         },
                         {
-                            label: 'Commission (%)', 
+                            label: 'Commission (%)',
                             data: dsCommission,
                             borderColor: '#06b6d4', // cyan-500
                             backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                            yAxisID: 'y7', 
+                            yAxisID: 'y7',
                             tension: 0.3,
                             pointRadius: 1,
-                            hidden: true 
+                            hidden: true
                         }
                     ]
                 },
@@ -468,10 +486,10 @@
                     },
                     scales: {
                         x: { ticks: { maxTicksLimit: 8, color: '#9ca3af' }, grid: { display: false } },
-                        y: { 
-                            type: 'linear', display: true, position: 'left', 
+                        y: {
+                            type: 'linear', display: true, position: 'left',
                             title: { display: true, text: 'Ping (ms)' },
-                            grid: { color: 'rgba(156, 163, 175, 0.1)' } 
+                            grid: { color: 'rgba(156, 163, 175, 0.1)' }
                         },
                         y1: { display: false, position: 'right' },
                         y2: { display: false, position: 'right' },
@@ -479,7 +497,7 @@
                         y4: { display: false, position: 'right' },
                         y5: { display: false, position: 'right', min: 0, max: 100 },
                         y6: { display: false, position: 'right', min: 0 },
-                        y7: { display: false, position: 'right', min: 0, max: 100 }, 
+                        y7: { display: false, position: 'right', min: 0, max: 100 },
                     },
                     plugins: {
                         legend: {
@@ -516,9 +534,9 @@
         }
 
         const themeToggle = document.getElementById('themeToggle');
-        const htmlEl = document.documentElement; 
+        const htmlEl = document.documentElement;
 
-        if (localStorage.getItem('theme') === 'dark' || 
+        if (localStorage.getItem('theme') === 'dark' ||
         (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             htmlEl.classList.add('dark');
         } else {
