@@ -129,12 +129,12 @@
 
                 <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-violet-500">
                     <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">NFT Slot 1</h3>
-                    <span id="chain-nft1" class="font-mono text-xs truncate text-violet-600 dark:text-violet-400">-</span>
+                    <span id="chain-nft1" class="text-sm truncate text-violet-600 dark:text-violet-400">-</span>
                 </div>
 
                 <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-violet-500">
                     <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">NFT Slot 2</h3>
-                    <span id="chain-nft2" class="font-mono text-xs truncate text-violet-600 dark:text-violet-400">-</span>
+                    <span id="chain-nft2" class="text-sm truncate text-violet-600 dark:text-violet-400">-</span>
                 </div>
 
                 <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-amber-500">
@@ -277,8 +277,16 @@
                 managerEl.textContent = isRealManager ? managerVal.slice(0,8) + "..." : "-";
                 managerEl.dataset.full = isRealManager ? managerVal : "";
 
-                document.getElementById('chain-nft1').textContent = (chain.nft_slot_1 && chain.nft_slot_1 !== empty) ? chain.nft_slot_1.slice(0,8) + "..." : "-";
-                document.getElementById('chain-nft2').textContent = (chain.nft_slot_2 && chain.nft_slot_2 !== empty) ? chain.nft_slot_2.slice(0,8) + "..." : "-";
+                // === NFT names (new) ===
+                const nft1Name = chain.nft_slot_1_name || "--";
+                const nft2Name = chain.nft_slot_2_name || "--";
+                
+                document.getElementById('chain-nft1').textContent = (nft1Name && nft1Name !== "--") ? nft1Name : "-";
+                document.getElementById('chain-nft2').textContent = (nft2Name && nft2Name !== "--") ? nft2Name : "-";
+
+                // Optional: tooltip with full name on hover
+                document.getElementById('chain-nft1').title = (nft1Name && nft1Name !== "--") ? nft1Name : "";
+                document.getElementById('chain-nft2').title = (nft2Name && nft2Name !== "--") ? nft2Name : "";
 
                 document.getElementById('chain-reg-time').textContent = chain.registration_time ? formatRelativeTime(chain.registration_time) : "-";
 
