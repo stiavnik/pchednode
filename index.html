@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pchednode RPC Viewer</title>
+    <title>pchednode Xandeum Network dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -19,11 +19,26 @@
                 <img src="pched.jpg" alt="pchednode" class="w-40 h-24 rounded-lg shadow-lg hover:shadow-2xl transition-shadow object-cover">
             </a>
 
-            <h1 class="text-3xl font-extrabold text-center flex-1">
-                pNodes. Less clicks, more truth.
-            </h1>
+            <!-- Center column: slogan + new tiny staking link (still perfectly centered, no extra height) -->
+            <div class="flex-1 flex flex-col items-center">
+                <h1 class="text-2xl font-semibold tracking-tight text-center text-gray-700 dark:text-gray-300">
+                    pNodes. Less clicks, more truth.
+                </h1>
+                <a href="https://xand-staking.xandeum.network/" 
+                   target="_blank"
+                   class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                    Stake XAND to a pNode: xand-staking.xandeum.network
+                </a>
+            </div>
 
             <div class="flex items-center gap-3">
+                <!-- YouTube button with clapperboard -->
+                <a href="https://www.youtube.com/watch?v=-0p7kEeVKqA" 
+                   target="_blank"
+                   class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg hover:shadow-red-500/50 transition-all text-sm flex items-center whitespace-nowrap">
+                    🎬 Tutorial →
+                </a>
+
                 <a href="rewardao/index.html" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg hover:shadow-indigo-500/50 transition-all text-sm flex items-center whitespace-nowrap">
                     REWARDAO →
                 </a>
