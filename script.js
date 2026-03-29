@@ -5,8 +5,8 @@ let pubkeyToIpsMap = {};
 
 // --- Global State ---
 let currentPods = [];
-let sortCol = 'credits'; 
-let sortAsc = false;      
+let sortCol = 'credits';
+let sortAsc = false;
 let isBatchFetching = false;
 
 function escapeHtml(text) {
@@ -41,7 +41,7 @@ function formatStorage(bytes) {
 
 function formatPercent(val) {
     if (val === null || val === undefined) return "-";
-    return `${val.toFixed(2)}%`; 
+    return `${val.toFixed(2)}%`;
 }
 
 function cleanVersion(v) {
@@ -83,7 +83,7 @@ function formatStcoinHtml(stoin, hasStaking = false) {
 async function loadYugaInfo() {
     const rpcUrl = document.getElementById("rpcSelector").value;
     const host = new URL(rpcUrl).hostname;
-    
+
     const box = document.getElementById("yuga-box");
     if (!box) return;
 
@@ -98,9 +98,10 @@ async function loadYugaInfo() {
         box.style.opacity = "1";
     } catch (e) {
         console.warn("Yuga info unavailable", e);
-        document.getElementById("yuga-current").textContent = "—";
-        document.getElementById("yuga-elapsed").textContent = "Elapsed: ?";
-        document.getElementById("yuga-remaining").textContent = "Remaining: ?";
+        const current = document.getElementById("yuga-current");
+        const remaining = document.getElementById("yuga-remaining");
+        if (current) current.textContent = "—";
+        if (remaining) remaining.textContent = "Remaining: ?";
     }
 }
 
@@ -141,7 +142,7 @@ function handleSort(column) {
         sortAsc = !sortAsc;
     } else {
         sortCol = column;
-        sortAsc = false; 
+        sortAsc = false;
         if (['version', 'name', 'country', 'pubkey', 'is_public', 'nfts', 'owner', 'manager'].includes(column)) {
             sortAsc = true;
         }
@@ -166,8 +167,8 @@ function copyPubkey(text, element, event) {
 
 function getSortIndicator(col) {
     if (sortCol !== col) return '<span class="text-gray-300 ml-1 opacity-50">↕</span>';
-    return sortAsc 
-        ? '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↑</span>' 
+    return sortAsc
+        ? '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↑</span>'
         : '<span class="text-indigo-600 dark:text-indigo-400 ml-1">↓</span>';
 }
 
@@ -187,7 +188,7 @@ function refilterAndRestyle() {
         if (!toggle || value === "") {
             row.style.display = "";
         } else {
-            const match = ipText.includes(value) || pubkey.includes(value) || 
+            const match = ipText.includes(value) || pubkey.includes(value) ||
                           name.includes(value) || owner.includes(value) || manager.includes(value);
             row.style.display = match ? "" : "none";
         }
@@ -213,15 +214,15 @@ function renderTable() {
     podsToRender.sort((a, b) => {
         const ipA = a.address.split(":")[0];
         const ipB = b.address.split(":")[0];
-        const cacheA = ipCache[ipA] || { 
-            name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0, 
+        const cacheA = ipCache[ipA] || {
+            name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0,
             owner: "--", manager: "--",
-            nft_slot_1_name: "--", nft_slot_2_name: "--" 
+            nft_slot_1_name: "--", nft_slot_2_name: "--"
         };
-        const cacheB = ipCache[ipB] || { 
-            name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0, 
+        const cacheB = ipCache[ipB] || {
+            name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0,
             owner: "--", manager: "--",
-            nft_slot_1_name: "--", nft_slot_2_name: "--" 
+            nft_slot_1_name: "--", nft_slot_2_name: "--"
         };
         let valA, valB, comparison = 0;
 
@@ -360,25 +361,25 @@ function renderTable() {
 
         const existing = ipCache[ip];
         const needsFetch = !existing || existing.country?.includes("loading-spinner") || existing.country === "Geo Error" || !existing.provider;
-        
+
         if (needsFetch) batchQueue.push({ ip: ip, pubkey: pubkey });
-        
+
         // Default when nothing cached yet
-        const cached = existing && !needsFetch ? existing : { 
-            name: "N/A", 
-            country: '<span class="loading-spinner">Loading</span>', 
-            provider: "", 
-            geo_sort: "loading", 
+        const cached = existing && !needsFetch ? existing : {
+            name: "N/A",
+            country: '<span class="loading-spinner">Loading</span>',
+            provider: "",
+            geo_sort: "loading",
             stake: 0,
             has_staking: false,
-            commission: 0,      // ← NEW
-            stoin_c: 0,         // ← NEW
+            commission: 0,
+            stoin_c: 0,
             is_registered: false,
             nft_count: 0,
             owner: "--",
             manager: "--",
-            nft_slot_1_name: "--",     // ← NEW
-            nft_slot_2_name: "--"      // ← NEW
+            nft_slot_1_name: "--",
+            nft_slot_2_name: "--"
         };
 
         // === NEW NFT CELL with tooltip showing real names ===
@@ -394,8 +395,8 @@ function renderTable() {
                 tooltipLines.push(`NFT Slot 2: ${cached.nft_slot_2_name}`);
             }
 
-            const titleAttr = tooltipLines.length > 0 
-                ? `title="${escapeHtml(tooltipLines.join('\n'))}"` 
+            const titleAttr = tooltipLines.length > 0
+                ? `title="${escapeHtml(tooltipLines.join('\n'))}"`
                 : '';
 
             nftCellHtml = `
@@ -404,7 +405,7 @@ function renderTable() {
             `;
         }
 
-        let countryHtml = cached.country; 
+        let countryHtml = cached.country;
         if (cached.country_code && cached.provider) {
              const flagUrl = `https://${rpcHost}/geo/flag/${cached.country_code}`;
              const flagImg = (cached.country_code !== "--") ? `<img src="${flagUrl}" class="inline-block mr-2 w-4 h-auto shadow-sm">` : "";
@@ -445,12 +446,12 @@ function renderTable() {
             </td>
             <td class="text-center">${nftCellHtml}</td>
             <td class="text-center font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600"
-                title="${cached.owner === '--' ? '' : `Click to copy: ${cached.owner}`}" 
+                title="${cached.owner === '--' ? '' : `Click to copy: ${cached.owner}`}"
                 onclick="copyPubkey('${cached.owner}', this, event)">
                 ${cached.owner === '--' ? '<span class="text-gray-400 dark:text-gray-600">-</span>' : 'O'}
             </td>
             <td class="text-center font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600"
-                title="${cached.manager === '--' ? '' : `Click to copy: ${cached.manager}`}" 
+                title="${cached.manager === '--' ? '' : `Click to copy: ${cached.manager}`}"
                 onclick="copyPubkey('${cached.manager}', this, event)">
                 ${cached.manager === '--' ? '<span class="text-gray-400 dark:text-gray-600">-</span>' : 'M'}
             </td>
@@ -470,7 +471,7 @@ function renderTable() {
 
     html += "</tbody></table>";
     output.innerHTML = html;
-    
+
     if (batchQueue.length > 0 && !isBatchFetching) {
         isBatchFetching = true;
         const rpcUrl = document.getElementById("rpcSelector").value;
@@ -502,8 +503,8 @@ function renderTable() {
                     owner: g.owner || "--",
                     manager: g.manager || "--",
                     credits: g.credits,
-                    nft_slot_1_name: g.nft_slot_1_name || "--",   // ← NEW
-                    nft_slot_2_name: g.nft_slot_2_name || "--"    // ← NEW
+                    nft_slot_1_name: g.nft_slot_1_name || "--",
+                    nft_slot_2_name: g.nft_slot_2_name || "--"
                 };
             }
             requestAnimationFrame(() => renderTable());
@@ -514,7 +515,6 @@ function renderTable() {
     setTimeout(refilterAndRestyle, 0);
 }
 
-// ... (Rest of existing loader code remains same) ...
 async function sendRpcRequest() {
     if (!hasLoadedOnce) hasLoadedOnce = true;
     document.getElementById("loadButton").textContent = "RELOAD";
@@ -532,7 +532,7 @@ async function sendRpcRequest() {
         rawPods.forEach(p => {
              const ip = p.address ? p.address.split(':')[0] : 'unknown';
              if (ip === 'unknown') return;
-             if (!uniqueMap.has(ip)) { uniqueMap.set(ip, p); } 
+             if (!uniqueMap.has(ip)) { uniqueMap.set(ip, p); }
              else {
                  const existing = uniqueMap.get(ip);
                  if ((p.last_seen_timestamp || 0) > (existing.last_seen_timestamp || 0)) uniqueMap.set(ip, { ...existing, ...p });
@@ -558,10 +558,10 @@ window.addEventListener("load", markLoadButton);
 document.getElementById("rpcSelector").addEventListener("change", () => {
     markLoadButton();
     ipCache = {}; // Clears the ghost data
-    
-    // Optional: clear the table immediately so the user doesn't see "stale" rows 
+
+    // Optional: clear the table immediately so the user doesn't see "stale" rows
     // while waiting for the new LOAD click.
-    document.getElementById("pched-live-view").innerHTML = 
+    document.getElementById("pched-live-view").innerHTML =
         '<p class="text-gray-500 dark:text-gray-400 mt-12 text-lg">Click LOAD to fetch pod data...</p>';
     document.getElementById("podCount").textContent = "0";
     loadYugaInfo();
@@ -573,7 +573,7 @@ document.getElementById("globalFilterValue").addEventListener("input", scheduleF
 setInterval(() => { if (!document.hidden) sendRpcRequest(); }, 5*60*1000);
 
 const themeToggle = document.getElementById('themeToggle');
-const htmlEl = document.documentElement; 
+const htmlEl = document.documentElement;
 if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     htmlEl.classList.add('dark');
 } else {
