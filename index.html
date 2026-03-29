@@ -14,36 +14,42 @@
 </head>
 <body class="min-h-screen bg-gradient-to-br from-lime-100 to-green-200 dark:from-slate-900 dark:to-gray-900 transition-colors duration-500 text-gray-900 dark:text-gray-100">
     <div class="max-w-7xl mx-auto p-4 md:p-8">
-        <header class="mb-6 flex items-center justify-between border-b border-gray-300/50 dark:border-gray-700/50 pb-4">
-            <a href="pchednode.jpg" target="_blank">
-                <img src="pched.jpg" alt="pchednode" class="w-40 h-24 rounded-lg shadow-lg hover:shadow-2xl transition-shadow object-cover">
+
+        <header class="mb-6 flex flex-col md:flex-row items-center justify-between gap-5 md:gap-0 border-b border-gray-300/50 dark:border-gray-700/50 pb-4">
+
+            <!-- Logo -->
+            <a href="pchednode.jpg" target="_blank" class="flex justify-center md:justify-start shrink-0 mx-auto md:mx-0">
+                <img src="pched.jpg" alt="pchednode"
+                     class="w-32 h-20 md:w-40 md:h-24 rounded-lg shadow-lg hover:shadow-2xl transition-shadow object-cover">
             </a>
 
-            <!-- Center column: slogan + new tiny staking link (still perfectly centered, no extra height) -->
-            <div class="flex-1 flex flex-col items-center">
-                <h1 class="text-2xl font-semibold tracking-tight text-center text-gray-700 dark:text-gray-300">
+            <!-- Slogan + staking link -->
+            <div class="flex-1 flex flex-col items-center text-center px-2">
+                <h1 class="text-xl md:text-2xl font-semibold tracking-tight text-gray-700 dark:text-gray-300">
                     pNodes. Less clicks, more truth.
                 </h1>
-                <a href="https://xand-staking.xandeum.network/" 
+                <a href="https://xand-staking.xandeum.network/"
                    target="_blank"
                    class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                     Stake XAND to a pNode: xand-staking.xandeum.network
                 </a>
             </div>
 
-            <div class="flex items-center gap-3">
-                <!-- YouTube button with clapperboard -->
-                <a href="https://www.youtube.com/watch?v=" 
+            <!-- Buttons -->
+            <div class="flex items-center justify-center gap-2 md:gap-3 flex-wrap shrink-0">
+                <a href="https://www.youtube.com/watch?v=-0p7kEeVKqA"
                    target="_blank"
-                   class="px-5 py-2.5 rounded-xl bg-[#A88282] hover:bg-[#DB5014] text-white font-bold shadow-lg hover:shadow-red-500/50 transition-all text-sm flex items-center whitespace-nowrap">
+                   class="px-4 py-2 text-xs md:px-5 md:py-2.5 rounded-xl bg-[#A88282] hover:bg-[#DB5014] text-white font-bold shadow-lg hover:shadow-red-500/50 transition-all whitespace-nowrap">
                     🎬 Tutorial →
                 </a>
 
-                <a href="rewardao/index.html" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg hover:shadow-indigo-500/50 transition-all text-sm flex items-center whitespace-nowrap">
+                <a href="rewardao/index.html"
+                   class="px-4 py-2 text-xs md:px-5 md:py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg hover:shadow-indigo-500/50 transition-all whitespace-nowrap">
                     REWARDAO →
                 </a>
 
-                <button id="themeToggle" class="px-5 py-2.5 rounded-xl bg-white/20 dark:bg-gray-800/50 backdrop-blur hover:bg-white/30 dark:hover:bg-gray-700/70 transition-all font-semibold text-sm shadow-lg text-gray-900 dark:text-gray-100">
+                <button id="themeToggle"
+                        class="px-4 py-2 text-xs md:px-5 md:py-2.5 rounded-xl bg-white/20 dark:bg-gray-800/50 backdrop-blur hover:bg-white/30 dark:hover:bg-gray-700/70 transition-all font-semibold shadow-lg text-gray-900 dark:text-gray-100 whitespace-nowrap">
                     Dark
                 </button>
             </div>
@@ -102,14 +108,14 @@
         </main>
 
         <footer class="mt-12 text-center text-sm text-gray-600 dark:text-gray-400 border-t border-gray-300/50 dark:border-gray-700/50 pt-6">
-            © 2026 Substance242 | Name your device → 
-            <a id="footer-nick" 
+            © 2026 Substance242 | Name your device →
+            <a id="footer-nick"
                href="mailto:hlasenie-pchednode@yahoo.com?subject=Register%20Node%20Name&body=Hello%20Substance242%2C%0A%0AI%20would%20like%20to%20register%20a%20name%20for%20my%20node.%0A%0AIP%3A%20%0AName%3A%20"
-               class="cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium" 
+               class="cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium"
                title="Send email">
                click here
-            </a> 
-            | v1.2 | Data sourced via pchednode RPCs and custom Geo API.
+            </a>
+            | v1.21 | Data sourced via pchednode RPCs and custom Geo API.
         </footer>
     </div>
 
