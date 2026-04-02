@@ -336,9 +336,7 @@ End date: Sun Jan 31 2027
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 01-04-2026 17:31 - View transaction
 Transaction 5
 instruction 1 - Grant
 Program
@@ -504,9 +502,7 @@ End date: Sun Jan 31 2027
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 02-04-2026 05:23 - View transaction
 Transaction 7
 instruction 1 - Grant
 Program
@@ -755,9 +751,7 @@ End date: Sun Jan 31 2027
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 28-03-2026 19:27 - View transaction
 Transaction 10
 instruction 1 - Grant
 Program
@@ -1005,9 +999,7 @@ End date: Sun Jan 31 2027
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 02-04-2026 05:18 - View transaction
 Transaction 13
 instruction 1 - Grant
 Program
@@ -1340,9 +1332,7 @@ End date: Sun Jan 31 2027
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 31-03-2026 15:43 - View transaction
 Transaction 17
 instruction 1 - Grant
 Program
@@ -1424,9 +1414,7 @@ End date: Sun Jan 31 2027
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 27-03-2026 19:25 - View transaction
 Transaction 18
 instruction 1 - Grant
 Program
@@ -1675,9 +1663,7 @@ End date: Sun Jan 31 2027
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 28-03-2026 17:52 - View transaction
 Transaction 21
 instruction 1 - Grant
 Program
@@ -1926,9 +1912,7 @@ End date: Sun Jan 31 2027
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 01-04-2026 18:05 - View transaction
 Transaction 24
 instruction 1 - Grant
 Program
@@ -2093,9 +2077,7 @@ End date: Sun Jan 31 2027
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
-
-Execute
+Execution date: 28-03-2026 19:42 - View transaction
 Transaction 26
 instruction 1 - Grant
 Program
@@ -2768,6 +2750,6 @@ Execute
 
 Inspect all
 
-Execute in separated transactions (30)
+Execute in separated transactions (21)
 
 Execute all in one transaction (33)
