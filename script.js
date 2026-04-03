@@ -356,7 +356,7 @@ function renderTable() {
         let hoverTitle = `Click to copy: ${pubkey}`;
         if (isDuplicated) {
             const sharedIps = pubkeyToIpsMap[pubkey] || [];
-            hoverTitle = `⚠️ DUPLICATE PUBKEY!\nShared by nodes: ${sharedIps.join(', ')}\n\nClick to copy: ${pubkey}`;
+            hoverTitle = `🚨 LIVE DUPLICATE PUBKEY (${sharedIps.length} active nodes)\nIPs: ${sharedIps.join(', ')}\n\nClick to copy: ${pubkey}`;
         }
 
         const existing = ipCache[ip];
@@ -540,11 +540,21 @@ async function sendRpcRequest() {
         });
         currentPods = Array.from(uniqueMap.values());
         if (currentPods.length === 0) { output.innerHTML = "<p class='text-gray-500 dark:text-gray-400'>No pods found.</p>"; return; }
+        // === DUPLICATE DETECTION — ONLY RECENT / SIMULTANEOUS ===
+        const ACTIVE_THRESHOLD_SECONDS = 720;   // 12 minutes
+
         pubkeyCountMap = {};
         pubkeyToIpsMap = {};
+
+        const now = Math.floor(Date.now() / 1000);
+
         currentPods.forEach(pod => {
             const pk = pod.pubkey || "";
             if (!pk) return;
+
+            const ageSeconds = now - (pod.last_seen_timestamp || 0);
+            if (ageSeconds > ACTIVE_THRESHOLD_SECONDS) return;   // ← skip stale/old entries
+
             pubkeyCountMap[pk] = (pubkeyCountMap[pk] || 0) + 1;
             if (!pubkeyToIpsMap[pk]) pubkeyToIpsMap[pk] = [];
             pubkeyToIpsMap[pk].push(pod.address.split(":")[0]);
