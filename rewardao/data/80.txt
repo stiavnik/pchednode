@@ -1,6 +1,6 @@
 https://dao.xandeum.network/dao/XAND/proposal/4Sy6m8FqhsyDLsWtxn4PmHk3cwWp9YqoB4skJghVVqMD
 March 2026 Moderator Payouts
-Voting
+Executable
 Proposed by: AEL8CwbYfiAhkqui1NF2bbv5DX9mgSNGcxenpTdpsyY4
 
 40,000XAND monthly reward for Discord moderators
@@ -89,6 +89,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 2
 instruction 1 - Grant
 Program
@@ -171,6 +173,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 3
 instruction 1 - Grant
 Program
@@ -252,7 +256,7 @@ End date: Wed Mar 31 2027
 Dao can clawback:No
 Only grantee can execute instruction
 
-Inspect
+Execution date: 11-04-2026 16:18 - View transaction
 Transaction 4
 instruction 1 - Grant
 Program
@@ -335,6 +339,8 @@ Dao can clawback:No
 Only grantee can execute instruction
 
 Inspect
+
+Execute
 Transaction 5
 instruction 1 - Grant
 Program
@@ -418,5 +424,10 @@ Only grantee can execute instruction
 
 Inspect
 
+Execute
+
 Inspect all
-Discussion (0)
+
+Execute in separated transactions (4)
+
+Execute all in one transaction (5)
