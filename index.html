@@ -3,150 +3,578 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pchednode Xandeum Network dashboard</title>
+    <title>Node History</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script>
-      tailwind.config = {
-        darkMode: 'class',
-      }
+      tailwind.config = { darkMode: 'class' }
     </script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        .stat-card { transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); }
+        html { min-height: 100%; }
+    </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-lime-100 to-green-200 dark:from-slate-900 dark:to-gray-900 transition-colors duration-500 text-gray-900 dark:text-gray-100">
-    <div class="max-w-7xl mx-auto p-4 md:p-8">
+<body class="min-h-screen bg-gradient-to-br from-lime-100 to-green-200 dark:from-slate-900 dark:to-gray-900 text-gray-900 dark:text-gray-100 p-4 transition-colors duration-500">
 
-        <header class="mb-6 flex flex-col md:flex-row items-center justify-between gap-5 md:gap-0 border-b border-gray-300/50 dark:border-gray-700/50 pb-4">
-
-            <!-- Logo -->
-            <a href="pchednode.jpg" target="_blank" class="flex justify-center md:justify-start shrink-0 mx-auto md:mx-0">
-                <img src="pched.jpg" alt="pchednode"
-                     class="w-32 h-20 md:w-40 md:h-24 rounded-lg shadow-lg hover:shadow-2xl transition-shadow object-cover">
-            </a>
-
-            <!-- Slogan + staking link -->
-            <div class="flex-1 flex flex-col items-center text-center px-2">
-                <h1 id="dissolve-message" class="text-xl md:text-2xl font-semibold tracking-tight text-gray-700 dark:text-gray-300">
-                    Without support, pchednode will dissolve in <span id="days-remaining" class="font-mono text-red-600 dark:text-red-400">16</span> days.
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4 w-full md:w-auto justify-between">
+                <h1 class="text-lg md:text-2xl font-bold flex flex-wrap items-center gap-2 px-4 py-2 rounded-lg bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm shadow-sm">
+                <a href="index.html" class="text-indigo-600 dark:text-indigo-400 hover:underline">← Back</a>
+                <span class="text-gray-400 dark:text-gray-500">|</span>
+                <span>Node History</span>
+                <span id="network-badge" class="ml-auto px-3 py-0.5 text-[10px] font-bold rounded-full shadow-sm"></span>
                 </h1>
-                <a href="https://xand-staking.xandeum.network/"
-                   target="_blank"
-                   class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    Stake XAND to a pNode: xand-staking.xandeum.network
-                </a>
             </div>
 
-            <!-- Buttons -->
-            <div class="flex items-center justify-center gap-2 md:gap-3 flex-wrap shrink-0">
-                <a href="https://youtu.be/949Lsj32GWw"
-                   target="_blank"
-                   class="px-4 py-2 text-xs md:px-5 md:py-2.5 rounded-xl bg-[#A88282] hover:bg-[#DB5014] text-white font-bold shadow-lg hover:shadow-red-500/50 transition-all whitespace-nowrap">
-                    🎬 Tutorial →
-                </a>
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="cf-turnstile scale-90 origin-right"
+                     data-sitekey="0x4AAAAAACEiZegYcUILDmVT"
+                     data-callback="onTurnstileSuccess"
+                     data-theme="auto">
+                </div>
 
-                <a href="rewardao/index.html"
-                   class="px-4 py-2 text-xs md:px-5 md:py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg hover:shadow-indigo-500/50 transition-all whitespace-nowrap">
-                    REWARDAO →
-                </a>
+                <div class="flex bg-white/60 dark:bg-gray-800/60 backdrop-blur rounded-lg p-1 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+                    <button onclick="setTimeframe(24)" id="btn-24" class="px-3 py-1 text-sm font-medium rounded-md transition hover:bg-white/50 dark:hover:bg-gray-700">24H</button>
+                    <button onclick="setTimeframe(168)" id="btn-168" class="px-3 py-1 text-sm font-medium rounded-md transition hover:bg-white/50 dark:hover:bg-gray-700">7D</button>
+                    <button onclick="setTimeframe(720)" id="btn-720" class="px-3 py-1 text-sm font-medium rounded-md transition hover:bg-white/50 dark:hover:bg-gray-700">30D</button>
+                    <button onclick="setTimeframe(0)" id="btn-0" class="px-3 py-1 text-sm font-medium rounded-md transition hover:bg-white/50 dark:hover:bg-gray-700">ALL</button>
+                </div>
 
-                <button id="themeToggle"
-                        class="px-4 py-2 text-xs md:px-5 md:py-2.5 rounded-xl bg-white/20 dark:bg-gray-800/50 backdrop-blur hover:bg-white/30 dark:hover:bg-gray-700/70 transition-all font-semibold shadow-lg text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                    Dark
+                <button id="themeToggle" class="px-4 py-2 rounded-lg bg-white/60 dark:bg-gray-800/60 backdrop-blur hover:bg-white/80 dark:hover:bg-gray-700 transition text-sm font-semibold shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+                    Dark Mode
                 </button>
             </div>
         </header>
 
-        <main>
-            <div class="flex flex-col md:flex-row flex-wrap items-start md:items-center gap-3 p-5 bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-2xl">
-                <select id="rpcSelector" class="px-4 py-2.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg text-sm font-medium text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none">
-                    <option value="https://rpc2.pchednode.com/rpc">DevNet 1</option>
-                    <option value="https://rpc1.pchednode.com/rpc">DevNet 2</option>
-                    <option value="https://rpc4.pchednode.com/rpc">MainNet 1</option>
-                    <option value="https://rpc3.pchednode.com/rpc">MainNet 2</option>
-                </select>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm">
+            <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur px-4 py-3 rounded-xl shadow-sm border border-white/50 dark:border-gray-700/50 flex flex-col">
+                <span class="text-xs font-bold text-gray-500 uppercase">Node Name</span>
+                <span id="node-name" class="font-semibold text-indigo-600 dark:text-indigo-400 truncate">Waiting for check...</span>
+            </div>
+            <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur px-4 py-3 rounded-xl shadow-sm border border-white/50 dark:border-gray-700/50 flex flex-col">
+                <span class="text-xs font-bold text-gray-500 uppercase">IP Address</span>
+                <span id="node-ip" class="font-mono select-all">...</span>
+            </div>
+            <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur px-4 py-3 rounded-xl shadow-sm border border-white/50 dark:border-gray-700/50 flex flex-col">
+                <span class="text-xs font-bold text-gray-500 uppercase">Public Key</span>
+                <span id="node-pubkey" class="font-mono text-xs truncate cursor-pointer hover:text-indigo-500" onclick="copyToClipboard(this.innerText)">...</span>
+            </div>
+            <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur px-4 py-3 rounded-xl shadow-sm border border-white/50 dark:border-gray-700/50 flex flex-col">
+                <span class="text-xs font-bold text-gray-500 uppercase">IP First Seen</span>
+                <span id="node-first-seen" class="font-mono font-medium text-emerald-600 dark:text-emerald-400">...</span>
+            </div>
+        </div>
 
-                <button id="loadButton" onclick="sendRpcRequest()"
-                        class="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-lg transition">
-                    LOAD
-                </button>
-
-                <div class="font-bold text-sm">
-                    Pods: <span id="podCount" class="text-indigo-600 dark:text-indigo-400">0</span>
-                </div>
-
-                <!-- YUGA INFO -->
-                <div id="yuga-box" class="flex items-center gap-x-2 bg-white/70 dark:bg-gray-800/70 px-4 py-2 rounded-xl text-sm font-medium shadow-inner border border-white/60 dark:border-gray-700/60 transition-opacity" style="opacity: 0;">
-                    <span class="text-emerald-600 dark:text-emerald-400 font-bold">Yuga:</span>
-                    <span id="yuga-current" class="font-mono text-gray-900 dark:text-gray-100">?</span>
-                    <span class="text-gray-400 dark:text-gray-500">|</span>
-                    <span id="yuga-remaining" class="text-blue-600 dark:text-blue-400">?</span>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <label class="flex items-center gap-1 cursor-pointer text-sm">
-                        <input type="checkbox" id="versionFilterToggle" class="w-4 h-4 text-indigo-600 dark:text-indigo-400 rounded focus:ring-indigo-500">
-                        <span class="font-medium">Version</span>
-                    </label>
-                    <input type="text" id="versionFilterValue" value="1.3.2" placeholder="e.g. 1.3.2"
-                           class="w-16 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-
-                <div class="flex items-center gap-2 flex-1 min-w-0">
-                    <label class="flex items-center gap-1 cursor-pointer text-sm">
-                        <input type="checkbox" id="globalFilterToggle" class="w-4 h-4 text-indigo-600 dark:text-indigo-400 rounded focus:ring-indigo-500">
-                        <span class="font-medium">Filter</span>
-                    </label>
-                    <input type="text" id="globalFilterValue" placeholder="NAME, IP, or any PUBKEY - pNode, Owner, Manager"
-                           class="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-[repeat(24,minmax(0,1fr))] gap-4 mb-6">
+            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-violet-500 lg:col-span-3">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Credits</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-xl font-bold truncate" id="val-credits">-</span>
                 </div>
             </div>
+            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-amber-500 col-span-2 md:col-span-1 lg:col-span-5">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Stake</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-bold" id="val-balance">-</span>
+                    <span class="text-xs text-gray-500">XAND</span>
+                </div>
+            </div>
+            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-teal-500 lg:col-span-4">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">STOINC</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-bold" id="val-stoin">-</span>
+                    <span class="text-xs text-gray-500">WSOL</span>
+                </div>
+            </div>
+            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-orange-500 lg:col-span-3">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Storage</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-bold" id="val-storage">-</span>
+                </div>
+            </div>
+            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-rose-500 lg:col-span-3">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Storage Used</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-bold" id="val-usage">-</span>
+                </div>
+            </div>
+            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-blue-500 lg:col-span-3">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Uptime</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-xl font-bold" id="val-uptime">-</span>
+                </div>
+            </div>
+            <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-emerald-500 lg:col-span-3">
+                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Ping</h3>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-bold" id="val-ping">-</span>
+                    <span class="text-xs text-gray-500">ms</span>
+                </div>
+            </div>
+        </div>
 
-            <div id="output" style="display:none;">Loading...</div>
+        <div class="mt-8">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-emerald-500 cursor-pointer" onclick="copyToClipboard(document.getElementById('chain-owner').dataset.full)">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Owner</h3>
+                    <span id="chain-owner" class="font-mono text-sm truncate text-emerald-600 dark:text-emerald-400" data-full="">-</span>
+                </div>
 
-            <div id="pched-live-view" class="mt-6 p-6 bg-white/70 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-2xl min-h-96 text-center">
-                <p class="text-gray-500 dark:text-gray-400 mt-12 text-lg">Click LOAD to fetch pod data...</p>
+                <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-rose-500 cursor-pointer" onclick="copyToClipboard(document.getElementById('chain-manager').dataset.full)">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Manager</h3>
+                    <span id="chain-manager" class="font-mono text-sm truncate text-rose-600 dark:text-rose-400" data-full="">-</span>
+                </div>
+
+                <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-violet-500">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">NFT Slot 1</h3>
+                    <span id="chain-nft1"
+                          class="text-xs leading-tight break-words line-clamp-3 text-violet-600 dark:text-violet-400">
+                        -
+                    </span>
+                </div>
+
+                <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-violet-500">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">NFT Slot 2</h3>
+                    <span id="chain-nft2"
+                          class="text-xs leading-tight break-words line-clamp-3 text-violet-600 dark:text-violet-400">
+                        -
+                    </span>
+                </div>
+
+                <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-amber-500">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Registered</h3>
+                    <span id="chain-reg-time" class="font-mono text-sm text-amber-600 dark:text-amber-400">-</span>
+                </div>
+
+                <div class="stat-card bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 rounded-xl shadow border-t-4 border-cyan-500">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Commission</h3>
+                    <span id="chain-commission" class="font-mono text-sm text-cyan-600 dark:text-cyan-400">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <main class="bg-white/80 dark:bg-gray-800/80 backdrop-blur p-4 md:p-6 rounded-xl shadow-lg border border-white/50 dark:border-gray-700/50 mt-8">
+            <div class="relative h-[400px] w-full">
+                <canvas id="historyChart"></canvas>
+            </div>
+            <div class="mt-4 text-center text-xs text-gray-500">
+                Tip: Click legend items above to toggle datasets on/off.
             </div>
         </main>
-
-        <footer class="mt-12 text-center text-sm text-gray-600 dark:text-gray-400 border-t border-gray-300/50 dark:border-gray-700/50 pt-6">
-            © 2026 Substance242 | Name your device →
-            <a id="footer-nick"
-               href="mailto:hlasenie-pchednode@yahoo.com?subject=Register%20Node%20Name&body=Hello%20Substance242%2C%0A%0AI%20would%20like%20to%20register%20a%20name%20for%20my%20node.%0A%0AIP%3A%20%0AName%3A%20"
-               class="cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium"
-               title="Send email">
-               click here
-            </a>
-            | v1.22 | Data sourced via pchednode RPCs and custom Geo API.
-        </footer>
     </div>
 
-    <script src="script.js"></script>
     <script>
-        function updateDaysRemaining() {
-            // Target = May 1, 2026
-            const targetDate = new Date(2026, 4, 1); // May = month 4 (0-indexed)
+        // === NETWORK BADGE (DEVNET / MAINNET) - runs immediately ===
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const host = params.get('host') || window.location.hostname;
+            const badge = document.getElementById('network-badge');
+            if (!badge || !host) return;
 
-            const now = new Date();
+            const lower = host.toLowerCase();
 
-            // Normalize both to start of day → clean calendar-day count
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const target = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+            if (lower.includes('rpc1') || lower.includes('rpc2')) {
+                badge.textContent = 'DEVNET';
+                badge.classList.add('bg-emerald-500', 'text-white');
+            }
+            else if (lower.includes('rpc3') || lower.includes('rpc4')) {
+                badge.textContent = 'MAINNET';
+                badge.classList.add('bg-violet-500', 'text-white');
+            }
+            // else badge stays empty (or you can add 'UNKNOWN' if you prefer)
+        })();
+        // --- State ---
+        let fullData = [];
+        let chartInstance = null;
+        let currentTimeframe = 24;
+        let turnstileToken = null;
 
-            const diffTime = target.getTime() - today.getTime();
-            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        // --- Turnstile Callback ---
+        function onTurnstileSuccess(token) {
+            console.log("Security Check Passed");
+            turnstileToken = token;
+            document.getElementById('node-name').textContent = "Loading...";
+            loadHistory();
+        }
 
-            if (diffDays < 0) diffDays = 0;
+        // --- Helpers ---
+        function copyToClipboard(text) {
+            if (!text || text === "" || text === "-") return;
+            navigator.clipboard.writeText(text).then(() => {
+                const ownerCard = document.getElementById('chain-owner').parentElement;
+                const managerCard = document.getElementById('chain-manager').parentElement;
+                [ownerCard, managerCard].forEach(card => {
+                    const original = card.style.backgroundColor;
+                    card.style.transition = "background-color 0.4s";
+                    card.style.backgroundColor = "#10b98130";
+                    setTimeout(() => card.style.backgroundColor = original || "", 800);
+                });
+            });
+        }
 
-            const daysEl = document.getElementById('days-remaining');
-            if (daysEl) {
-                daysEl.textContent = diffDays;
+        function formatRelativeTime(ts) {
+            if (!ts) return "Never";
+            const diff = Math.floor(Date.now() / 1000) - ts;
+            if (diff < 60) return `${diff}s ago`;
+            if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+            if (diff < 604800) return `${Math.floor(diff/86400)}d ago`;
+            if (diff < 31536000) return `${Math.floor(diff/604800)}w ago`;
+            return `${(diff/31536000).toFixed(1)}y ago`;
+        }
+
+        function formatStorage(bytes) {
+            if (!bytes) return "0 GB";
+            const gb = bytes / (1024 * 1024 * 1024);
+            if (gb >= 1000) return `${(gb / 1024).toFixed(2)} TB`;
+            return `${gb.toFixed(1)} GB`;
+        }
+
+        function formatUptime(seconds) {
+            if (!seconds) return "0m";
+            if (seconds < 3600) return `${Math.floor(seconds/60)}m`;
+            if (seconds < 86400) return `${Math.floor(seconds/3600)}h`;
+            return `${(seconds/86400).toFixed(1)}d`;
+        }
+
+        function applyNftMultiplier(nftName) {
+            if (!nftName || nftName === "--") return nftName;
+
+            const lowerName = nftName.toLowerCase();
+
+            if (lowerName.includes("titan")) return "11x " + nftName;
+            if (lowerName.includes("dragon")) return "4x " + nftName;
+            if (lowerName.includes("coyote")) return "2.5x " + nftName;
+            if (lowerName.includes("rabbit")) return "1.5x " + nftName;
+            if (lowerName.includes("eno")) return "1.1x " + nftName;
+            if (lowerName.includes("cricket")) return "1.1x " + nftName;
+            if (lowerName.includes("bitoku")) return "1.1x " + nftName;
+
+            return nftName; // Return original if no match
+        }
+
+        // --- Core Logic ---
+        function setTimeframe(hours) {
+            currentTimeframe = hours;
+            [24, 168, 720, 0].forEach(h => {
+                const btn = document.getElementById(`btn-${h}`);
+                if (h === hours) {
+                    btn.className = "px-3 py-1 text-sm font-bold rounded-md transition bg-indigo-600 text-white shadow-md";
+                } else {
+                    btn.className = "px-3 py-1 text-sm font-medium rounded-md transition hover:bg-white/50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300";
+                }
+            });
+            renderChart();
+        }
+
+        async function loadHistory() {
+            const params = new URLSearchParams(window.location.search);
+            const ip = params.get('ip');
+            const host = params.get('host') || window.location.hostname;
+
+            if (!ip) {
+                document.getElementById('node-name').textContent = "Error: No IP specified";
+                return;
+            }
+
+            document.getElementById('node-ip').textContent = ip;
+
+            if (!turnstileToken) {
+                document.getElementById('node-name').textContent = "Completing security check...";
+                return;
+            }
+
+            try {
+                const res = await fetch(`https://${host}/geo/history?ip=${ip}`, {
+                    headers: {
+                        'X-Turnstile-Token': turnstileToken
+                    }
+                });
+
+                if (res.status === 403) {
+                    document.getElementById('node-name').textContent = "Security Check Failed";
+                    alert("Security check failed. Please refresh.");
+                    return;
+                }
+
+                if (!res.ok) throw new Error("API Fetch Failed");
+                const data = await res.json();
+
+                document.getElementById('node-name').textContent = data.meta.name || "N/A";
+                document.getElementById('node-pubkey').textContent = data.meta.pubkey || "N/A";
+
+                const chain = data.chain || {};
+                const empty = "11111111111111111111111111111111";
+
+                const ownerEl = document.getElementById('chain-owner');
+                ownerEl.textContent = (chain.owner && chain.owner !== empty) ? chain.owner.slice(0,8) + "..." : "-";
+                ownerEl.dataset.full = chain.owner || "";
+
+                const managerEl = document.getElementById('chain-manager');
+                const managerVal = chain.manager || "";
+                const isRealManager = managerVal && managerVal !== empty && managerVal !== "--";
+                managerEl.textContent = isRealManager ? managerVal.slice(0,8) + "..." : "-";
+                managerEl.dataset.full = isRealManager ? managerVal : "";
+
+                // === NFT names (new) ===
+                const rawNft1Name = chain.nft_slot_1_name || "--";
+                const rawNft2Name = chain.nft_slot_2_name || "--";
+
+                const nft1Name = applyNftMultiplier(rawNft1Name);
+                const nft2Name = applyNftMultiplier(rawNft2Name);
+
+                document.getElementById('chain-nft1').textContent = (nft1Name && rawNft1Name !== "--") ? nft1Name : "-";
+                document.getElementById('chain-nft2').textContent = (nft2Name && rawNft2Name !== "--") ? nft2Name : "-";
+
+                // Tooltip with full name on hover (useful if the text truncates)
+                document.getElementById('chain-nft1').title = (nft1Name && rawNft1Name !== "--") ? nft1Name : "";
+                document.getElementById('chain-nft2').title = (nft2Name && rawNft2Name !== "--") ? nft2Name : "";
+
+                document.getElementById('chain-reg-time').textContent = chain.registration_time ? formatRelativeTime(chain.registration_time) : "-";
+
+                document.getElementById('chain-commission').textContent = (chain.manager_commission || 0) + "%";
+
+                const rows = data.csv_data.trim().split('\n');
+                fullData = [];
+
+                if (rows.length > 0) {
+                    const firstRow = rows[0].split(',');
+                    const firstTs = parseFloat(firstRow[0]);
+                    if (!isNaN(firstTs)) {
+                        document.getElementById('node-first-seen').textContent = formatRelativeTime(firstTs);
+                    }
+                }
+
+                rows.forEach(row => {
+                    const cols = row.split(',');
+                    if (cols.length < 2) return;
+
+                    fullData.push({
+                        ts: parseInt(cols[0]),
+                        ping: cols[1] ? parseFloat(cols[1]) : null,
+                        credits: cols[2] ? parseInt(cols[2]) : null,
+                        balance: cols[3] ? parseFloat(cols[3]) : null,
+                        storage: cols[4] ? parseFloat(cols[4]) : null,
+                        uptime: cols[5] ? parseInt(cols[5]) : null,
+                        usage: cols[6] ? parseFloat(cols[6]) : null,
+                        stoin: cols.length >= 8 ? parseFloat(cols[7]) : null,
+                        commission: cols.length >= 9 ? parseFloat(cols[8]) : null
+                    });
+                });
+
+                updateSummaryCards();
+                setTimeframe(24);
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('node-name').textContent = "Error loading data";
             }
         }
 
-        // Run when page loads
-        window.addEventListener('load', updateDaysRemaining);
+        function updateSummaryCards() {
+            if (fullData.length === 0) return;
+            const latest = fullData[fullData.length - 1];
 
-        // Refresh every hour (in case someone leaves the tab open for days)
-        setInterval(updateDaysRemaining, 60 * 60 * 1000);
+            document.getElementById('val-ping').textContent = latest.ping?.toFixed(1) || 0;
+            document.getElementById('val-credits').textContent = latest.credits ? new Intl.NumberFormat().format(latest.credits) : 0;
+            document.getElementById('val-balance').textContent = (latest.balance ?? 0).toFixed(3);
+            document.getElementById('val-storage').textContent = formatStorage(latest.storage);
+            document.getElementById('val-uptime').textContent = formatUptime(latest.uptime);
+            document.getElementById('val-usage').textContent = latest.usage ? latest.usage.toFixed(1) + "%" : "0%";
+            document.getElementById('val-stoin').textContent = (latest.stoin !== null && latest.stoin !== undefined) ? latest.stoin.toFixed(3) : '—';
+        }
+
+        function renderChart() {
+            if (!fullData || fullData.length === 0) return;
+
+            let filtered = fullData;
+            if (currentTimeframe > 0) {
+                const lastTs = fullData[fullData.length - 1].ts;
+                const cutoff = lastTs - (currentTimeframe * 3600);
+                filtered = fullData.filter(d => d.ts >= cutoff);
+            }
+
+            const labels = filtered.map(d => {
+                const date = new Date(d.ts * 1000);
+                return `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+            });
+
+            const dsPing = filtered.map(d => d.ping);
+            const dsCredits = filtered.map(d => d.credits);
+            const dsBalance = filtered.map(d => d.balance);
+            const dsStorage = filtered.map(d => d.storage ? d.storage / (1024*1024*1024) : 0);
+            const dsUptime = filtered.map(d => d.uptime ? d.uptime / 3600 : 0);
+            const dsUsage = filtered.map(d => d.usage ? d.usage : 0);
+            const dsStoin = filtered.map(d => d.stoin ?? null);
+            const dsCommission = filtered.map(d => d.commission ?? null);
+
+            const ctx = document.getElementById('historyChart').getContext('2d');
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Ping (ms)',
+                            data: dsPing,
+                            borderColor: '#10b981', // emerald-500
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            yAxisID: 'y',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: true
+                        },
+                        {
+                            label: 'Credits',
+                            data: dsCredits,
+                            borderColor: '#8b5cf6', // violet-500
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            yAxisID: 'y1',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: false
+                        },
+                        {
+                            label: 'Stake',
+                            data: dsBalance,
+                            borderColor: '#f59e0b', // amber-500
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            yAxisID: 'y2',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: false
+                        },
+                        {
+                            label: 'STOINC',
+                            data: dsStoin,
+                            borderColor: '#14b8a6', // teal-500
+                            backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                            yAxisID: 'y6',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: false
+                        },
+                        {
+                            label: 'Storage (GB)',
+                            data: dsStorage,
+                            borderColor: '#f97316', // orange-500
+                            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                            yAxisID: 'y3',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: true
+                        },
+                        {
+                            label: 'Uptime (Hours)',
+                            data: dsUptime,
+                            borderColor: '#3b82f6', // blue-500
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            yAxisID: 'y4',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: false
+                        },
+                        {
+                            label: 'Disk Usage (%)',
+                            data: dsUsage,
+                            borderColor: '#f43f5e', // rose-500
+                            backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                            yAxisID: 'y5',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: true
+                        },
+                        {
+                            label: 'Commission (%)',
+                            data: dsCommission,
+                            borderColor: '#06b6d4', // cyan-500
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            yAxisID: 'y7',
+                            tension: 0.3,
+                            pointRadius: 1,
+                            hidden: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: { ticks: { maxTicksLimit: 8, color: '#9ca3af' }, grid: { display: false } },
+                        y: {
+                            type: 'linear', display: true, position: 'left',
+                            title: { display: true, text: 'Ping (ms)' },
+                            grid: { color: 'rgba(156, 163, 175, 0.1)' }
+                        },
+                        y1: { display: false, position: 'right' },
+                        y2: { display: false, position: 'right' },
+                        y3: { display: false, position: 'right' },
+                        y4: { display: false, position: 'right' },
+                        y5: { display: false, position: 'right', min: 0, max: 100 },
+                        y6: { display: false, position: 'right', min: 0 },
+                        y7: { display: false, position: 'right', min: 0, max: 100 },
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        if (label.includes('Stake')) {
+                                            label += context.parsed.y.toFixed(3) + ' XAND';
+                                        } else if (label.includes('STOINC')) {
+                                            label += context.parsed.y.toFixed(3) + ' WSOL';
+                                        } else if (label.includes('Commission') || label.includes('Usage')) {
+                                            label += context.parsed.y.toFixed(2) + '%';
+                                        } else {
+                                            label += context.parsed.y.toFixed(2);
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlEl = document.documentElement;
+
+        if (localStorage.getItem('theme') === 'dark' ||
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlEl.classList.add('dark');
+        } else {
+            htmlEl.classList.remove('dark');
+        }
+
+        themeToggle?.addEventListener('click', () => {
+            htmlEl.classList.toggle('dark');
+            localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
+        });
+
     </script>
 </body>
 </html>
