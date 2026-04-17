@@ -80,6 +80,16 @@ function formatStcoinHtml(stoin, hasStaking = false) {
     return `<span class="text-teal-600 dark:text-teal-400 font-medium">${parseFloat(stoin).toFixed(3)}</span>`;
 }
 
+function formatBoostHtml(boost) {
+    if (boost === undefined || boost === null || boost <= 0) {
+        return '<span class="text-gray-400 dark:text-gray-600 text-xs font-medium">—</span>';
+    }
+    const highlightClass = boost > 16
+        ? "text-amber-500 dark:text-amber-400 font-bold"
+        : "text-violet-600 dark:text-violet-400 font-medium";
+    return `<span class="${highlightClass}">${parseFloat(boost).toFixed(1)}x</span>`;
+}
+
 async function loadYugaInfo() {
     const rpcUrl = document.getElementById("rpcSelector").value;
     const host = new URL(rpcUrl).hostname;
@@ -217,12 +227,14 @@ function renderTable() {
         const cacheA = ipCache[ipA] || {
             name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0,
             owner: "--", manager: "--",
-            nft_slot_1_name: "--", nft_slot_2_name: "--"
+            nft_slot_1_name: "--", nft_slot_2_name: "--",
+            boost: 0   // ← NEW
         };
         const cacheB = ipCache[ipB] || {
             name: "", geo_sort: "zzzz", is_registered: false, nft_count: 0,
             owner: "--", manager: "--",
-            nft_slot_1_name: "--", nft_slot_2_name: "--"
+            nft_slot_1_name: "--", nft_slot_2_name: "--",
+            boost: 0   // ← NEW
         };
         let valA, valB, comparison = 0;
 
@@ -313,6 +325,11 @@ function renderTable() {
                 valB = (cacheB.is_registered ? 1 : 0) * 10 + (cacheB.nft_count || 0);
                 comparison = valA - valB;
                 break;
+            case 'boost':
+                valA = (cacheA.boost ?? 0);
+                valB = (cacheB.boost ?? 0);
+                comparison = valA - valB;
+                break;
             default: // last_seen
                 comparison = (a.last_seen_timestamp || 0) - (b.last_seen_timestamp || 0);
                 break;
@@ -327,6 +344,7 @@ function renderTable() {
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('name')" title="Click footer to register your name">Name ${getSortIndicator('name')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('pubkey')">Pubkey ${getSortIndicator('pubkey')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none text-center" onclick="handleSort('nfts')">Reg?<br>(NFTs) ${getSortIndicator('nfts')}</th>
+        <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none text-center" onclick="handleSort('boost')">BOOST ${getSortIndicator('boost')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none text-center" onclick="handleSort('owner')" title="Owner pubkey">O ${getSortIndicator('owner')}</th>
         <th class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none text-center" onclick="handleSort('manager')" title="Manager pubkey">M ${getSortIndicator('manager')}</th>
         <th class="text-right cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none" onclick="handleSort('stake')">Stake<br>XAND ${getSortIndicator('stake')}</th>
@@ -382,7 +400,7 @@ function renderTable() {
             nft_slot_2_name: "--"
         };
 
-        // === NEW NFT CELL with tooltip showing real names ===
+        // === UPDATED NFT CELL with highlighted count when > 0 ===
         let nftCellHtml = `<span class="text-gray-400 dark:text-gray-600 text-sm">-</span>`;
         if (cached.is_registered) {
             const nftCount = cached.nft_count || 0;
@@ -399,9 +417,13 @@ function renderTable() {
                 ? `title="${escapeHtml(tooltipLines.join('\n'))}"`
                 : '';
 
+            const countClass = nftCount > 0
+                ? 'text-emerald-600 dark:text-emerald-400 text-xs font-bold'
+                : 'text-pink-500 dark:text-pink-400 text-xs font-medium';
+
             nftCellHtml = `
                 <span class="font-bold text-emerald-600 dark:text-emerald-400" ${titleAttr}>Y</span>
-                <span class="ml-1 text-pink-500 dark:text-pink-400 text-xs font-medium">(${nftCount})</span>
+                <span class="ml-1 ${countClass}">(${nftCount})</span>
             `;
         }
 
@@ -445,6 +467,7 @@ function renderTable() {
                 <span class="short-key">${shortKey}</span>${warningIcon}
             </td>
             <td class="text-center">${nftCellHtml}</td>
+            <td class="text-center">${formatBoostHtml(cached.boost)}</td>
             <td class="text-center font-mono text-xs text-gray-600 dark:text-gray-400 cursor-pointer hover:text-indigo-600"
                 title="${cached.owner === '--' ? '' : `Click to copy: ${cached.owner}`}"
                 onclick="copyPubkey('${cached.owner}', this, event)">
@@ -504,7 +527,8 @@ function renderTable() {
                     manager: g.manager || "--",
                     credits: g.credits,
                     nft_slot_1_name: g.nft_slot_1_name || "--",
-                    nft_slot_2_name: g.nft_slot_2_name || "--"
+                    nft_slot_2_name: g.nft_slot_2_name || "--",
+                    boost: g.boost || 0,
                 };
             }
             requestAnimationFrame(() => renderTable());
