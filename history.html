@@ -307,6 +307,16 @@
                 document.getElementById('node-pubkey').textContent = data.meta.pubkey || "N/A";
 
                 const chain = data.chain || {};
+
+                // === BOOST DISPLAY (right after node name) ===
+                const boostVal = (chain.boost || 0);
+                if (boostVal > 0) {
+                    const boostHtml = boostVal > 16
+                        ? `<span class="text-amber-500 dark:text-amber-400 font-bold ml-2">${boostVal.toFixed(1)}x</span>`
+                        : `<span class="text-violet-600 dark:text-violet-400 font-medium ml-2">${boostVal.toFixed(1)}x</span>`;
+                    document.getElementById('node-name').innerHTML += ` | ${boostHtml}`;
+                }
+
                 const empty = "11111111111111111111111111111111";
 
                 const ownerEl = document.getElementById('chain-owner');
