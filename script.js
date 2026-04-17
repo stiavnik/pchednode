@@ -397,7 +397,8 @@ function renderTable() {
             owner: "--",
             manager: "--",
             nft_slot_1_name: "--",
-            nft_slot_2_name: "--"
+            nft_slot_2_name: "--",
+			boost: 0
         };
 
         // === UPDATED NFT CELL with highlighted count when > 0 ===
