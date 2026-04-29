@@ -6,50 +6,38 @@
     <title>pchednode Xandeum Network dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      tailwind.config = {
-        darkMode: 'class',
-      }
+      tailwind.config = { darkMode: 'class' }
     </script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style2.css">
 </head>
 <body class="min-h-screen bg-gradient-to-br from-lime-100 to-green-200 dark:from-slate-900 dark:to-gray-900 transition-colors duration-500 text-gray-900 dark:text-gray-100">
     <div class="max-w-7xl mx-auto p-4 md:p-8">
 
         <header class="mb-6 flex flex-col md:flex-row items-center justify-between gap-5 md:gap-0 border-b border-gray-300/50 dark:border-gray-700/50 pb-4">
-
             <!-- Logo -->
             <a href="pchednode.jpg" target="_blank" class="flex justify-center md:justify-start shrink-0 mx-auto md:mx-0">
-                <img src="pched.jpg" alt="pchednode"
-                     class="w-32 h-20 md:w-40 md:h-24 rounded-lg shadow-lg hover:shadow-2xl transition-shadow object-cover">
+                <img src="pched.jpg" alt="pchednode" class="w-32 h-20 md:w-40 md:h-24 rounded-lg shadow-lg hover:shadow-2xl transition-shadow object-cover">
             </a>
 
             <!-- Slogan + staking link -->
             <div class="flex-1 flex flex-col items-center text-center px-2">
-                <h1 id="dissolve-message" class="text-xl md:text-2xl font-semibold tracking-tight text-gray-700 dark:text-gray-300">
-                    Without support, pchednode will dissolve in <span id="days-remaining" class="font-mono text-red-600 dark:text-red-400">16</span> days.
+                <h1 id="dissolve-message" class="text-xl md:text-2xl font-semibold tracking-tight text-gray-700 dark:text-gray-300 glitch" data-text="Without support, pchednode will dissolve in XX days.">
+                    Without support, pchednode will dissolve in <span id="days-remaining" class="font-mono text-red-600 dark:text-red-400">XX</span> days.
                 </h1>
-                <a href="https://xand-staking.xandeum.network/"
-                   target="_blank"
-                   class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                <a href="https://xand-staking.xandeum.network/" target="_blank" class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                     Stake XAND to a pNode: xand-staking.xandeum.network
                 </a>
             </div>
 
             <!-- Buttons -->
             <div class="flex items-center justify-center gap-2 md:gap-3 flex-wrap shrink-0">
-                <a href="https://youtu.be/949Lsj32GWw"
-                   target="_blank"
-                   class="px-4 py-2 text-xs md:px-5 md:py-2.5 rounded-xl bg-[#A88282] hover:bg-[#DB5014] text-white font-bold shadow-lg hover:shadow-red-500/50 transition-all whitespace-nowrap">
+                <a href="https://youtu.be/949Lsj32GWw" target="_blank" class="px-4 py-2 text-xs md:px-5 md:py-2.5 rounded-xl bg-[#A88282] hover:bg-[#DB5014] text-white font-bold shadow-lg hover:shadow-red-500/50 transition-all whitespace-nowrap">
                     🎬 Tutorial →
                 </a>
-
-                <a href="rewardao/index.html"
-                   class="px-4 py-2 text-xs md:px-5 md:py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg hover:shadow-indigo-500/50 transition-all whitespace-nowrap">
+                <a href="rewardao/index.html" class="px-4 py-2 text-xs md:px-5 md:py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg hover:shadow-indigo-500/50 transition-all whitespace-nowrap">
                     REWARDAO →
                 </a>
-
-                <button id="themeToggle"
-                        class="px-4 py-2 text-xs md:px-5 md:py-2.5 rounded-xl bg-white/20 dark:bg-gray-800/50 backdrop-blur hover:bg-white/30 dark:hover:bg-gray-700/70 transition-all font-semibold shadow-lg text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                <button id="themeToggle" class="px-4 py-2 text-xs md:px-5 md:py-2.5 rounded-xl bg-white/20 dark:bg-gray-800/50 backdrop-blur hover:bg-white/30 dark:hover:bg-gray-700/70 transition-all font-semibold shadow-lg text-gray-900 dark:text-gray-100 whitespace-nowrap">
                     Dark
                 </button>
             </div>
@@ -64,16 +52,10 @@
                     <option value="https://rpc3.pchednode.com/rpc">MainNet 2</option>
                 </select>
 
-                <button id="loadButton" onclick="sendRpcRequest()"
-                        class="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-lg transition">
-                    LOAD
-                </button>
+                <button id="loadButton" onclick="sendRpcRequest()" class="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-lg transition">LOAD</button>
 
-                <div class="font-bold text-sm">
-                    Pods: <span id="podCount" class="text-indigo-600 dark:text-indigo-400">0</span>
-                </div>
+                <div class="font-bold text-sm">Pods: <span id="podCount" class="text-indigo-600 dark:text-indigo-400">0</span></div>
 
-                <!-- YUGA INFO -->
                 <div id="yuga-box" class="flex items-center gap-x-2 bg-white/70 dark:bg-gray-800/70 px-4 py-2 rounded-xl text-sm font-medium shadow-inner border border-white/60 dark:border-gray-700/60 transition-opacity" style="opacity: 0;">
                     <span class="text-emerald-600 dark:text-emerald-400 font-bold">Yuga:</span>
                     <span id="yuga-current" class="font-mono text-gray-900 dark:text-gray-100">?</span>
@@ -82,25 +64,15 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <label class="flex items-center gap-1 cursor-pointer text-sm">
-                        <input type="checkbox" id="versionFilterToggle" class="w-4 h-4 text-indigo-600 dark:text-indigo-400 rounded focus:ring-indigo-500">
-                        <span class="font-medium">Version</span>
-                    </label>
-                    <input type="text" id="versionFilterValue" value="1.3.2" placeholder="e.g. 1.3.2"
-                           class="w-16 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <label class="flex items-center gap-1 cursor-pointer text-sm"><input type="checkbox" id="versionFilterToggle" class="w-4 h-4 text-indigo-600 dark:text-indigo-400 rounded focus:ring-indigo-500"><span class="font-medium">Version</span></label>
+                    <input type="text" id="versionFilterValue" value="1.3.2" placeholder="e.g. 1.3.2" class="w-16 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
 
                 <div class="flex items-center gap-2 flex-1 min-w-0">
-                    <label class="flex items-center gap-1 cursor-pointer text-sm">
-                        <input type="checkbox" id="globalFilterToggle" class="w-4 h-4 text-indigo-600 dark:text-indigo-400 rounded focus:ring-indigo-500">
-                        <span class="font-medium">Filter</span>
-                    </label>
-                    <input type="text" id="globalFilterValue" placeholder="NAME, IP, or any PUBKEY - pNode, Owner, Manager"
-                           class="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <label class="flex items-center gap-1 cursor-pointer text-sm"><input type="checkbox" id="globalFilterToggle" class="w-4 h-4 text-indigo-600 dark:text-indigo-400 rounded focus:ring-indigo-500"><span class="font-medium">Filter</span></label>
+                    <input type="text" id="globalFilterValue" placeholder="NAME, IP, or any PUBKEY - pNode, Owner, Manager" class="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
             </div>
-
-            <div id="output" style="display:none;">Loading...</div>
 
             <div id="pched-live-view" class="mt-6 p-6 bg-white/70 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-2xl min-h-96 text-center">
                 <p class="text-gray-500 dark:text-gray-400 mt-12 text-lg">Click LOAD to fetch pod data...</p>
@@ -109,43 +81,30 @@
 
         <footer class="mt-12 text-center text-sm text-gray-600 dark:text-gray-400 border-t border-gray-300/50 dark:border-gray-700/50 pt-6">
             © 2026 Substance242 | Name your device →
-            <a id="footer-nick"
-               href="mailto:hlasenie-pchednode@yahoo.com?subject=Register%20Node%20Name&body=Hello%20Substance242%2C%0A%0AI%20would%20like%20to%20register%20a%20name%20for%20my%20node.%0A%0AIP%3A%20%0AName%3A%20"
-               class="cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium"
-               title="Send email">
-               click here
-            </a>
-            | v1.3 | Data sourced via pchednode RPCs and custom Geo API.
+            <a id="footer-nick" href="mailto:hlasenie-pchednode@yahoo.com?subject=Register%20Node%20Name&body=Hello%20Substance242%2C%0A%0AI%20would%20like%20to%20register%20a%20name%20for%20my%20node.%0A%0AIP%3A%20%0AName%3A%20" class="cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium" title="Send email">click here</a>
+            | v2.42 | Data sourced via pchednode RPCs and custom Geo API.
         </footer>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script2.js"></script>
     <script>
         function updateDaysRemaining() {
-            // Target = May 1, 2026
-            const targetDate = new Date(2026, 4, 1); // May = month 4 (0-indexed)
-
+            const targetDate = new Date(2026, 4, 1);
             const now = new Date();
-
-            // Normalize both to start of day → clean calendar-day count
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const target = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
-
             const diffTime = target.getTime() - today.getTime();
             let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
             if (diffDays < 0) diffDays = 0;
 
             const daysEl = document.getElementById('days-remaining');
-            if (daysEl) {
-                daysEl.textContent = diffDays;
-            }
+            if (daysEl) daysEl.textContent = diffDays;
+
+            const h1 = document.getElementById('dissolve-message');
+            if (h1) h1.setAttribute('data-text', h1.textContent);
         }
 
-        // Run when page loads
         window.addEventListener('load', updateDaysRemaining);
-
-        // Refresh every hour (in case someone leaves the tab open for days)
         setInterval(updateDaysRemaining, 60 * 60 * 1000);
     </script>
 </body>
